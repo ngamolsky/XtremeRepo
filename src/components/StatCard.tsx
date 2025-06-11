@@ -5,7 +5,7 @@ interface StatCardProps {
   title: string;
   value: string | number;
   subtitle?: string;
-  icon: LucideIcon;
+  icon: typeof LucideIcon;
   trend?: {
     value: number;
     isPositive: boolean;
