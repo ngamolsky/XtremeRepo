@@ -1,6 +1,6 @@
-import React from 'react';
-import { Users, Award, Clock, Target, User } from 'lucide-react';
-import { useRelayData } from '../hooks/useRelayData';
+import { Award, Target, User, Users } from "lucide-react";
+import React from "react";
+import { useRelayData } from "../hooks/useRelayData";
 
 const TeamView: React.FC = () => {
   const { legResults, loading, error } = useRelayData();
@@ -16,7 +16,9 @@ const TeamView: React.FC = () => {
   if (error) {
     return (
       <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-        <h3 className="text-lg font-semibold text-red-800 mb-2">Connection Error</h3>
+        <h3 className="text-lg font-semibold text-red-800 mb-2">
+          Connection Error
+        </h3>
         <p className="text-red-700">{error}</p>
       </div>
     );
@@ -24,9 +26,9 @@ const TeamView: React.FC = () => {
 
   // Group results by runner and calculate stats
   const runnerStats = legResults.reduce((acc, result) => {
-    const runnerName = result.runner || 'Unknown';
-    if (runnerName === 'Unknown') return acc;
-    
+    const runnerName = result.runner || "Unknown";
+    if (runnerName === "Unknown") return acc;
+
     if (!acc[runnerName]) {
       acc[runnerName] = {
         name: runnerName,
@@ -34,14 +36,14 @@ const TeamView: React.FC = () => {
         totalRaces: 0,
         bestTime: Infinity,
         totalTimeMinutes: 0,
-        legs: new Set<number>()
+        legs: new Set<number>(),
       };
     }
-    
+
     acc[runnerName].races.push(result);
     acc[runnerName].totalRaces++;
     acc[runnerName].legs.add(result.leg_number);
-    
+
     if (result.lap_time) {
       const timeInMinutes = parseTimeToMinutes(result.lap_time);
       acc[runnerName].totalTimeMinutes += timeInMinutes;
@@ -49,16 +51,21 @@ const TeamView: React.FC = () => {
         acc[runnerName].bestTime = timeInMinutes;
       }
     }
-    
+
     return acc;
   }, {} as Record<string, any>);
 
   const runners = Object.values(runnerStats).map((runner: any) => ({
     ...runner,
     averageTime: runner.totalTimeMinutes / runner.totalRaces,
-    bestTimeFormatted: runner.bestTime === Infinity ? 'N/A' : formatMinutesToTime(runner.bestTime),
-    averageTimeFormatted: formatMinutesToTime(runner.totalTimeMinutes / runner.totalRaces),
-    legsRun: Array.from(runner.legs).sort((a, b) => a - b)
+    bestTimeFormatted:
+      runner.bestTime === Infinity
+        ? "N/A"
+        : formatMinutesToTime(runner.bestTime),
+    averageTimeFormatted: formatMinutesToTime(
+      runner.totalTimeMinutes / runner.totalRaces
+    ),
+    legsRun: Array.from(runner.legs).sort((a: any, b: any) => a - b),
   }));
 
   return (
@@ -66,7 +73,9 @@ const TeamView: React.FC = () => {
       {/* Header */}
       <div className="text-center">
         <h1 className="text-4xl font-bold text-gray-900 mb-2">Team Members</h1>
-        <p className="text-lg text-gray-600">Meet the athletes who make our relay team great</p>
+        <p className="text-lg text-gray-600">
+          Meet the athletes who make our relay team great
+        </p>
       </div>
 
       {/* Team Stats */}
@@ -78,12 +87,16 @@ const TeamView: React.FC = () => {
         </div>
         <div className="card p-6 text-center">
           <Target className="w-8 h-8 text-green-600 mx-auto mb-3" />
-          <h3 className="text-2xl font-bold text-gray-900">{legResults.length}</h3>
+          <h3 className="text-2xl font-bold text-gray-900">
+            {legResults.length}
+          </h3>
           <p className="text-gray-600">Total Legs Run</p>
         </div>
         <div className="card p-6 text-center">
           <Award className="w-8 h-8 text-yellow-600 mx-auto mb-3" />
-          <h3 className="text-2xl font-bold text-gray-900">{new Set(legResults.map(r => r.year)).size}</h3>
+          <h3 className="text-2xl font-bold text-gray-900">
+            {new Set(legResults.map((r) => r.year)).size}
+          </h3>
           <p className="text-gray-600">Years Competed</p>
         </div>
       </div>
@@ -92,35 +105,51 @@ const TeamView: React.FC = () => {
       {runners.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {runners.map((runner) => (
-            <div key={runner.name} className="card p-6 hover:shadow-lg transition-all duration-200">
+            <div
+              key={runner.name}
+              className="card p-6 hover:shadow-lg transition-all duration-200"
+            >
               <div className="flex items-center mb-4">
                 <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-primary-700 rounded-full flex items-center justify-center text-white font-bold text-lg">
                   {getInitials(runner.name)}
                 </div>
                 <div className="ml-3">
-                  <h3 className="text-lg font-semibold text-gray-900">{runner.name}</h3>
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    {runner.name}
+                  </h3>
                   <p className="text-sm text-gray-600">Team Runner</p>
                 </div>
               </div>
 
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Races Participated</span>
-                  <span className="font-semibold text-gray-900">{runner.totalRaces}</span>
+                  <span className="text-sm text-gray-600">
+                    Races Participated
+                  </span>
+                  <span className="font-semibold text-gray-900">
+                    {runner.totalRaces}
+                  </span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-600">Best Time</span>
-                  <span className="font-semibold text-gray-900">{runner.bestTimeFormatted}</span>
+                  <span className="font-semibold text-gray-900">
+                    {runner.bestTimeFormatted}
+                  </span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-600">Average Time</span>
-                  <span className="font-semibold text-gray-900">{runner.averageTimeFormatted}</span>
+                  <span className="font-semibold text-gray-900">
+                    {runner.averageTimeFormatted}
+                  </span>
                 </div>
                 <div className="flex justify-between items-start">
                   <span className="text-sm text-gray-600">Legs Run</span>
                   <div className="flex flex-wrap gap-1">
                     {runner.legsRun.map((leg: number) => (
-                      <span key={leg} className="px-2 py-1 bg-primary-100 text-primary-800 text-xs rounded-full">
+                      <span
+                        key={leg}
+                        className="px-2 py-1 bg-primary-100 text-primary-800 text-xs rounded-full"
+                      >
                         {leg}
                       </span>
                     ))}
@@ -130,12 +159,18 @@ const TeamView: React.FC = () => {
 
               {/* Recent Performance */}
               <div className="mt-4 pt-4 border-t border-gray-100">
-                <h4 className="text-sm font-medium text-gray-900 mb-2">Recent Races</h4>
+                <h4 className="text-sm font-medium text-gray-900 mb-2">
+                  Recent Races
+                </h4>
                 <div className="space-y-1">
                   {runner.races.slice(0, 3).map((race: any, index: number) => (
                     <div key={index} className="flex justify-between text-xs">
-                      <span className="text-gray-600">{race.year} - Leg {race.leg_number}</span>
-                      <span className="text-gray-900">{race.lap_time || 'N/A'}</span>
+                      <span className="text-gray-600">
+                        {race.year} - Leg {race.leg_number}
+                      </span>
+                      <span className="text-gray-900">
+                        {race.lap_time || "N/A"}
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -146,44 +181,74 @@ const TeamView: React.FC = () => {
       ) : (
         <div className="text-center py-12">
           <User className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No team data found</h3>
-          <p className="text-gray-600">Runner information will appear here once data is available</p>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">
+            No team data found
+          </h3>
+          <p className="text-gray-600">
+            Runner information will appear here once data is available
+          </p>
         </div>
       )}
 
       {/* Performance Table */}
       {runners.length > 0 && (
         <div className="card p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Detailed Performance</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            Detailed Performance
+          </h3>
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Runner</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Races</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Best Time</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Average Time</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Legs</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Runner
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Total Races
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Best Time
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Average Time
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Legs
+                  </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {runners.map((runner) => (
-                  <tr key={runner.name} className="hover:bg-gray-50 transition-colors">
+                  <tr
+                    key={runner.name}
+                    className="hover:bg-gray-50 transition-colors"
+                  >
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <div className="w-8 h-8 bg-gradient-to-br from-primary-500 to-primary-700 rounded-full flex items-center justify-center text-white font-bold text-sm mr-3">
                           {getInitials(runner.name)}
                         </div>
-                        <span className="text-sm font-medium text-gray-900">{runner.name}</span>
+                        <span className="text-sm font-medium text-gray-900">
+                          {runner.name}
+                        </span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{runner.totalRaces}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{runner.bestTimeFormatted}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{runner.averageTimeFormatted}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {runner.totalRaces}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {runner.bestTimeFormatted}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {runner.averageTimeFormatted}
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex flex-wrap gap-1">
                         {runner.legsRun.map((leg: number) => (
-                          <span key={leg} className="px-2 py-1 bg-primary-100 text-primary-800 text-xs rounded-full">
+                          <span
+                            key={leg}
+                            className="px-2 py-1 bg-primary-100 text-primary-800 text-xs rounded-full"
+                          >
                             {leg}
                           </span>
                         ))}
@@ -202,7 +267,7 @@ const TeamView: React.FC = () => {
 
 // Helper functions
 const parseTimeToMinutes = (timeString: string): number => {
-  const parts = timeString.split(':');
+  const parts = timeString.split(":");
   if (parts.length >= 2) {
     const hours = parseInt(parts[0]) || 0;
     const minutes = parseInt(parts[1]) || 0;
@@ -213,19 +278,26 @@ const parseTimeToMinutes = (timeString: string): number => {
 };
 
 const formatMinutesToTime = (minutes: number): string => {
-  if (isNaN(minutes) || minutes === 0) return 'N/A';
+  if (isNaN(minutes) || minutes === 0) return "N/A";
   const hours = Math.floor(minutes / 60);
   const mins = Math.floor(minutes % 60);
   const secs = Math.floor((minutes % 1) * 60);
-  
+
   if (hours > 0) {
-    return `${hours}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    return `${hours}:${mins.toString().padStart(2, "0")}:${secs
+      .toString()
+      .padStart(2, "0")}`;
   }
-  return `${mins}:${secs.toString().padStart(2, '0')}`;
+  return `${mins}:${secs.toString().padStart(2, "0")}`;
 };
 
 const getInitials = (name: string): string => {
-  return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  return name
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
 };
 
 export default TeamView;

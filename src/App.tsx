@@ -1,23 +1,23 @@
-import React, { useState } from 'react';
-import AuthWrapper from './components/AuthWrapper';
-import Navigation from './components/Navigation';
-import Dashboard from './components/Dashboard';
-import TeamView from './components/TeamView';
-import HistoryView from './components/HistoryView';
-import PhotosView from './components/PhotosView';
+import { useState } from "react";
+import AuthWrapper from "./components/AuthWrapper";
+import Dashboard from "./components/Dashboard";
+import HistoryView from "./components/HistoryView";
+import Navigation from "./components/Navigation";
+import PhotosView from "./components/PhotosView";
+import TeamView from "./components/TeamView";
 
 function App() {
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const [activeTab, setActiveTab] = useState("dashboard");
 
   const renderActiveView = () => {
     switch (activeTab) {
-      case 'dashboard':
+      case "dashboard":
         return <Dashboard />;
-      case 'team':
+      case "team":
         return <TeamView />;
-      case 'history':
+      case "history":
         return <HistoryView />;
-      case 'photos':
+      case "photos":
         return <PhotosView />;
       default:
         return <Dashboard />;

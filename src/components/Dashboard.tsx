@@ -1,11 +1,22 @@
-import React from 'react';
-import { Clock, Trophy, Users, TrendingUp, Calendar, MapPin } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
-import StatCard from './StatCard';
-import { useRelayData } from '../hooks/useRelayData';
+import { Calendar, Clock, TrendingUp, Trophy } from "lucide-react";
+import React from "react";
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
+import { useRelayData } from "../hooks/useRelayData";
+import StatCard from "./StatCard";
 
 const Dashboard: React.FC = () => {
-  const { teamPerformance, legResults, placements, loading, error } = useRelayData();
+  const { teamPerformance, legResults, placements, loading, error } =
+    useRelayData();
 
   if (loading) {
     return (
@@ -18,10 +29,13 @@ const Dashboard: React.FC = () => {
   if (error) {
     return (
       <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-        <h3 className="text-lg font-semibold text-red-800 mb-2">Connection Error</h3>
+        <h3 className="text-lg font-semibold text-red-800 mb-2">
+          Connection Error
+        </h3>
         <p className="text-red-700">{error}</p>
         <p className="text-red-600 text-sm mt-2">
-          Make sure your Supabase environment variables are configured correctly.
+          Make sure your Supabase environment variables are configured
+          correctly.
         </p>
       </div>
     );
@@ -29,14 +43,21 @@ const Dashboard: React.FC = () => {
 
   // Calculate stats from real data
   const latestPerformance = teamPerformance[0];
-  const bestPlacement = placements.length > 0 ? Math.min(...placements.map(p => p.overall_place || Infinity)) : 0;
-  const averagePlacement = placements.length > 0 
-    ? Math.round(placements.reduce((sum, p) => sum + (p.overall_place || 0), 0) / placements.length)
-    : 0;
+  const bestPlacement =
+    placements.length > 0
+      ? Math.min(...placements.map((p) => p.overall_place || Infinity))
+      : 0;
+  const averagePlacement =
+    placements.length > 0
+      ? Math.round(
+          placements.reduce((sum, p) => sum + (p.overall_place || 0), 0) /
+            placements.length
+        )
+      : 0;
 
   // Prepare chart data
   const performanceChartData = teamPerformance
-    .map(perf => ({
+    .map((perf) => ({
       year: perf.year,
       placement: perf.overall_place,
       totalTeams: perf.overall_teams,
@@ -45,19 +66,23 @@ const Dashboard: React.FC = () => {
 
   const currentYear = latestPerformance?.year || new Date().getFullYear();
   const legPerformanceData = legResults
-    .filter(result => result.year === currentYear)
-    .map(result => ({
+    .filter((result) => result.year === currentYear)
+    .map((result) => ({
       leg: `Leg ${result.leg_number}`,
       time: result.lap_time ? parseTimeToMinutes(result.lap_time) : 0,
-      runner: result.runner || 'Unknown',
+      runner: result.runner || "Unknown",
     }));
 
   return (
     <div className="space-y-8 animate-fade-in">
       {/* Header */}
       <div className="text-center">
-        <h1 className="text-4xl font-bold text-gray-900 mb-2">Team Performance Dashboard</h1>
-        <p className="text-lg text-gray-600">Track your relay race journey and achievements</p>
+        <h1 className="text-4xl font-bold text-gray-900 mb-2">
+          Team Performance Dashboard
+        </h1>
+        <p className="text-lg text-gray-600">
+          Track your relay race journey and achievements
+        </p>
       </div>
 
       {/* Stats Grid */}
@@ -70,26 +95,30 @@ const Dashboard: React.FC = () => {
         />
         <StatCard
           title="Best Placement"
-          value={bestPlacement > 0 ? `#${bestPlacement}` : 'N/A'}
+          value={bestPlacement > 0 ? `#${bestPlacement}` : "N/A"}
           icon={Trophy}
           subtitle="All-time best finish"
           className="bg-gradient-to-br from-yellow-50 to-orange-50 border-yellow-200"
         />
         <StatCard
           title="Latest Time"
-          value={latestPerformance?.total_time || 'N/A'}
+          value={latestPerformance?.total_time || "N/A"}
           icon={Clock}
-          subtitle={`${latestPerformance?.year || 'No data'} race`}
+          subtitle={`${latestPerformance?.year || "No data"} race`}
         />
         <StatCard
           title="Avg Placement"
-          value={averagePlacement > 0 ? `#${averagePlacement}` : 'N/A'}
+          value={averagePlacement > 0 ? `#${averagePlacement}` : "N/A"}
           icon={TrendingUp}
           subtitle="Across all races"
-          trend={latestPerformance?.improvement ? {
-            value: latestPerformance.improvement,
-            isPositive: latestPerformance.improvement > 0
-          } : undefined}
+          trend={
+            latestPerformance?.improvement
+              ? {
+                  value: latestPerformance.improvement,
+                  isPositive: latestPerformance.improvement > 0,
+                }
+              : undefined
+          }
         />
       </div>
 
@@ -97,36 +126,35 @@ const Dashboard: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Placement Trend */}
         <div className="card p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Placement Trend Over Time</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            Placement Trend Over Time
+          </h3>
           {performanceChartData.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={performanceChartData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                 <XAxis dataKey="year" stroke="#6b7280" />
-                <YAxis 
-                  stroke="#6b7280" 
-                  domain={['dataMin - 2', 'dataMax + 2']}
+                <YAxis
+                  stroke="#6b7280"
+                  domain={["dataMin - 2", "dataMax + 2"]}
                   reversed
                 />
-                <Tooltip 
+                <Tooltip
                   contentStyle={{
-                    backgroundColor: 'white',
-                    border: '1px solid #e5e7eb',
-                    borderRadius: '8px',
-                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                    backgroundColor: "white",
+                    border: "1px solid #e5e7eb",
+                    borderRadius: "8px",
+                    boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
                   }}
-                  formatter={(value: any, name: string) => [
-                    `#${value}`,
-                    'Placement'
-                  ]}
+                  formatter={(value: any) => [`#${value}`, "Placement"]}
                 />
-                <Line 
-                  type="monotone" 
-                  dataKey="placement" 
-                  stroke="#3b82f6" 
+                <Line
+                  type="monotone"
+                  dataKey="placement"
+                  stroke="#3b82f6"
                   strokeWidth={3}
-                  dot={{ fill: '#3b82f6', strokeWidth: 2, r: 6 }}
-                  activeDot={{ r: 8, stroke: '#3b82f6', strokeWidth: 2 }}
+                  dot={{ fill: "#3b82f6", strokeWidth: 2, r: 6 }}
+                  activeDot={{ r: 8, stroke: "#3b82f6", strokeWidth: 2 }}
                 />
               </LineChart>
             </ResponsiveContainer>
@@ -148,23 +176,19 @@ const Dashboard: React.FC = () => {
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                 <XAxis dataKey="leg" stroke="#6b7280" />
                 <YAxis stroke="#6b7280" />
-                <Tooltip 
+                <Tooltip
                   contentStyle={{
-                    backgroundColor: 'white',
-                    border: '1px solid #e5e7eb',
-                    borderRadius: '8px',
-                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                    backgroundColor: "white",
+                    border: "1px solid #e5e7eb",
+                    borderRadius: "8px",
+                    boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
                   }}
-                  formatter={(value: any, name: string, props: any) => [
+                  formatter={(value: any, props: any) => [
                     `${value.toFixed(1)} min`,
-                    `Time (${props.payload.runner})`
+                    `Time (${props.payload.runner})`,
                   ]}
                 />
-                <Bar 
-                  dataKey="time" 
-                  fill="#3b82f6"
-                  radius={[4, 4, 0, 0]}
-                />
+                <Bar dataKey="time" fill="#3b82f6" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           ) : (
@@ -178,30 +202,55 @@ const Dashboard: React.FC = () => {
       {/* Recent Performance Summary */}
       {teamPerformance.length > 0 && (
         <div className="card p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Performance</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            Recent Performance
+          </h3>
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Year</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Time</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Division Place</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Overall Place</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Avg Pace</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Year
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Total Time
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Division Place
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Overall Place
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Avg Pace
+                  </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {teamPerformance.slice(0, 5).map((perf) => (
-                  <tr key={perf.year} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{perf.year}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{perf.total_time || 'N/A'}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {perf.division_place && perf.division_teams ? `#${perf.division_place} of ${perf.division_teams}` : 'N/A'}
+                  <tr
+                    key={perf.year}
+                    className="hover:bg-gray-50 transition-colors"
+                  >
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      {perf.year}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {perf.overall_place && perf.overall_teams ? `#${perf.overall_place} of ${perf.overall_teams}` : 'N/A'}
+                      {perf.total_time || "N/A"}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{perf.average_pace || 'N/A'}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {perf.division_place && perf.division_teams
+                        ? `#${perf.division_place} of ${perf.division_teams}`
+                        : "N/A"}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {perf.overall_place && perf.overall_teams
+                        ? `#${perf.overall_place} of ${perf.overall_teams}`
+                        : "N/A"}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {perf.average_pace || "N/A"}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -215,7 +264,7 @@ const Dashboard: React.FC = () => {
 
 // Helper function to parse time strings to minutes
 const parseTimeToMinutes = (timeString: string): number => {
-  const parts = timeString.split(':');
+  const parts = timeString.split(":");
   if (parts.length >= 2) {
     const hours = parseInt(parts[0]) || 0;
     const minutes = parseInt(parts[1]) || 0;
