@@ -70,7 +70,7 @@ const Dashboard: React.FC = () => {
     .map((result) => ({
       leg: `Leg ${result.leg_number}`,
       time: result.lap_time ? parseTimeToMinutes(result.lap_time) : 0,
-      runner: result.runner || "Unknown",
+      runner: result.runner ? result.runner : "Missing Runner Name ",
     }));
 
   return (
@@ -183,10 +183,12 @@ const Dashboard: React.FC = () => {
                     borderRadius: "8px",
                     boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
                   }}
-                  formatter={(value: any, props: any) => [
-                    `${value.toFixed(1)} min`,
-                    `Time (${props.payload.runner})`,
-                  ]}
+                  formatter={(value: any, name: any, props: any) => {
+                    return [
+                      `${value.toFixed(1)} min`,
+                      `Time (${props?.payload?.runner || "Unknown Runner"})`,
+                    ];
+                  }}
                 />
                 <Bar dataKey="time" fill="#3b82f6" radius={[4, 4, 0, 0]} />
               </BarChart>
