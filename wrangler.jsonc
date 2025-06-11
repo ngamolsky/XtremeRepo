@@ -1,4 +1,5 @@
 {
   "name": "xtreme-falcons",
-  "compatibility_date": "2025-04-03"
+  "compatibility_date": "2025-04-03",
+  "main": "./src/main.tsx"
 }
