@@ -70,21 +70,47 @@ const TeamView: React.FC = () => {
   };
 
   const runners = Object.values(runnerStats)
-    .map((runner: any) => ({
-      ...runner,
-      averagePace:
+    .map((runner: any) => {
+      const averagePace =
         runner.totalDistance > 0
           ? runner.totalTimeMinutes / runner.totalDistance
-          : null,
-      bestPace: runner.bestPace !== Infinity ? runner.bestPace : null,
-      bestPaceFormatted: formatPace(runner.bestPace),
-      averagePaceFormatted: formatPace(
+          : null;
+      const bestPace = runner.bestPace !== Infinity ? runner.bestPace : null;
+      const bestPaceFormatted = formatPace(runner.bestPace);
+      const averagePaceFormatted = formatPace(
         runner.totalDistance > 0
           ? runner.totalTimeMinutes / runner.totalDistance
           : NaN
-      ),
-      legsRun: Array.from(runner.legs).sort((a: any, b: any) => a - b),
-    }))
+      );
+      const legsRun = Array.from(runner.legs).sort((a: any, b: any) => a - b);
+      // Find leg(s) where best pace was achieved
+      let bestPaceLegs: number[] = [];
+      if (bestPace !== null) {
+        bestPaceLegs = runner.races
+          .filter((race: any) => {
+            if (race.lap_time && race.distance && race.distance > 0) {
+              const pace = parseTimeToMinutes(race.lap_time) / race.distance;
+              return Math.abs(pace - bestPace) < 0.01;
+            }
+            return false;
+          })
+          .map((race: any) => race.leg_number)
+          .filter(
+            (leg: number, idx: number, arr: number[]) =>
+              arr.indexOf(leg) === idx
+          )
+          .sort((a: number, b: number) => a - b);
+      }
+      return {
+        ...runner,
+        averagePace,
+        bestPace,
+        bestPaceFormatted,
+        averagePaceFormatted,
+        legsRun,
+        bestPaceLegs,
+      };
+    })
     .sort((a: any, b: any) => b.totalRaces - a.totalRaces);
 
   return (
@@ -151,8 +177,20 @@ const TeamView: React.FC = () => {
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-600">Best Pace</span>
-                  <span className="font-semibold text-gray-900">
+                  <span className="font-semibold text-gray-900 flex items-center gap-2">
                     {runner.bestPaceFormatted}
+                    {runner.bestPaceLegs && runner.bestPaceLegs.length > 0 && (
+                      <span className="flex flex-wrap gap-1">
+                        {runner.bestPaceLegs.map((leg: number) => (
+                          <span
+                            key={leg}
+                            className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full"
+                          >
+                            Leg {leg}
+                          </span>
+                        ))}
+                      </span>
+                    )}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
@@ -268,7 +306,22 @@ const TeamView: React.FC = () => {
                       {runner.totalRaces}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {runner.bestPaceFormatted}
+                      <span className="flex items-center gap-2">
+                        {runner.bestPaceFormatted}
+                        {runner.bestPaceLegs &&
+                          runner.bestPaceLegs.length > 0 && (
+                            <span className="flex flex-wrap gap-1">
+                              {runner.bestPaceLegs.map((leg: number) => (
+                                <span
+                                  key={leg}
+                                  className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full"
+                                >
+                                  Leg {leg}
+                                </span>
+                              ))}
+                            </span>
+                          )}
+                      </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {runner.averagePaceFormatted}
