@@ -1,6 +1,57 @@
 import React, { useState } from 'react';
-import { Camera, Calendar, Tag, Search, Filter } from 'lucide-react';
-import { mockPhotos } from '../data/mockData';
+import { Camera, Calendar, Tag, Search, Filter, Upload, Image } from 'lucide-react';
+
+// Mock photo data - replace with real data from your database
+const mockPhotos = [
+  {
+    id: 1,
+    url: 'https://images.pexels.com/photos/2402777/pexels-photo-2402777.jpeg?auto=compress&cs=tinysrgb&w=800',
+    caption: 'Team at the starting line',
+    race: '2023 Relay Race',
+    year: 2023,
+    category: 'team'
+  },
+  {
+    id: 2,
+    url: 'https://images.pexels.com/photos/2402777/pexels-photo-2402777.jpeg?auto=compress&cs=tinysrgb&w=800',
+    caption: 'Runner crossing finish line',
+    race: '2023 Relay Race',
+    year: 2023,
+    category: 'action'
+  },
+  {
+    id: 3,
+    url: 'https://images.pexels.com/photos/2402777/pexels-photo-2402777.jpeg?auto=compress&cs=tinysrgb&w=800',
+    caption: 'Victory celebration',
+    race: '2022 Relay Race',
+    year: 2022,
+    category: 'celebration'
+  },
+  {
+    id: 4,
+    url: 'https://images.pexels.com/photos/2402777/pexels-photo-2402777.jpeg?auto=compress&cs=tinysrgb&w=800',
+    caption: 'Pre-race preparation',
+    race: '2022 Relay Race',
+    year: 2022,
+    category: 'preparation'
+  },
+  {
+    id: 5,
+    url: 'https://images.pexels.com/photos/2402777/pexels-photo-2402777.jpeg?auto=compress&cs=tinysrgb&w=800',
+    caption: 'Team huddle before race',
+    race: '2021 Relay Race',
+    year: 2021,
+    category: 'team'
+  },
+  {
+    id: 6,
+    url: 'https://images.pexels.com/photos/2402777/pexels-photo-2402777.jpeg?auto=compress&cs=tinysrgb&w=800',
+    caption: 'Mid-race action shot',
+    race: '2021 Relay Race',
+    year: 2021,
+    category: 'action'
+  }
+];
 
 const PhotosView: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -21,7 +72,7 @@ const PhotosView: React.FC = () => {
   });
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 animate-fade-in">
       {/* Header */}
       <div className="text-center">
         <h1 className="text-4xl font-bold text-gray-900 mb-2">Race Photos</h1>
@@ -29,7 +80,7 @@ const PhotosView: React.FC = () => {
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+      <div className="card p-6">
         <div className="flex flex-col md:flex-row gap-4">
           {/* Search */}
           <div className="flex-1">
@@ -40,7 +91,7 @@ const PhotosView: React.FC = () => {
                 placeholder="Search photos..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
               />
             </div>
           </div>
@@ -51,7 +102,7 @@ const PhotosView: React.FC = () => {
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
             >
               {categories.map(category => (
                 <option key={category} value={category}>
@@ -67,7 +118,7 @@ const PhotosView: React.FC = () => {
             <select
               value={selectedYear}
               onChange={(e) => setSelectedYear(e.target.value)}
-              className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
             >
               {years.map(year => (
                 <option key={year} value={year}>
@@ -81,22 +132,22 @@ const PhotosView: React.FC = () => {
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 text-center">
-          <Camera className="w-8 h-8 text-blue-600 mx-auto mb-3" />
+        <div className="card p-6 text-center">
+          <Camera className="w-8 h-8 text-primary-600 mx-auto mb-3" />
           <h3 className="text-2xl font-bold text-gray-900">{filteredPhotos.length}</h3>
           <p className="text-gray-600">Photos Found</p>
         </div>
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 text-center">
+        <div className="card p-6 text-center">
           <Calendar className="w-8 h-8 text-green-600 mx-auto mb-3" />
           <h3 className="text-2xl font-bold text-gray-900">{new Set(filteredPhotos.map(p => p.year)).size}</h3>
           <p className="text-gray-600">Years Covered</p>
         </div>
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 text-center">
+        <div className="card p-6 text-center">
           <Tag className="w-8 h-8 text-purple-600 mx-auto mb-3" />
           <h3 className="text-2xl font-bold text-gray-900">{new Set(filteredPhotos.map(p => p.category)).size}</h3>
           <p className="text-gray-600">Categories</p>
         </div>
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 text-center">
+        <div className="card p-6 text-center">
           <Filter className="w-8 h-8 text-orange-600 mx-auto mb-3" />
           <h3 className="text-2xl font-bold text-gray-900">{new Set(filteredPhotos.map(p => p.race)).size}</h3>
           <p className="text-gray-600">Races</p>
@@ -106,14 +157,14 @@ const PhotosView: React.FC = () => {
       {/* Photo Grid */}
       {filteredPhotos.length === 0 ? (
         <div className="text-center py-12">
-          <Camera className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+          <Image className="w-16 h-16 text-gray-300 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">No photos found</h3>
           <p className="text-gray-600">Try adjusting your filters or search terms</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredPhotos.map((photo) => (
-            <div key={photo.id} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-all duration-200 group">
+            <div key={photo.id} className="card overflow-hidden hover:shadow-lg transition-all duration-200 group">
               <div className="aspect-w-16 aspect-h-12 relative overflow-hidden">
                 <img
                   src={photo.url}
@@ -145,13 +196,13 @@ const PhotosView: React.FC = () => {
       )}
 
       {/* Upload Section */}
-      <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl border border-blue-200 p-8 text-center">
-        <Camera className="w-12 h-12 text-blue-600 mx-auto mb-4" />
+      <div className="bg-gradient-to-r from-primary-50 to-purple-50 rounded-xl border border-primary-200 p-8 text-center">
+        <Upload className="w-12 h-12 text-primary-600 mx-auto mb-4" />
         <h3 className="text-xl font-semibold text-gray-900 mb-2">Have photos to share?</h3>
         <p className="text-gray-600 mb-4">
           Help us build our photo collection by sharing your race memories
         </p>
-        <button className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+        <button className="btn-primary">
           Upload Photos
         </button>
       </div>

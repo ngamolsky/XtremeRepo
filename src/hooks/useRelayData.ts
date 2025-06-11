@@ -13,15 +13,8 @@ export const useRelayData = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        
-        // Check if Supabase is properly configured
-        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-        const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-        
-        if (!supabaseUrl || !supabaseAnonKey || supabaseUrl.includes('placeholder')) {
-          throw new Error('Please connect to Supabase by clicking the "Connect to Supabase" button in the top right corner.');
-        }
-        
+        setError(null);
+
         // Fetch team performance summary
         const { data: performanceData, error: performanceError } = await supabase
           .from('team_performance_summary')
@@ -54,24 +47,20 @@ export const useRelayData = () => {
         if (placementsError) throw placementsError;
 
         // Transform the data
-        setTeamPerformance(performanceData as TeamPerformance[]);
+        setTeamPerformance(performanceData || []);
         
         const transformedResults = resultsData?.map(result => ({
-          year: result.year,
-          leg_number: result.leg_number,
-          leg_version: result.leg_version,
-          runner: result.runner || 'Unknown',
-          lap_time: result.lap_time || '00:00:00',
+          ...result,
           distance: (result.leg_definitions as any)?.distance || 0,
           elevation_gain: (result.leg_definitions as any)?.elevation_gain || 0
         })) || [];
         
         setLegResults(transformedResults);
-        setPlacements(placementsData as YearlyPlacement[]);
+        setPlacements(placementsData || []);
         
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'An error occurred');
-        console.error('Error fetching data:', err);
+        setError(err instanceof Error ? err.message : 'An error occurred while fetching data');
+        console.error('Error fetching relay data:', err);
       } finally {
         setLoading(false);
       }
