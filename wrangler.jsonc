@@ -1,5 +1,7 @@
 {
   "name": "xtreme-falcons",
   "compatibility_date": "2025-04-03",
-  "main": "./src/main.tsx"
+  "assets": {
+    "not_found_handling": "single-page-application"
+  }
 }
