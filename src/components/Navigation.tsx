@@ -1,6 +1,13 @@
-import React from 'react';
-import { BarChart3, Users, History, Camera, Trophy, LogOut } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import {
+  BarChart3,
+  Camera,
+  History,
+  LogOut,
+  Trophy,
+  Users,
+} from "lucide-react";
+import React from "react";
+import { supabase } from "../lib/supabase";
 
 interface NavigationProps {
   activeTab: string;
@@ -9,10 +16,11 @@ interface NavigationProps {
 
 const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange }) => {
   const tabs = [
-    { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
-    { id: 'team', label: 'Team', icon: Users },
-    { id: 'history', label: 'History', icon: History },
-    { id: 'photos', label: 'Photos', icon: Camera },
+    { id: "dashboard", label: "Dashboard", icon: BarChart3 },
+    { id: "team", label: "Team", icon: Users },
+    { id: "legs", label: "Legs", icon: BarChart3 },
+    { id: "history", label: "History", icon: History },
+    { id: "photos", label: "Photos", icon: Camera },
   ];
 
   const handleSignOut = async () => {
@@ -29,7 +37,9 @@ const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange }) => {
               <Trophy className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-gray-900">Relay Dashboard</h1>
+              <h1 className="text-xl font-bold text-gray-900">
+                Relay Dashboard
+              </h1>
               <p className="text-xs text-gray-500">Team Performance Tracker</p>
             </div>
           </div>
@@ -44,8 +54,8 @@ const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange }) => {
                   onClick={() => onTabChange(tab.id)}
                   className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
                     activeTab === tab.id
-                      ? 'bg-primary-50 text-primary-700 border border-primary-200'
-                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                      ? "bg-primary-50 text-primary-700 border border-primary-200"
+                      : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
                   }`}
                 >
                   <Icon className="w-4 h-4" />
@@ -53,7 +63,7 @@ const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange }) => {
                 </button>
               );
             })}
-            
+
             {/* Sign Out Button */}
             <button
               onClick={handleSignOut}

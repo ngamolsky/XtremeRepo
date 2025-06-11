@@ -182,16 +182,25 @@ const TeamView: React.FC = () => {
                   Recent Races
                 </h4>
                 <div className="space-y-1">
-                  {runner.races.slice(0, 3).map((race: any, index: number) => (
-                    <div key={index} className="flex justify-between text-xs">
-                      <span className="text-gray-600">
-                        {race.year} - Leg {race.leg_number}
-                      </span>
-                      <span className="text-gray-900">
-                        {race.lap_time || "N/A"}
-                      </span>
-                    </div>
-                  ))}
+                  {runner.races.slice(0, 3).map((race: any, index: number) => {
+                    let pace = "N/A";
+                    let duration = race.lap_time || "N/A";
+                    if (race.lap_time && race.distance && race.distance > 0) {
+                      const timeInMinutes = parseTimeToMinutes(race.lap_time);
+                      pace = formatPace(timeInMinutes / race.distance);
+                    }
+                    return (
+                      <div key={index} className="flex justify-between text-xs">
+                        <span className="text-gray-600">
+                          {race.year} - Leg {race.leg_number}
+                        </span>
+                        <span className="text-gray-900">
+                          {duration} <span className="text-gray-400">|</span>{" "}
+                          {pace}
+                        </span>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             </div>
@@ -234,6 +243,9 @@ const TeamView: React.FC = () => {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Legs
                   </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Years
+                  </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -271,6 +283,25 @@ const TeamView: React.FC = () => {
                             {leg}
                           </span>
                         ))}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <div className="flex flex-wrap gap-1">
+                        {Array.from(
+                          new Set(runner.races.map((r: any) => r.year))
+                        )
+                          .sort((a, b) => Number(a) - Number(b))
+                          .map((year) => {
+                            const y = Number(year);
+                            return (
+                              <span
+                                key={y}
+                                className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full"
+                              >
+                                {y}
+                              </span>
+                            );
+                          })}
                       </div>
                     </td>
                   </tr>

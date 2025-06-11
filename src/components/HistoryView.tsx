@@ -88,6 +88,26 @@ const HistoryView: React.FC = () => {
         )
       : null;
 
+  // For each year, determine the dominant leg version (most common among its legs)
+  const getDominantVersion = (yearResults: any[]) => {
+    const versionCounts: Record<number, number> = {};
+    for (const leg of yearResults) {
+      if (leg.leg_version) {
+        versionCounts[leg.leg_version] =
+          (versionCounts[leg.leg_version] || 0) + 1;
+      }
+    }
+    const entries = Object.entries(versionCounts);
+    if (entries.length === 0) return null;
+    return Number(entries.reduce((a, b) => (a[1] > b[1] ? a : b))[0]);
+  };
+
+  // Build a list of {race, dominantVersion}
+  const raceHistoryWithVersion = raceHistory.map((race) => ({
+    ...race,
+    dominantVersion: getDominantVersion(race.legResults),
+  }));
+
   const toggleExpanded = (year: number) => {
     setExpandedYear(expandedYear === year ? null : year);
   };
@@ -146,169 +166,194 @@ const HistoryView: React.FC = () => {
       </div>
 
       {/* Race Timeline */}
-      {raceHistory.length > 0 ? (
+      {raceHistoryWithVersion.length > 0 ? (
         <div className="space-y-4">
-          {raceHistory.map((race) => (
-            <div key={race.year} className="card overflow-hidden">
-              <div
-                className="p-6 cursor-pointer hover:bg-gray-50 transition-colors"
-                onClick={() => toggleExpanded(race.year!)}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-4">
-                    <div className="w-16 h-16 bg-gradient-to-br from-primary-500 to-primary-700 rounded-lg flex items-center justify-center text-white font-bold text-xl">
-                      {race.year}
-                    </div>
-                    <div>
-                      <h3 className="text-xl font-semibold text-gray-900">
-                        {race.year} Relay Race
-                      </h3>
-                      <p className="text-gray-600">
-                        Division: {race.division}{" "}
-                        {race.bib && `• Bib #${race.bib}`}
-                      </p>
-                    </div>
+          {raceHistoryWithVersion.map((race, idx) => {
+            const prev = raceHistoryWithVersion[idx - 1];
+            const versionChanged =
+              idx > 0 && race.dominantVersion !== prev.dominantVersion;
+            return (
+              <React.Fragment key={race.year}>
+                {versionChanged && (
+                  <div className="flex items-center my-6">
+                    <div className="flex-grow border-t border-gray-300"></div>
+                    <span className="mx-4 text-xs text-gray-500 font-semibold uppercase tracking-wider bg-gray-100 px-2 py-1 rounded-full">
+                      Legs changed to Version {prev.dominantVersion}
+                    </span>
+                    <div className="flex-grow border-t border-gray-300"></div>
                   </div>
-
-                  <div className="flex items-center space-x-6">
-                    <div className="text-center">
-                      <p className="text-2xl font-bold text-gray-900">
-                        {race.totalTime || "N/A"}
-                      </p>
-                      <p className="text-sm text-gray-600">Total Time</p>
-                    </div>
-                    {race.overallPlace && race.overallTeams && (
-                      <div className="text-center">
-                        <div
-                          className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getPlacementColor(
-                            race.overallPlace,
-                            race.overallTeams
-                          )}`}
-                        >
-                          {getPercentile(race.overallPlace, race.overallTeams)}
+                )}
+                <div key={race.year} className="card overflow-hidden">
+                  <div
+                    className="p-6 cursor-pointer hover:bg-gray-50 transition-colors"
+                    onClick={() => toggleExpanded(race.year!)}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-4">
+                        <div className="w-16 h-16 bg-gradient-to-br from-primary-500 to-primary-700 rounded-lg flex items-center justify-center text-white font-bold text-xl">
+                          {race.year}
                         </div>
-                        <p className="text-sm text-gray-600 mt-1">Overall</p>
-                      </div>
-                    )}
-                    {race.divisionPlace && race.divisionTeams && (
-                      <div className="text-center">
-                        <div
-                          className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getPlacementColor(
-                            race.divisionPlace,
-                            race.divisionTeams
-                          )}`}
-                        >
-                          {getPercentile(
-                            race.divisionPlace,
-                            race.divisionTeams
-                          )}
+                        <div>
+                          <h3 className="text-xl font-semibold text-gray-900">
+                            {race.year} Relay Race
+                          </h3>
+                          <p className="text-gray-600">
+                            Division: {race.division}{" "}
+                            {race.bib && `• Bib #${race.bib}`}
+                          </p>
                         </div>
-                        <p className="text-sm text-gray-600 mt-1">Division</p>
                       </div>
-                    )}
-                    {expandedYear === race.year ? (
-                      <ChevronUp className="w-5 h-5 text-gray-400" />
-                    ) : (
-                      <ChevronDown className="w-5 h-5 text-gray-400" />
-                    )}
-                  </div>
-                </div>
 
-                {race.improvement !== null &&
-                  race.improvement !== undefined && (
-                    <div className="mt-4 flex items-center">
-                      <div
-                        className={`flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-                          race.improvement > 0
-                            ? "text-green-700 bg-green-100"
-                            : race.improvement < 0
-                            ? "text-red-700 bg-red-100"
-                            : "text-gray-700 bg-gray-100"
-                        }`}
-                      >
-                        {race.improvement > 0 ? "+" : ""}
-                        {race.improvement} places vs previous year
-                      </div>
-                    </div>
-                  )}
-              </div>
-
-              {expandedYear === race.year && (
-                <div className="border-t border-gray-100 p-6 bg-gray-50">
-                  <h4 className="text-lg font-semibold text-gray-900 mb-4">
-                    Leg-by-Leg Breakdown
-                  </h4>
-                  {race.legResults.length > 0 ? (
-                    <>
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {race.legResults.map((leg) => (
-                          <div
-                            key={leg.leg_number}
-                            className="bg-white rounded-lg p-4 border border-gray-200"
-                          >
-                            <div className="flex items-center justify-between mb-2">
-                              <h5 className="font-semibold text-gray-900">
-                                Leg {leg.leg_number}
-                              </h5>
-                              <span className="text-lg font-bold text-primary-600">
-                                {leg.lap_time || "N/A"}
-                              </span>
+                      <div className="flex items-center space-x-6">
+                        <div className="text-center">
+                          <p className="text-2xl font-bold text-gray-900">
+                            {race.totalTime || "N/A"}
+                          </p>
+                          <p className="text-sm text-gray-600">Total Time</p>
+                        </div>
+                        {race.overallPlace && race.overallTeams && (
+                          <div className="text-center">
+                            <div
+                              className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getPlacementColor(
+                                race.overallPlace,
+                                race.overallTeams
+                              )}`}
+                            >
+                              {getPercentile(
+                                race.overallPlace,
+                                race.overallTeams
+                              )}
                             </div>
-                            <p className="text-sm text-gray-600 mb-1">
-                              Runner: {leg.runner || "Unknown"}
+                            <p className="text-sm text-gray-600 mt-1">
+                              Overall
                             </p>
-                            <div className="flex justify-between text-xs text-gray-500">
-                              <span>{leg.distance || 0} miles</span>
-                              <span>+{leg.elevation_gain || 0} ft</span>
+                          </div>
+                        )}
+                        {race.divisionPlace && race.divisionTeams && (
+                          <div className="text-center">
+                            <div
+                              className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getPlacementColor(
+                                race.divisionPlace,
+                                race.divisionTeams
+                              )}`}
+                            >
+                              {getPercentile(
+                                race.divisionPlace,
+                                race.divisionTeams
+                              )}
+                            </div>
+                            <p className="text-sm text-gray-600 mt-1">
+                              Division
+                            </p>
+                          </div>
+                        )}
+                        {expandedYear === race.year ? (
+                          <ChevronUp className="w-5 h-5 text-gray-400" />
+                        ) : (
+                          <ChevronDown className="w-5 h-5 text-gray-400" />
+                        )}
+                      </div>
+                    </div>
+
+                    {race.improvement !== null &&
+                      race.improvement !== undefined && (
+                        <div className="mt-4 flex items-center">
+                          <div
+                            className={`flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+                              race.improvement > 0
+                                ? "text-green-700 bg-green-100"
+                                : race.improvement < 0
+                                ? "text-red-700 bg-red-100"
+                                : "text-gray-700 bg-gray-100"
+                            }`}
+                          >
+                            {race.improvement > 0 ? "+" : ""}
+                            {race.improvement} places vs previous year
+                          </div>
+                        </div>
+                      )}
+                  </div>
+
+                  {expandedYear === race.year && (
+                    <div className="border-t border-gray-100 p-6 bg-gray-50">
+                      <h4 className="text-lg font-semibold text-gray-900 mb-4">
+                        Leg-by-Leg Breakdown
+                      </h4>
+                      {race.legResults.length > 0 ? (
+                        <>
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {race.legResults.map((leg) => (
+                              <div
+                                key={leg.leg_number}
+                                className="bg-white rounded-lg p-4 border border-gray-200"
+                              >
+                                <div className="flex items-center justify-between mb-2">
+                                  <h5 className="font-semibold text-gray-900">
+                                    Leg {leg.leg_number}
+                                  </h5>
+                                  <span className="text-lg font-bold text-primary-600">
+                                    {leg.lap_time || "N/A"}
+                                  </span>
+                                </div>
+                                <p className="text-sm text-gray-600 mb-1">
+                                  Runner: {leg.runner || "Unknown"}
+                                </p>
+                                <div className="flex justify-between text-xs text-gray-500">
+                                  <span>{leg.distance || 0} miles</span>
+                                  <span>+{leg.elevation_gain || 0} ft</span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+
+                          <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div className="bg-white rounded-lg p-4 border border-gray-200 text-center">
+                              <p className="text-sm text-gray-600">
+                                Average Pace
+                              </p>
+                              <p className="text-xl font-bold text-gray-900">
+                                {race.averagePace || "N/A"}
+                              </p>
+                            </div>
+                            <div className="bg-white rounded-lg p-4 border border-gray-200 text-center">
+                              <p className="text-sm text-gray-600">
+                                Total Distance
+                              </p>
+                              <p className="text-xl font-bold text-gray-900">
+                                {race.legResults
+                                  .reduce(
+                                    (sum, leg) => sum + (leg.distance || 0),
+                                    0
+                                  )
+                                  .toFixed(1)}{" "}
+                                mi
+                              </p>
+                            </div>
+                            <div className="bg-white rounded-lg p-4 border border-gray-200 text-center">
+                              <p className="text-sm text-gray-600">
+                                Total Elevation
+                              </p>
+                              <p className="text-xl font-bold text-gray-900">
+                                {race.legResults.reduce(
+                                  (sum, leg) => sum + (leg.elevation_gain || 0),
+                                  0
+                                )}{" "}
+                                ft
+                              </p>
                             </div>
                           </div>
-                        ))}
-                      </div>
-
-                      <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div className="bg-white rounded-lg p-4 border border-gray-200 text-center">
-                          <p className="text-sm text-gray-600">Average Pace</p>
-                          <p className="text-xl font-bold text-gray-900">
-                            {race.averagePace || "N/A"}
-                          </p>
+                        </>
+                      ) : (
+                        <div className="text-center py-8 text-gray-500">
+                          No leg details available for this race
                         </div>
-                        <div className="bg-white rounded-lg p-4 border border-gray-200 text-center">
-                          <p className="text-sm text-gray-600">
-                            Total Distance
-                          </p>
-                          <p className="text-xl font-bold text-gray-900">
-                            {race.legResults
-                              .reduce(
-                                (sum, leg) => sum + (leg.distance || 0),
-                                0
-                              )
-                              .toFixed(1)}{" "}
-                            mi
-                          </p>
-                        </div>
-                        <div className="bg-white rounded-lg p-4 border border-gray-200 text-center">
-                          <p className="text-sm text-gray-600">
-                            Total Elevation
-                          </p>
-                          <p className="text-xl font-bold text-gray-900">
-                            {race.legResults.reduce(
-                              (sum, leg) => sum + (leg.elevation_gain || 0),
-                              0
-                            )}{" "}
-                            ft
-                          </p>
-                        </div>
-                      </div>
-                    </>
-                  ) : (
-                    <div className="text-center py-8 text-gray-500">
-                      No leg details available for this race
+                      )}
                     </div>
                   )}
                 </div>
-              )}
-            </div>
-          ))}
+              </React.Fragment>
+            );
+          })}
         </div>
       ) : (
         <div className="text-center py-12">

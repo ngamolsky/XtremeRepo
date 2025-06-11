@@ -2,6 +2,7 @@ import { useState } from "react";
 import AuthWrapper from "./components/AuthWrapper";
 import Dashboard from "./components/Dashboard";
 import HistoryView from "./components/HistoryView";
+import LegsView from "./components/LegsView";
 import Navigation from "./components/Navigation";
 import PhotosView from "./components/PhotosView";
 import TeamView from "./components/TeamView";
@@ -15,6 +16,8 @@ function App() {
         return <Dashboard />;
       case "team":
         return <TeamView />;
+      case "legs":
+        return <LegsView />;
       case "history":
         return <HistoryView />;
       case "photos":
