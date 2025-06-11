@@ -45,6 +45,7 @@ const LegsView: React.FC = () => {
         totalDistance: 0,
         bestPace: Infinity,
         runners: new Set<string>(),
+        elevation_gain: result.elevation_gain,
       };
     }
     if (result.lap_time && result.distance && result.distance > 0) {
@@ -164,6 +165,9 @@ const LegsView: React.FC = () => {
                       Runs
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Gain
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Avg Pace
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -182,6 +186,11 @@ const LegsView: React.FC = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {leg.runs}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {leg.elevation_gain !== undefined
+                          ? `+${leg.elevation_gain} ft`
+                          : "N/A"}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {formatPace(leg.averagePace)}
@@ -245,6 +254,9 @@ const LegsView: React.FC = () => {
                       Runs
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Gain
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Avg Pace
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -263,6 +275,11 @@ const LegsView: React.FC = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {leg.runs}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {leg.elevation_gain !== undefined
+                          ? `+${leg.elevation_gain} ft`
+                          : "N/A"}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {formatPace(leg.averagePace)}
