@@ -39,7 +39,7 @@ cd XtremeRepo
 npm install
 ```
 
-3. Create a `.env` file in the root directory and add your environment variables (can be found on homepage of supabase project):
+3. Create a `.env` file in the root directory and add your environment variables (can be found in the wrangler.jsonc file in this repo):
 ```env
 VITE_SUPABASE_URL=your_supabase_url
 VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
