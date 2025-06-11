@@ -83,10 +83,10 @@ const TeamView: React.FC = () => {
           : NaN
       );
       const legsRun = Array.from(runner.legs).sort((a: any, b: any) => a - b);
-      // Find leg(s) where best pace was achieved
-      let bestPaceLegs: number[] = [];
+      // Find leg(s) and year(s) where best pace was achieved
+      let bestPaceLegsWithYears: { leg: number; year: number }[] = [];
       if (bestPace !== null) {
-        bestPaceLegs = runner.races
+        bestPaceLegsWithYears = runner.races
           .filter((race: any) => {
             if (race.lap_time && race.distance && race.distance > 0) {
               const pace = parseTimeToMinutes(race.lap_time) / race.distance;
@@ -94,12 +94,24 @@ const TeamView: React.FC = () => {
             }
             return false;
           })
-          .map((race: any) => race.leg_number)
+          .map((race: any) => ({ leg: race.leg_number, year: race.year }))
           .filter(
-            (leg: number, idx: number, arr: number[]) =>
-              arr.indexOf(leg) === idx
+            (
+              item: { leg: number; year: number },
+              idx: number,
+              arr: { leg: number; year: number }[]
+            ) =>
+              arr.findIndex(
+                (x: { leg: number; year: number }) =>
+                  x.leg === item.leg && x.year === item.year
+              ) === idx
           )
-          .sort((a: number, b: number) => a - b);
+          .sort(
+            (
+              a: { leg: number; year: number },
+              b: { leg: number; year: number }
+            ) => a.leg - b.leg || a.year - b.year
+          );
       }
       return {
         ...runner,
@@ -108,7 +120,7 @@ const TeamView: React.FC = () => {
         bestPaceFormatted,
         averagePaceFormatted,
         legsRun,
-        bestPaceLegs,
+        bestPaceLegsWithYears,
       };
     })
     .sort((a: any, b: any) => b.totalRaces - a.totalRaces);
@@ -179,18 +191,21 @@ const TeamView: React.FC = () => {
                   <span className="text-sm text-gray-600">Best Pace</span>
                   <span className="font-semibold text-gray-900 flex items-center gap-2">
                     {runner.bestPaceFormatted}
-                    {runner.bestPaceLegs && runner.bestPaceLegs.length > 0 && (
-                      <span className="flex flex-wrap gap-1">
-                        {runner.bestPaceLegs.map((leg: number) => (
-                          <span
-                            key={leg}
-                            className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full"
-                          >
-                            Leg {leg}
-                          </span>
-                        ))}
-                      </span>
-                    )}
+                    {runner.bestPaceLegsWithYears &&
+                      runner.bestPaceLegsWithYears.length > 0 && (
+                        <span className="flex flex-wrap gap-1">
+                          {runner.bestPaceLegsWithYears.map(
+                            ({ leg, year }: { leg: number; year: number }) => (
+                              <span
+                                key={`${leg}-${year}`}
+                                className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full"
+                              >
+                                Leg {leg} ({year})
+                              </span>
+                            )
+                          )}
+                        </span>
+                      )}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
@@ -308,17 +323,25 @@ const TeamView: React.FC = () => {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       <span className="flex items-center gap-2">
                         {runner.bestPaceFormatted}
-                        {runner.bestPaceLegs &&
-                          runner.bestPaceLegs.length > 0 && (
+                        {runner.bestPaceLegsWithYears &&
+                          runner.bestPaceLegsWithYears.length > 0 && (
                             <span className="flex flex-wrap gap-1">
-                              {runner.bestPaceLegs.map((leg: number) => (
-                                <span
-                                  key={leg}
-                                  className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full"
-                                >
-                                  Leg {leg}
-                                </span>
-                              ))}
+                              {runner.bestPaceLegsWithYears.map(
+                                ({
+                                  leg,
+                                  year,
+                                }: {
+                                  leg: number;
+                                  year: number;
+                                }) => (
+                                  <span
+                                    key={`${leg}-${year}`}
+                                    className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full"
+                                  >
+                                    Leg {leg} ({year})
+                                  </span>
+                                )
+                              )}
                             </span>
                           )}
                       </span>

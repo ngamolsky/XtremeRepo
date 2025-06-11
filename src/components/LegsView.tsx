@@ -64,35 +64,49 @@ const LegsView: React.FC = () => {
 
   const legs = Object.values(legStats)
     .map((leg: any) => {
-      // Find runner(s) with best pace
-      let bestPaceRunners: string[] = [];
+      // Find runner(s) and year(s) with best pace
+      let bestPaceRunnerYears: { runner: string; year: number }[] = [];
       if (
         leg.bestPace !== null &&
         leg.bestPace !== undefined &&
         leg.bestPace !== Infinity
       ) {
-        bestPaceRunners = Array.from(leg.runners).filter((runner) => {
-          const runnerStr = String(runner);
-          // Find all results for this leg/version/runner
-          return legResults.some(
-            (r) =>
+        bestPaceRunnerYears = legResults
+          .filter(
+            (r: any) =>
               r.leg_number === leg.leg &&
               r.leg_version === leg.version &&
-              r.runner === runnerStr &&
               r.lap_time &&
               r.distance &&
               Math.abs(
                 parseTimeToMinutes(r.lap_time) / r.distance - leg.bestPace
               ) < 0.01
+          )
+          .map((r: any) => ({ runner: r.runner, year: r.year }))
+          .filter(
+            (
+              item: { runner: string; year: number },
+              idx: number,
+              arr: { runner: string; year: number }[]
+            ) =>
+              arr.findIndex(
+                (x: { runner: string; year: number }) =>
+                  x.runner === item.runner && x.year === item.year
+              ) === idx
+          )
+          .sort(
+            (
+              a: { runner: string; year: number },
+              b: { runner: string; year: number }
+            ) => a.runner.localeCompare(b.runner) || a.year - b.year
           );
-        }) as string[];
       }
       return {
         ...leg,
         averagePace:
           leg.totalDistance > 0 ? leg.totalTime / leg.totalDistance : null,
         bestPace: leg.bestPace !== Infinity ? leg.bestPace : null,
-        bestPaceRunners,
+        bestPaceRunnerYears,
         runners: Array.from(leg.runners).sort(),
       };
     })
@@ -174,17 +188,25 @@ const LegsView: React.FC = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {formatPace(leg.bestPace)}
-                        {leg.bestPaceRunners &&
-                          leg.bestPaceRunners.length > 0 && (
+                        {leg.bestPaceRunnerYears &&
+                          leg.bestPaceRunnerYears.length > 0 && (
                             <div className="flex flex-wrap gap-1 mt-1">
-                              {leg.bestPaceRunners.map((runner: string) => (
-                                <span
-                                  key={runner}
-                                  className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full"
-                                >
-                                  {runner}
-                                </span>
-                              ))}
+                              {leg.bestPaceRunnerYears.map(
+                                ({
+                                  runner,
+                                  year,
+                                }: {
+                                  runner: string;
+                                  year: number;
+                                }) => (
+                                  <span
+                                    key={`${runner}-${year}`}
+                                    className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full"
+                                  >
+                                    {runner} ({year})
+                                  </span>
+                                )
+                              )}
                             </div>
                           )}
                       </td>
@@ -247,17 +269,25 @@ const LegsView: React.FC = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {formatPace(leg.bestPace)}
-                        {leg.bestPaceRunners &&
-                          leg.bestPaceRunners.length > 0 && (
+                        {leg.bestPaceRunnerYears &&
+                          leg.bestPaceRunnerYears.length > 0 && (
                             <div className="flex flex-wrap gap-1 mt-1">
-                              {leg.bestPaceRunners.map((runner: string) => (
-                                <span
-                                  key={runner}
-                                  className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full"
-                                >
-                                  {runner}
-                                </span>
-                              ))}
+                              {leg.bestPaceRunnerYears.map(
+                                ({
+                                  runner,
+                                  year,
+                                }: {
+                                  runner: string;
+                                  year: number;
+                                }) => (
+                                  <span
+                                    key={`${runner}-${year}`}
+                                    className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full"
+                                  >
+                                    {runner} ({year})
+                                  </span>
+                                )
+                              )}
                             </div>
                           )}
                       </td>
