@@ -1,5 +1,6 @@
 import React from 'react';
-import { BarChart3, Users, History, Camera, Trophy } from 'lucide-react';
+import { BarChart3, Users, History, Camera, Trophy, LogOut } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 
 interface NavigationProps {
   activeTab: string;
@@ -13,6 +14,10 @@ const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange }) => {
     { id: 'history', label: 'History', icon: History },
     { id: 'photos', label: 'Photos', icon: Camera },
   ];
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+  };
 
   return (
     <nav className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
@@ -30,7 +35,7 @@ const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange }) => {
           </div>
 
           {/* Navigation Tabs */}
-          <div className="hidden md:flex space-x-1">
+          <div className="hidden md:flex items-center space-x-1">
             {tabs.map((tab) => {
               const Icon = tab.icon;
               return (
@@ -48,10 +53,19 @@ const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange }) => {
                 </button>
               );
             })}
+            
+            {/* Sign Out Button */}
+            <button
+              onClick={handleSignOut}
+              className="flex items-center space-x-2 px-4 py-2 rounded-lg font-medium text-gray-600 hover:text-red-600 hover:bg-red-50 transition-all duration-200 ml-4"
+            >
+              <LogOut className="w-4 h-4" />
+              <span>Sign Out</span>
+            </button>
           </div>
 
           {/* Mobile Navigation */}
-          <div className="md:hidden">
+          <div className="md:hidden flex items-center space-x-2">
             <select
               value={activeTab}
               onChange={(e) => onTabChange(e.target.value)}
@@ -63,6 +77,12 @@ const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange }) => {
                 </option>
               ))}
             </select>
+            <button
+              onClick={handleSignOut}
+              className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
           </div>
         </div>
       </div>
