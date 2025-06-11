@@ -55,18 +55,20 @@ const TeamView: React.FC = () => {
     return acc;
   }, {} as Record<string, any>);
 
-  const runners = Object.values(runnerStats).map((runner: any) => ({
-    ...runner,
-    averageTime: runner.totalTimeMinutes / runner.totalRaces,
-    bestTimeFormatted:
-      runner.bestTime === Infinity
-        ? "N/A"
-        : formatMinutesToTime(runner.bestTime),
-    averageTimeFormatted: formatMinutesToTime(
-      runner.totalTimeMinutes / runner.totalRaces
-    ),
-    legsRun: Array.from(runner.legs).sort((a: any, b: any) => a - b),
-  }));
+  const runners = Object.values(runnerStats)
+    .map((runner: any) => ({
+      ...runner,
+      averageTime: runner.totalTimeMinutes / runner.totalRaces,
+      bestTimeFormatted:
+        runner.bestTime === Infinity
+          ? "N/A"
+          : formatMinutesToTime(runner.bestTime),
+      averageTimeFormatted: formatMinutesToTime(
+        runner.totalTimeMinutes / runner.totalRaces
+      ),
+      legsRun: Array.from(runner.legs).sort((a: any, b: any) => a - b),
+    }))
+    .sort((a: any, b: any) => b.totalRaces - a.totalRaces);
 
   return (
     <div className="space-y-8 animate-fade-in">
