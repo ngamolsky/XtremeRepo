@@ -33,6 +33,16 @@ const HistoryView: React.FC = () => {
     );
   }
 
+  // Helper to compute percentile (lower is better)
+  const getPercentile = (
+    place?: number | null,
+    teams?: number | null
+  ): string => {
+    if (!place || !teams || teams < 1) return "N/A";
+    const percentile = (place / teams) * 100;
+    return `Top ${Math.round(percentile)}%`;
+  };
+
   // Combine data by year
   const raceHistory = teamPerformance
     .map((perf) => {
@@ -54,6 +64,29 @@ const HistoryView: React.FC = () => {
       };
     })
     .filter((race) => race.year); // Filter out null years
+
+  // Best and average percentiles
+  const bestPercentile =
+    raceHistory.length > 0
+      ? Math.min(
+          ...raceHistory.map((r) =>
+            r.overallPlace && r.overallTeams
+              ? (r.overallPlace / r.overallTeams) * 100
+              : Infinity
+          )
+        )
+      : null;
+  const averagePercentile =
+    raceHistory.length > 0
+      ? Math.round(
+          raceHistory.reduce((sum, r) => {
+            if (r.overallPlace && r.overallTeams) {
+              return sum + (r.overallPlace / r.overallTeams) * 100;
+            }
+            return sum;
+          }, 0) / raceHistory.length
+        )
+      : null;
 
   const toggleExpanded = (year: number) => {
     setExpandedYear(expandedYear === year ? null : year);
@@ -90,13 +123,11 @@ const HistoryView: React.FC = () => {
         <div className="card p-6 text-center">
           <Trophy className="w-8 h-8 text-yellow-600 mx-auto mb-3" />
           <h3 className="text-2xl font-bold text-gray-900">
-            {raceHistory.length > 0
-              ? `#${Math.min(
-                  ...raceHistory.map((r) => r.overallPlace || Infinity)
-                )}`
+            {bestPercentile !== null && bestPercentile !== Infinity
+              ? `Top ${Math.round(bestPercentile)}%`
               : "N/A"}
           </h3>
-          <p className="text-gray-600">Best Finish</p>
+          <p className="text-gray-600">Best Percentile</p>
         </div>
         <div className="card p-6 text-center">
           <Clock className="w-8 h-8 text-green-600 mx-auto mb-3" />
@@ -108,9 +139,9 @@ const HistoryView: React.FC = () => {
         <div className="card p-6 text-center">
           <Users className="w-8 h-8 text-purple-600 mx-auto mb-3" />
           <h3 className="text-2xl font-bold text-gray-900">
-            {raceHistory.length > 0 ? getAveragePlacement(raceHistory) : "N/A"}
+            {averagePercentile !== null ? `Top ${averagePercentile}%` : "N/A"}
           </h3>
-          <p className="text-gray-600">Avg Placement</p>
+          <p className="text-gray-600">Avg Percentile</p>
         </div>
       </div>
 
@@ -154,7 +185,7 @@ const HistoryView: React.FC = () => {
                             race.overallTeams
                           )}`}
                         >
-                          #{race.overallPlace} of {race.overallTeams}
+                          {getPercentile(race.overallPlace, race.overallTeams)}
                         </div>
                         <p className="text-sm text-gray-600 mt-1">Overall</p>
                       </div>
@@ -167,7 +198,10 @@ const HistoryView: React.FC = () => {
                             race.divisionTeams
                           )}`}
                         >
-                          #{race.divisionPlace} of {race.divisionTeams}
+                          {getPercentile(
+                            race.divisionPlace,
+                            race.divisionTeams
+                          )}
                         </div>
                         <p className="text-sm text-gray-600 mt-1">Division</p>
                       </div>
@@ -298,15 +332,6 @@ const getBestTime = (races: any[]): string => {
 
   // Simple string comparison should work for HH:MM:SS format
   return times.reduce((best, current) => (current < best ? current : best));
-};
-
-const getAveragePlacement = (races: any[]): string => {
-  const placements = races.map((r) => r.overallPlace).filter(Boolean);
-  if (placements.length === 0) return "N/A";
-
-  const average =
-    placements.reduce((sum, place) => sum + place, 0) / placements.length;
-  return `#${Math.round(average)}`;
 };
 
 export default HistoryView;

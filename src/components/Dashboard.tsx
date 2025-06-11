@@ -43,17 +43,27 @@ const Dashboard: React.FC = () => {
 
   // Calculate stats from real data
   const latestPerformance = teamPerformance[0];
-  const bestPlacement =
+  const bestPercentile =
     placements.length > 0
-      ? Math.min(...placements.map((p) => p.overall_place || Infinity))
-      : 0;
-  const averagePlacement =
+      ? Math.min(
+          ...placements.map((p) =>
+            p.overall_place && p.overall_teams
+              ? (p.overall_place / p.overall_teams) * 100
+              : Infinity
+          )
+        )
+      : null;
+  const averagePercentile =
     placements.length > 0
       ? Math.round(
-          placements.reduce((sum, p) => sum + (p.overall_place || 0), 0) /
-            placements.length
+          placements.reduce((sum, p) => {
+            if (p.overall_place && p.overall_teams) {
+              return sum + (p.overall_place / p.overall_teams) * 100;
+            }
+            return sum;
+          }, 0) / placements.length
         )
-      : 0;
+      : null;
 
   // Prepare chart data
   const performanceChartData = teamPerformance
@@ -94,10 +104,14 @@ const Dashboard: React.FC = () => {
           subtitle="Years of competition"
         />
         <StatCard
-          title="Best Placement"
-          value={bestPlacement > 0 ? `#${bestPlacement}` : "N/A"}
+          title="Best Percentile"
+          value={
+            bestPercentile !== null && bestPercentile !== Infinity
+              ? `Top ${Math.round(bestPercentile)}%`
+              : "N/A"
+          }
           icon={Trophy}
-          subtitle="All-time best finish"
+          subtitle="All-time best finish (percentile)"
           className="bg-gradient-to-br from-yellow-50 to-orange-50 border-yellow-200"
         />
         <StatCard
@@ -107,10 +121,12 @@ const Dashboard: React.FC = () => {
           subtitle={`${latestPerformance?.year || "No data"} race`}
         />
         <StatCard
-          title="Avg Placement"
-          value={averagePlacement > 0 ? `#${averagePlacement}` : "N/A"}
+          title="Avg Percentile"
+          value={
+            averagePercentile !== null ? `Top ${averagePercentile}%` : "N/A"
+          }
           icon={TrendingUp}
-          subtitle="Across all races"
+          subtitle="Across all races (percentile)"
           trend={
             latestPerformance?.improvement
               ? {
@@ -183,7 +199,7 @@ const Dashboard: React.FC = () => {
                     borderRadius: "8px",
                     boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
                   }}
-                  formatter={(value: any, name: any, props: any) => {
+                  formatter={(value: any, _name: any, props: any) => {
                     return [
                       `${value.toFixed(1)} min`,
                       `Time (${props?.payload?.runner || "Unknown Runner"})`,
@@ -218,10 +234,10 @@ const Dashboard: React.FC = () => {
                     Total Time
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Division Place
+                    Division Percentile
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Overall Place
+                    Overall Percentile
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Avg Pace
@@ -241,14 +257,10 @@ const Dashboard: React.FC = () => {
                       {perf.total_time || "N/A"}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {perf.division_place && perf.division_teams
-                        ? `#${perf.division_place} of ${perf.division_teams}`
-                        : "N/A"}
+                      {getPercentile(perf.division_place, perf.division_teams)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {perf.overall_place && perf.overall_teams
-                        ? `#${perf.overall_place} of ${perf.overall_teams}`
-                        : "N/A"}
+                      {getPercentile(perf.overall_place, perf.overall_teams)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {perf.average_pace || "N/A"}
@@ -274,6 +286,16 @@ const parseTimeToMinutes = (timeString: string): number => {
     return hours * 60 + minutes + seconds / 60;
   }
   return 0;
+};
+
+// Helper to compute percentile (lower is better)
+const getPercentile = (
+  place?: number | null,
+  teams?: number | null
+): string => {
+  if (!place || !teams || teams < 1) return "N/A";
+  const percentile = (place / teams) * 100;
+  return `Top ${Math.round(percentile)}%`;
 };
 
 export default Dashboard;

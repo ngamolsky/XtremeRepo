@@ -36,6 +36,8 @@ const TeamView: React.FC = () => {
         totalRaces: 0,
         bestTime: Infinity,
         totalTimeMinutes: 0,
+        totalDistance: 0,
+        bestPace: Infinity,
         legs: new Set<number>(),
       };
     }
@@ -44,9 +46,14 @@ const TeamView: React.FC = () => {
     acc[runnerName].totalRaces++;
     acc[runnerName].legs.add(result.leg_number);
 
-    if (result.lap_time) {
+    if (result.lap_time && result.distance && result.distance > 0) {
       const timeInMinutes = parseTimeToMinutes(result.lap_time);
       acc[runnerName].totalTimeMinutes += timeInMinutes;
+      acc[runnerName].totalDistance += result.distance;
+      const pace = timeInMinutes / result.distance;
+      if (pace < acc[runnerName].bestPace) {
+        acc[runnerName].bestPace = pace;
+      }
       if (timeInMinutes < acc[runnerName].bestTime) {
         acc[runnerName].bestTime = timeInMinutes;
       }
@@ -55,16 +62,26 @@ const TeamView: React.FC = () => {
     return acc;
   }, {} as Record<string, any>);
 
+  const formatPace = (pace: number): string => {
+    if (!pace || pace === Infinity || isNaN(pace)) return "N/A";
+    const mins = Math.floor(pace);
+    const secs = Math.round((pace - mins) * 60);
+    return `${mins}:${secs.toString().padStart(2, "0")}/mi`;
+  };
+
   const runners = Object.values(runnerStats)
     .map((runner: any) => ({
       ...runner,
-      averageTime: runner.totalTimeMinutes / runner.totalRaces,
-      bestTimeFormatted:
-        runner.bestTime === Infinity
-          ? "N/A"
-          : formatMinutesToTime(runner.bestTime),
-      averageTimeFormatted: formatMinutesToTime(
-        runner.totalTimeMinutes / runner.totalRaces
+      averagePace:
+        runner.totalDistance > 0
+          ? runner.totalTimeMinutes / runner.totalDistance
+          : null,
+      bestPace: runner.bestPace !== Infinity ? runner.bestPace : null,
+      bestPaceFormatted: formatPace(runner.bestPace),
+      averagePaceFormatted: formatPace(
+        runner.totalDistance > 0
+          ? runner.totalTimeMinutes / runner.totalDistance
+          : NaN
       ),
       legsRun: Array.from(runner.legs).sort((a: any, b: any) => a - b),
     }))
@@ -133,15 +150,15 @@ const TeamView: React.FC = () => {
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Best Time</span>
+                  <span className="text-sm text-gray-600">Best Pace</span>
                   <span className="font-semibold text-gray-900">
-                    {runner.bestTimeFormatted}
+                    {runner.bestPaceFormatted}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Average Time</span>
+                  <span className="text-sm text-gray-600">Average Pace</span>
                   <span className="font-semibold text-gray-900">
-                    {runner.averageTimeFormatted}
+                    {runner.averagePaceFormatted}
                   </span>
                 </div>
                 <div className="flex justify-between items-start">
@@ -209,10 +226,10 @@ const TeamView: React.FC = () => {
                     Total Races
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Best Time
+                    Best Pace
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Average Time
+                    Average Pace
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Legs
@@ -239,10 +256,10 @@ const TeamView: React.FC = () => {
                       {runner.totalRaces}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {runner.bestTimeFormatted}
+                      {runner.bestPaceFormatted}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {runner.averageTimeFormatted}
+                      {runner.averagePaceFormatted}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex flex-wrap gap-1">
@@ -277,20 +294,6 @@ const parseTimeToMinutes = (timeString: string): number => {
     return hours * 60 + minutes + seconds / 60;
   }
   return 0;
-};
-
-const formatMinutesToTime = (minutes: number): string => {
-  if (isNaN(minutes) || minutes === 0) return "N/A";
-  const hours = Math.floor(minutes / 60);
-  const mins = Math.floor(minutes % 60);
-  const secs = Math.floor((minutes % 1) * 60);
-
-  if (hours > 0) {
-    return `${hours}:${mins.toString().padStart(2, "0")}:${secs
-      .toString()
-      .padStart(2, "0")}`;
-  }
-  return `${mins}:${secs.toString().padStart(2, "0")}`;
 };
 
 const getInitials = (name: string): string => {
