@@ -3,5 +3,9 @@
   "compatibility_date": "2025-04-03",
   "assets": {
     "not_found_handling": "single-page-application"
+  },
+  "vars": {
+    "VITE_SUPABASE_URL": "https://ztchiqrnmnintpxoofxs.supabase.co",
+    "VITE_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp0Y2hpcXJubW5pbnRweG9vZnhzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk0MzA0ODIsImV4cCI6MjA2NTAwNjQ4Mn0.aGDRykd2w41etf-EQEFh-rN2apbd8tk6asBQiNhZlY0"
   }
 }
