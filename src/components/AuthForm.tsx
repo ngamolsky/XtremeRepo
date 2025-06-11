@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 import { supabase } from '../lib/supabase';
-import { Trophy, Mail, Lock, AlertCircle } from 'lucide-react';
+import { Trophy, Mail, AlertCircle } from 'lucide-react';
 
 const AuthForm: React.FC = () => {
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [isSignUp, setIsSignUp] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -26,8 +25,8 @@ const AuthForm: React.FC = () => {
       return;
     }
 
-    // Use a default password if none provided
-    const authPassword = password || 'XtremeFalcons2024!';
+    // Use the default team password
+    const authPassword = 'XtremeFalcons2024!';
 
     try {
       if (isSignUp) {
@@ -78,10 +77,10 @@ const AuthForm: React.FC = () => {
         <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-8">
           <div className="mb-6">
             <h2 className="text-xl font-semibold text-gray-900 mb-2">
-              {isSignUp ? 'Create Account' : 'Sign In'}
+              {isSignUp ? 'Join the Team' : 'Welcome Back'}
             </h2>
             <p className="text-gray-600 text-sm">
-              Access the team dashboard with your Xtreme Falcons email
+              Enter your Xtreme Falcons email to access the dashboard
             </p>
           </div>
 
@@ -120,26 +119,6 @@ const AuthForm: React.FC = () => {
               </p>
             </div>
 
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-                Password
-              </label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                <input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Leave blank for default password"
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
-                />
-              </div>
-              <p className="text-xs text-gray-500 mt-1">
-                Leave blank to use the default team password
-              </p>
-            </div>
-
             <button
               type="submit"
               disabled={loading}
@@ -161,7 +140,7 @@ const AuthForm: React.FC = () => {
           <div className="mt-6 pt-6 border-t border-gray-100">
             <p className="text-xs text-gray-500 text-center">
               This dashboard is for Xtreme Falcons team members only. 
-              Contact your team administrator if you need access.
+              All team members use the same secure password automatically.
             </p>
           </div>
         </div>
