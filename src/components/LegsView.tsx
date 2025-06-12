@@ -40,6 +40,7 @@ const LegsView: React.FC = () => {
       legStats[key] = {
         leg: result.leg_number,
         version: result.leg_version,
+        distance: result.distance,
         runs: 0,
         totalTime: 0,
         totalDistance: 0,
@@ -165,6 +166,9 @@ const LegsView: React.FC = () => {
                       Runs
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Distance
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Gain
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -186,6 +190,9 @@ const LegsView: React.FC = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {leg.runs}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {leg.distance ? `${leg.distance} mi` : "N/A"}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {leg.elevation_gain !== undefined
@@ -254,6 +261,9 @@ const LegsView: React.FC = () => {
                       Runs
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Distance
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Gain
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -275,6 +285,9 @@ const LegsView: React.FC = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {leg.runs}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {leg.distance ? `${leg.distance} mi` : "N/A"}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {leg.elevation_gain !== undefined
