@@ -47,10 +47,12 @@ export interface Database {
   };
 }
 
-export type TeamPerformance = Database['public']['Views']['team_performance_summary']['Row'];
-export type LegResult = Database['public']['Tables']['results']['Row'] & {
+export type TeamPerformance =
+  Database["public"]["Views"]["team_performance_summary"]["Row"];
+export type LegResult = Database["public"]["Tables"]["results"]["Row"] & {
   distance?: number;
   elevation_gain?: number;
 };
-export type YearlyPlacement = Database['public']['Tables']['placements']['Row'];
-export type LegDefinition = Database['public']['Tables']['leg_definitions']['Row'];
+export type YearlyPlacement = Database["public"]["Tables"]["placements"]["Row"];
+export type LegDefinition =
+  Database["public"]["Tables"]["leg_definitions"]["Row"];
