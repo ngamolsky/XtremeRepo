@@ -1,38 +1,14 @@
-import { useState } from "react";
+import { Outlet } from "@tanstack/react-router";
 import AuthWrapper from "./components/AuthWrapper";
-import Dashboard from "./components/Dashboard";
-import HistoryView from "./components/HistoryView";
-import LegsView from "./components/LegsView";
 import Navigation from "./components/Navigation";
-import PhotosView from "./components/PhotosView";
-import TeamView from "./components/TeamView";
 
 function App() {
-  const [activeTab, setActiveTab] = useState("dashboard");
-
-  const renderActiveView = () => {
-    switch (activeTab) {
-      case "dashboard":
-        return <Dashboard />;
-      case "team":
-        return <TeamView />;
-      case "legs":
-        return <LegsView />;
-      case "history":
-        return <HistoryView />;
-      case "photos":
-        return <PhotosView />;
-      default:
-        return <Dashboard />;
-    }
-  };
-
   return (
     <AuthWrapper>
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-        <Navigation activeTab={activeTab} onTabChange={setActiveTab} />
+        <Navigation />
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {renderActiveView()}
+          <Outlet />
         </main>
       </div>
     </AuthWrapper>

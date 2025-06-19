@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
-import { LegResult, TeamPerformance, YearlyPlacement } from "../types/database";
+import { Tables } from "../types/database.types";
 
 export const useRelayData = () => {
-  const [teamPerformance, setTeamPerformance] = useState<TeamPerformance[]>([]);
-  const [legResults, setLegResults] = useState<LegResult[]>([]);
-  const [placements, setPlacements] = useState<YearlyPlacement[]>([]);
+  const [teamPerformance, setTeamPerformance] = useState<Tables<"team_performance_summary">[]>([]);
+  const [legResults, setLegResults] = useState<Tables<"results">[]>([]);
+  const [placements, setPlacements] = useState<Tables<"placements">[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -24,7 +24,7 @@ export const useRelayData = () => {
 
         if (performanceError) throw performanceError;
 
-        // Fetch leg results with definitions
+        // Fetch leg results with definitions and runner information
         const { data: resultsData, error: resultsError } = await supabase
           .from("results")
           .select(
@@ -33,6 +33,10 @@ export const useRelayData = () => {
             leg_definitions (
               distance,
               elevation_gain
+            ),
+            runners (
+              name,
+              email
             )
           `
           )
@@ -57,6 +61,7 @@ export const useRelayData = () => {
             ...result,
             distance: result.leg_definitions.distance || 0,
             elevation_gain: result.leg_definitions.elevation_gain || 0,
+            runner: result.runners?.name || 'Unknown Runner',
             total_leg_time_minutes: result.lap_time
               ? parseTimeToMinutes(result.lap_time)
               : 0,
@@ -83,8 +88,8 @@ export const useRelayData = () => {
 };
 
 // Helper to parse lap_time string to minutes
-function parseTimeToMinutes(timeString: string): number {
-  if (!timeString) return 0;
+function parseTimeToMinutes(timeString: unknown): number {
+  if (!timeString || typeof timeString !== 'string') return 0;
   const parts = timeString.split(":");
   if (parts.length === 3) {
     // hh:mm:ss
