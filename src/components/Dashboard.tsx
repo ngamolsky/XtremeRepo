@@ -6,6 +6,7 @@ import {
   CartesianGrid,
   Line,
   LineChart,
+  Legend,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -143,42 +144,69 @@ const Dashboard: React.FC = () => {
         {/* Placement Trend */}
         <div className="card p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            Placement Trend Over Time
+            Performance Percentile Trend
           </h3>
-          {performanceChartData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={performanceChartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis dataKey="year" stroke="#6b7280" />
+          <p className="text-sm text-gray-500 mb-4">
+            Lower percentile indicates better performance (e.g., 10% means top 10% of teams)
+          </p>
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart
+                data={teamPerformance
+                  .slice()
+                  .reverse()
+                  .map((perf) => ({
+                    year: perf.year,
+                    division: getRelativeRank(perf.division_place, perf.division_teams),
+                    overall: getRelativeRank(perf.overall_place, perf.overall_teams),
+                  }))}
+                margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis
+                  dataKey="year"
+                  tick={{ fill: "#6B7280" }}
+                  tickLine={{ stroke: "#6B7280" }}
+                />
                 <YAxis
-                  stroke="#6b7280"
-                  domain={["dataMin - 2", "dataMax + 2"]}
-                  reversed
+                  tick={{ fill: "#6B7280" }}
+                  tickLine={{ stroke: "#6B7280" }}
+                  tickFormatter={(value) => `${value.toFixed(0)}%`}
+                  domain={[0, 100]}
+                  reversed={true}
+                  label={{ value: 'Percentile', angle: -90, position: 'insideLeft', style: { fill: '#6B7280' } }}
                 />
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: "white",
-                    border: "1px solid #e5e7eb",
-                    borderRadius: "8px",
-                    boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+                    backgroundColor: "#1F2937",
+                    border: "none",
+                    borderRadius: "0.375rem",
+                    color: "#F9FAFB",
                   }}
-                  formatter={(value: any) => [`#${value}`, "Placement"]}
+                  formatter={(value: number) => [`${value.toFixed(1)}%`, ""]}
+                />
+                <Legend />
+                <Line
+                  type="monotone"
+                  dataKey="division"
+                  name="Division"
+                  stroke="#3B82F6"
+                  strokeWidth={2}
+                  dot={{ fill: "#3B82F6", strokeWidth: 2 }}
+                  activeDot={{ r: 6 }}
                 />
                 <Line
                   type="monotone"
-                  dataKey="placement"
-                  stroke="#3b82f6"
-                  strokeWidth={3}
-                  dot={{ fill: "#3b82f6", strokeWidth: 2, r: 6 }}
-                  activeDot={{ r: 8, stroke: "#3b82f6", strokeWidth: 2 }}
+                  dataKey="overall"
+                  name="Overall"
+                  stroke="#10B981"
+                  strokeWidth={2}
+                  dot={{ fill: "#10B981", strokeWidth: 2 }}
+                  activeDot={{ r: 6 }}
                 />
               </LineChart>
             </ResponsiveContainer>
-          ) : (
-            <div className="flex items-center justify-center h-64 text-gray-500">
-              No performance data available
-            </div>
-          )}
+          </div>
         </div>
 
         {/* Leg Performance */}
@@ -234,10 +262,10 @@ const Dashboard: React.FC = () => {
                     Total Time
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Division Percentile
+                    Division Rank
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Overall Percentile
+                    Overall Rank
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Avg Pace
@@ -257,10 +285,10 @@ const Dashboard: React.FC = () => {
                       {perf.total_time || "N/A"}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {getPercentile(perf.division_place, perf.division_teams)}
+                      {getRank(perf.division_place, perf.division_teams)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {getPercentile(perf.overall_place, perf.overall_teams)}
+                      {getRank(perf.overall_place, perf.overall_teams)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {perf.average_pace || "N/A"}
@@ -288,14 +316,16 @@ const parseTimeToMinutes = (timeString: string): number => {
   return 0;
 };
 
-// Helper to compute percentile (lower is better)
-const getPercentile = (
-  place?: number | null,
-  teams?: number | null
-): string => {
+// Helper to format rank
+const getRank = (place?: number | null, teams?: number | null): string => {
   if (!place || !teams || teams < 1) return "N/A";
-  const percentile = (place / teams) * 100;
-  return `Top ${Math.round(percentile)}%`;
+  return `${place} of ${teams}`;
+};
+
+// Helper to calculate relative rank (lower is better)
+const getRelativeRank = (place?: number | null, teams?: number | null): number | null => {
+  if (!place || !teams || teams < 1) return null;
+  return (place / teams) * 100;
 };
 
 export default Dashboard;

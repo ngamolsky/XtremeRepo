@@ -37,7 +37,7 @@ const StatCard: React.FC<StatCardProps> = ({
               <span className="font-medium">
                 {trend.isPositive ? '+' : ''}{trend.value}
               </span>
-              <span className="ml-1">vs last year</span>
+              <span className="ml-1">places vs last year</span>
             </div>
           )}
         </div>
