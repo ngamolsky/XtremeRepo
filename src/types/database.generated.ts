@@ -17,10 +17,10 @@ export type Database = {
     Functions: {
       graphql: {
         Args: {
-          query?: string
-          operationName?: string
-          variables?: Json
           extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
         }
         Returns: Json
       }
@@ -181,9 +181,125 @@ export type Database = {
           },
         ]
       }
+      v_leg_version_stats: {
+        Row: {
+          average_pace: number | null
+          best_pace: number | null
+          best_pace_runner_years: Json | null
+          distance: number | null
+          elevation_gain: number | null
+          leg_number: number | null
+          leg_version: number | null
+          runs: number | null
+          total_distance: number | null
+          total_time: number | null
+          unique_runners: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "results_leg_definitions_fkey"
+            columns: ["leg_number", "leg_version"]
+            isOneToOne: false
+            referencedRelation: "leg_definitions"
+            referencedColumns: ["number", "version"]
+          },
+        ]
+      }
+      v_results_with_pace: {
+        Row: {
+          auth_user_id: string | null
+          distance: number | null
+          elevation_gain: number | null
+          lap_time: unknown | null
+          leg_number: number | null
+          leg_version: number | null
+          pace: number | null
+          runner_id: string | null
+          runner_name: string | null
+          time_in_minutes: number | null
+          year: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "results_leg_definitions_fkey"
+            columns: ["leg_number", "leg_version"]
+            isOneToOne: false
+            referencedRelation: "leg_definitions"
+            referencedColumns: ["number", "version"]
+          },
+          {
+            foreignKeyName: "results_user_id_fkey"
+            columns: ["runner_id"]
+            isOneToOne: false
+            referencedRelation: "runners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "results_year_fkey"
+            columns: ["year"]
+            isOneToOne: false
+            referencedRelation: "placements"
+            referencedColumns: ["year"]
+          },
+        ]
+      }
+      v_runner_stats: {
+        Row: {
+          average_pace: number | null
+          average_time: number | null
+          best_pace: number | null
+          best_pace_legs_with_versions: Json | null
+          best_time: number | null
+          legs_run: Json | null
+          runner_id: string | null
+          runner_name: string | null
+          total_distance: number | null
+          total_races: number | null
+          total_time_minutes: number | null
+          unique_legs: number | null
+          unique_years: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "results_user_id_fkey"
+            columns: ["runner_id"]
+            isOneToOne: false
+            referencedRelation: "runners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      v_yearly_summary: {
+        Row: {
+          average_pace: unknown | null
+          bib: number | null
+          division: string | null
+          division_percentile: number | null
+          division_place: number | null
+          division_teams: number | null
+          improvement: number | null
+          overall_percentile: number | null
+          overall_place: number | null
+          overall_teams: number | null
+          total_time: unknown | null
+          year: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "results_year_fkey"
+            columns: ["year"]
+            isOneToOne: false
+            referencedRelation: "placements"
+            referencedColumns: ["year"]
+          },
+        ]
+      }
     }
     Functions: {
-      [_ in never]: never
+      parse_time_to_minutes: {
+        Args: { time_interval: unknown }
+        Returns: number
+      }
     }
     Enums: {
       [_ in never]: never

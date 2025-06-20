@@ -99,16 +99,3 @@ BEGIN
     RETURN NEW;
 END;
 $$ language 'plpgsql';
-
--- Create trigger to automatically link runners when auth users are created
-CREATE TRIGGER link_runner_auth_user_trigger
-    AFTER INSERT ON auth.users
-    FOR EACH ROW
-    EXECUTE FUNCTION link_runner_to_auth_user();
-
--- Also run it on update in case email changes
-CREATE TRIGGER link_runner_auth_user_update_trigger
-    AFTER UPDATE OF email ON auth.users
-    FOR EACH ROW
-    WHEN (OLD.email IS DISTINCT FROM NEW.email)
-    EXECUTE FUNCTION link_runner_to_auth_user();

@@ -8,10 +8,15 @@ import {
 } from "lucide-react";
 import React, { useState } from "react";
 import { useRelayData } from "../hooks/useRelayData";
+import { formatPace } from "../lib/utils";
+import { Tables } from "../types/database.types";
 
 const HistoryView: React.FC = () => {
-  const { teamPerformance, legResults, placements, loading, error } =
-    useRelayData();
+  const {
+    data: { yearlySummary, results },
+    loading,
+    error,
+  } = useRelayData();
   const [expandedYear, setExpandedYear] = useState<number | null>(null);
 
   if (loading) {
@@ -33,91 +38,50 @@ const HistoryView: React.FC = () => {
     );
   }
 
-  // Helper to compute percentile (lower is better)
-  const getPercentile = (
-    place?: number | null,
-    teams?: number | null
-  ): string => {
-    if (!place || !teams || teams < 1) return "N/A";
-    const percentile = (place / teams) * 100;
-    return `Top ${Math.round(percentile)}%`;
-  };
+  const raceHistory = yearlySummary.map((race) => {
+    const yearResults = results.filter((r) => r.year === race.year);
+    return {
+      ...race,
+      legResults: yearResults.sort(
+        (a, b) => (a.leg_number || 0) - (b.leg_number || 0)
+      ),
+    };
+  });
 
-  // Combine data by year
-  const raceHistory = teamPerformance
-    .map((perf) => {
-      const placement = placements.find((p) => p.year === perf.year);
-      const yearResults = legResults.filter((r) => r.year === perf.year);
-
-      return {
-        year: perf.year,
-        totalTime: perf.total_time,
-        averagePace: perf.average_pace,
-        divisionPlace: perf.division_place,
-        divisionTeams: perf.division_teams,
-        overallPlace: perf.overall_place,
-        overallTeams: perf.overall_teams,
-        improvement: perf.improvement,
-        division: placement?.division || "Unknown",
-        bib: placement?.bib,
-        legResults: yearResults.sort((a, b) => a.leg_number - b.leg_number),
-      };
-    })
-    .filter((race) => race.year); // Filter out null years
-
-  // Best and average percentiles
-  const bestPercentile =
+  const bestOverallPercentile =
     raceHistory.length > 0
       ? Math.min(
-          ...raceHistory.map((r) =>
-            r.overallPlace && r.overallTeams
-              ? (r.overallPlace / r.overallTeams) * 100
-              : Infinity
-          )
+          ...raceHistory
+            .map((r) => r.overall_percentile)
+            .filter((p): p is number => p !== null)
         )
       : null;
-  const averagePercentile =
+  const averageOverallPercentile =
     raceHistory.length > 0
-      ? Math.round(
-          raceHistory.reduce((sum, r) => {
-            if (r.overallPlace && r.overallTeams) {
-              return sum + (r.overallPlace / r.overallTeams) * 100;
-            }
-            return sum;
-          }, 0) / raceHistory.length
-        )
+      ? raceHistory.reduce((sum, r) => sum + (r.overall_percentile || 0), 0) /
+        raceHistory.length
       : null;
 
-  // For each year, determine the dominant leg version (most common among its legs)
-  const getDominantVersion = (yearResults: any[]) => {
-    const versionCounts: Record<number, number> = {};
-    for (const leg of yearResults) {
-      if (leg.leg_version) {
-        versionCounts[leg.leg_version] =
-          (versionCounts[leg.leg_version] || 0) + 1;
-      }
-    }
-    const entries = Object.entries(versionCounts);
-    if (entries.length === 0) return null;
-    return Number(entries.reduce((a, b) => (a[1] > b[1] ? a : b))[0]);
-  };
-
-  // Build a list of {race, dominantVersion}
-  const raceHistoryWithVersion = raceHistory.map((race) => ({
-    ...race,
-    dominantVersion: getDominantVersion(race.legResults),
-  }));
+  const bestTime =
+    raceHistory.length > 0
+      ? (raceHistory
+          .reduce(
+            (min, r) =>
+              r.total_time && r.total_time < min ? r.total_time : min,
+            raceHistory[0].total_time || "99:99:99"
+          )
+          ?.toString() ?? "N/A")
+      : "N/A";
 
   const toggleExpanded = (year: number) => {
     setExpandedYear(expandedYear === year ? null : year);
   };
 
-  const getPlacementColor = (place: number | null, total: number | null) => {
-    if (!place || !total) return "text-gray-600 bg-gray-50";
-    const percentage = place / total;
-    if (percentage <= 0.1) return "text-yellow-600 bg-yellow-50";
-    if (percentage <= 0.25) return "text-green-600 bg-green-50";
-    if (percentage <= 0.5) return "text-blue-600 bg-blue-50";
+  const getPlacementColor = (percentile: number | null) => {
+    if (percentile === null) return "text-gray-600 bg-gray-50";
+    if (percentile <= 10) return "text-yellow-600 bg-yellow-50";
+    if (percentile <= 25) return "text-green-600 bg-green-50";
+    if (percentile <= 50) return "text-blue-600 bg-blue-50";
     return "text-gray-600 bg-gray-50";
   };
 
@@ -143,226 +107,156 @@ const HistoryView: React.FC = () => {
         <div className="card p-6 text-center">
           <Trophy className="w-8 h-8 text-yellow-600 mx-auto mb-3" />
           <h3 className="text-2xl font-bold text-gray-900">
-            {bestPercentile !== null && bestPercentile !== Infinity
-              ? `Top ${Math.round(bestPercentile)}%`
+            {bestOverallPercentile !== null
+              ? `Top ${Math.round(bestOverallPercentile)}%`
               : "N/A"}
           </h3>
           <p className="text-gray-600">Best Percentile</p>
         </div>
         <div className="card p-6 text-center">
           <Clock className="w-8 h-8 text-green-600 mx-auto mb-3" />
-          <h3 className="text-2xl font-bold text-gray-900">
-            {raceHistory.length > 0 ? getBestTime(raceHistory) : "N/A"}
-          </h3>
+          <h3 className="text-2xl font-bold text-gray-900">{bestTime}</h3>
           <p className="text-gray-600">Best Time</p>
         </div>
         <div className="card p-6 text-center">
           <Users className="w-8 h-8 text-purple-600 mx-auto mb-3" />
           <h3 className="text-2xl font-bold text-gray-900">
-            {averagePercentile !== null ? `Top ${averagePercentile}%` : "N/A"}
+            {averageOverallPercentile !== null
+              ? `Top ${Math.round(averageOverallPercentile)}%`
+              : "N/A"}
           </h3>
           <p className="text-gray-600">Avg Percentile</p>
         </div>
       </div>
 
       {/* Race Timeline */}
-      {raceHistoryWithVersion.length > 0 ? (
+      {raceHistory.length > 0 ? (
         <div className="space-y-4">
-          {raceHistoryWithVersion.map((race, idx) => {
-            const prev = raceHistoryWithVersion[idx - 1];
-            const versionChanged =
-              idx > 0 && race.dominantVersion !== prev.dominantVersion;
-            return (
-              <React.Fragment key={race.year}>
-                {versionChanged && (
-                  <div className="flex items-center my-6">
-                    <div className="flex-grow border-t border-gray-300"></div>
-                    <span className="mx-4 text-xs text-gray-500 font-semibold uppercase tracking-wider bg-gray-100 px-2 py-1 rounded-full">
-                      Legs changed to Version {prev.dominantVersion}
-                    </span>
-                    <div className="flex-grow border-t border-gray-300"></div>
-                  </div>
-                )}
-                <div key={race.year} className="card overflow-hidden">
-                  <div
-                    className="p-6 cursor-pointer hover:bg-gray-50 transition-colors"
-                    onClick={() => toggleExpanded(race.year!)}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-4">
-                        <div className="w-16 h-16 bg-gradient-to-br from-primary-500 to-primary-700 rounded-lg flex items-center justify-center text-white font-bold text-xl">
-                          {race.year}
-                        </div>
-                        <div>
-                          <h3 className="text-xl font-semibold text-gray-900">
-                            {race.year} Relay Race
-                          </h3>
-                          <p className="text-gray-600">
-                            Division: {race.division}{" "}
-                            {race.bib && `• Bib #${race.bib}`}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center space-x-6">
-                        <div className="text-center">
-                          <p className="text-2xl font-bold text-gray-900">
-                            {(race.totalTime as string) || "N/A"}
-                          </p>
-                          <p className="text-sm text-gray-600">Total Time</p>
-                        </div>
-                        {race.overallPlace && race.overallTeams && (
-                          <div className="text-center">
-                            <div
-                              className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getPlacementColor(
-                                race.overallPlace,
-                                race.overallTeams
-                              )}`}
-                            >
-                              {getPercentile(
-                                race.overallPlace,
-                                race.overallTeams
-                              )}
-                            </div>
-                            <p className="text-sm text-gray-600 mt-1">
-                              Overall
-                            </p>
-                          </div>
-                        )}
-                        {race.divisionPlace && race.divisionTeams && (
-                          <div className="text-center">
-                            <div
-                              className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getPlacementColor(
-                                race.divisionPlace,
-                                race.divisionTeams
-                              )}`}
-                            >
-                              {getPercentile(
-                                race.divisionPlace,
-                                race.divisionTeams
-                              )}
-                            </div>
-                            <p className="text-sm text-gray-600 mt-1">
-                              Division
-                            </p>
-                          </div>
-                        )}
-                        {expandedYear === race.year ? (
-                          <ChevronUp className="w-5 h-5 text-gray-400" />
-                        ) : (
-                          <ChevronDown className="w-5 h-5 text-gray-400" />
-                        )}
-                      </div>
+          {raceHistory.map((race) => (
+            <div key={race.year} className="card overflow-hidden">
+              <div
+                className="p-6 cursor-pointer hover:bg-gray-50 transition-colors"
+                onClick={() => toggleExpanded(race.year!)}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-4">
+                    <div className="w-16 h-16 bg-gradient-to-br from-primary-500 to-primary-700 rounded-lg flex items-center justify-center text-white font-bold text-xl">
+                      {race.year}
                     </div>
-
-                    {race.improvement !== null &&
-                      race.improvement !== undefined && (
-                        <div className="mt-4 flex items-center">
-                          <div
-                            className={`flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-                              race.improvement > 0
-                                ? "text-green-700 bg-green-100"
-                                : race.improvement < 0
-                                ? "text-red-700 bg-red-100"
-                                : "text-gray-700 bg-gray-100"
-                            }`}
-                          >
-                            {race.improvement > 0 ? "+" : ""}
-                            {race.improvement} places vs previous year
-                          </div>
-                        </div>
-                      )}
+                    <div>
+                      <h3 className="text-xl font-semibold text-gray-900">
+                        {race.year} Relay Race
+                      </h3>
+                      <p className="text-gray-600">
+                        Division: {race.division}{" "}
+                        {race.bib && `• Bib #${race.bib}`}
+                      </p>
+                    </div>
                   </div>
 
-                  {expandedYear === race.year && (
-                    <div className="border-t border-gray-100 p-6 bg-gray-50">
-                      <h4 className="text-lg font-semibold text-gray-900 mb-4">
-                        Leg-by-Leg Breakdown
-                      </h4>
-                      {race.legResults.length > 0 ? (
-                        <>
-                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {race.legResults.map((leg) => (
-                              <div
-                                key={leg.leg_number}
-                                className="bg-white rounded-lg p-4 border border-gray-200"
-                              >
-                                <div className="flex items-center justify-between mb-2">
-                                  <h5 className="font-semibold text-gray-900">
-                                    Leg {leg.leg_number}
-                                  </h5>
-                                  <span className="text-lg font-bold text-primary-600">
-                                    {leg.lap_time || "N/A"}
-                                  </span>
-                                </div>
-                                <p className="text-sm text-gray-600 mb-1">
-                                  Runner: {leg.runners?.name || "Unknown"}
-                                </p>
-                                <div className="flex justify-between text-xs text-gray-500">
-                                  <span>
-                                    {leg.leg_definitions?.distance || 0} miles
-                                  </span>
-                                  <span>
-                                    +{leg.leg_definitions?.elevation_gain || 0}{" "}
-                                    ft
-                                  </span>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-
-                          <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div className="bg-white rounded-lg p-4 border border-gray-200 text-center">
-                              <p className="text-sm text-gray-600">
-                                Average Pace
-                              </p>
-                              <p className="text-xl font-bold text-gray-900">
-                                {race.averagePace || "N/A"}
-                              </p>
-                            </div>
-                            <div className="bg-white rounded-lg p-4 border border-gray-200 text-center">
-                              <p className="text-sm text-gray-600">
-                                Total Distance
-                              </p>
-                              <p className="text-xl font-bold text-gray-900">
-                                {race.legResults
-                                  .reduce(
-                                    (sum, leg) =>
-                                      sum +
-                                      (leg.leg_definitions?.distance || 0),
-                                    0
-                                  )
-                                  .toFixed(1)}{" "}
-                                mi
-                              </p>
-                            </div>
-                            <div className="bg-white rounded-lg p-4 border border-gray-200 text-center">
-                              <p className="text-sm text-gray-600">
-                                Total Elevation
-                              </p>
-                              <p className="text-xl font-bold text-gray-900">
-                                {race.legResults.reduce(
-                                  (sum, leg) =>
-                                    sum +
-                                    (leg.leg_definitions?.elevation_gain || 0),
-                                  0
-                                )}{" "}
-                                ft
-                              </p>
-                            </div>
-                          </div>
-                        </>
-                      ) : (
-                        <div className="text-center py-8 text-gray-500">
-                          No leg details available for this race
-                        </div>
-                      )}
+                  <div className="flex items-center space-x-6">
+                    <div className="text-center">
+                      <p className="text-2xl font-bold text-gray-900">
+                        {race.total_time?.toString() ?? "N/A"}
+                      </p>
+                      <p className="text-sm text-gray-600">Total Time</p>
                     </div>
-                  )}
+                    {race.overall_percentile !== null && (
+                      <div className="text-center">
+                        <div
+                          className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getPlacementColor(
+                            race.overall_percentile
+                          )}`}
+                        >
+                          Top {Math.round(race.overall_percentile)}%
+                        </div>
+                        <p className="text-sm text-gray-600 mt-1">Overall</p>
+                      </div>
+                    )}
+                    {race.division_percentile !== null && (
+                      <div className="text-center">
+                        <div
+                          className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getPlacementColor(
+                            race.division_percentile
+                          )}`}
+                        >
+                          Top {Math.round(race.division_percentile ?? 0)}%
+                        </div>
+                        <p className="text-sm text-gray-600 mt-1">Division</p>
+                      </div>
+                    )}
+                    {expandedYear === race.year ? (
+                      <ChevronUp className="w-6 h-6 text-gray-500" />
+                    ) : (
+                      <ChevronDown className="w-6 h-6 text-gray-500" />
+                    )}
+                  </div>
                 </div>
-              </React.Fragment>
-            );
-          })}
+              </div>
+
+              {expandedYear === race.year && (
+                <div className="p-6 bg-gray-50/50">
+                  <h4 className="text-md font-semibold text-gray-900 mb-3">
+                    Leg Results
+                  </h4>
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-100">
+                        <tr>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
+                            Leg
+                          </th>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
+                            Runner
+                          </th>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
+                            Time
+                          </th>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
+                            Pace
+                          </th>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
+                            Distance
+                          </th>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
+                            Gain
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {race.legResults.map(
+                          (leg: Tables<"v_results_with_pace">) => (
+                            <tr key={leg.leg_number}>
+                              <td className="px-4 py-2 whitespace-nowrap text-sm font-medium text-gray-800">
+                                {leg.leg_number} (v{leg.leg_version})
+                              </td>
+                              <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-800">
+                                {leg.runner_name}
+                              </td>
+                              <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-800">
+                                {leg.lap_time || "N/A"}
+                              </td>
+                              <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-800">
+                                {formatPace(leg.pace || 0)}
+                              </td>
+                              <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-800">
+                                {leg.distance ? `${leg.distance} mi` : "N/A"}
+                              </td>
+                              <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-800">
+                                {leg.elevation_gain
+                                  ? `+${leg.elevation_gain} ft`
+                                  : "N/A"}
+                              </td>
+                            </tr>
+                          )
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
         </div>
       ) : (
         <div className="text-center py-12">
@@ -371,21 +265,12 @@ const HistoryView: React.FC = () => {
             No race history found
           </h3>
           <p className="text-gray-600">
-            Race history will appear here once data is available
+            Race data will appear here once it's available
           </p>
         </div>
       )}
     </div>
   );
-};
-
-// Helper functions
-const getBestTime = (races: any[]): string => {
-  const times = races.map((r) => r.totalTime).filter(Boolean);
-  if (times.length === 0) return "N/A";
-
-  // Simple string comparison should work for HH:MM:SS format
-  return times.reduce((best, current) => (current < best ? current : best));
 };
 
 export default HistoryView;

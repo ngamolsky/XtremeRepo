@@ -75,8 +75,6 @@ const AuthForm: React.FC = () => {
             },
           });
 
-          console.log(signUpError);
-
           if (signUpError) throw signUpError;
           setMessage(
             "Account created! Check your email for the confirmation link."
@@ -167,8 +165,8 @@ const AuthForm: React.FC = () => {
               {loading
                 ? "Please wait..."
                 : isSignUp
-                ? "Create Account"
-                : "Sign In"}
+                  ? "Create Account"
+                  : "Sign In"}
             </button>
           </form>
 

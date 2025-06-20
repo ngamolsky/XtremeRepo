@@ -2,15 +2,20 @@ import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { Tables } from "../types/database.types";
 
-export type JoinedResult = Tables<"results"> & {
-  leg_definitions: Tables<"leg_definitions">;
-  runners: Tables<"runners"> | null;
+export type RelayData = {
+  results: Tables<"v_results_with_pace">[];
+  runnerStats: Tables<"v_runner_stats">[];
+  legVersionStats: Tables<"v_leg_version_stats">[];
+  yearlySummary: Tables<"v_yearly_summary">[];
 };
 
 export const useRelayData = () => {
-  const [teamPerformance, setTeamPerformance] = useState<Tables<"team_performance_summary">[]>([]);
-  const [legResults, setLegResults] = useState<JoinedResult[]>([]);
-  const [placements, setPlacements] = useState<Tables<"placements">[]>([]);
+  const [data, setData] = useState<RelayData>({
+    results: [],
+    runnerStats: [],
+    legVersionStats: [],
+    yearlySummary: [],
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -20,50 +25,29 @@ export const useRelayData = () => {
         setLoading(true);
         setError(null);
 
-        // Fetch team performance summary
-        const { data: performanceData, error: performanceError } =
-          await supabase
-            .from("team_performance_summary")
-            .select("*")
-            .order("year", { ascending: false });
+        const [
+          resultsRes,
+          runnerStatsRes,
+          legVersionStatsRes,
+          yearlySummaryRes,
+        ] = await Promise.all([
+          supabase.from("v_results_with_pace").select("*"),
+          supabase.from("v_runner_stats").select("*"),
+          supabase.from("v_leg_version_stats").select("*"),
+          supabase.from("v_yearly_summary").select("*"),
+        ]);
 
-        if (performanceError) throw performanceError;
+        if (resultsRes.error) throw resultsRes.error;
+        if (runnerStatsRes.error) throw runnerStatsRes.error;
+        if (legVersionStatsRes.error) throw legVersionStatsRes.error;
+        if (yearlySummaryRes.error) throw yearlySummaryRes.error;
 
-        // Fetch leg results with definitions and runner information
-        const { data: resultsData, error: resultsError } = await supabase
-          .from("results")
-          .select(
-            `
-            *,
-            leg_definitions (
-              *
-            ),
-            runners (
-              *
-            )
-          `
-          )
-          .order("year", { ascending: false })
-          .order("leg_number", { ascending: true });
-
-        if (resultsError) throw resultsError;
-
-        // Fetch placements
-        const { data: placementsData, error: placementsError } = await supabase
-          .from("placements")
-          .select("*")
-          .order("year", { ascending: false });
-
-        if (placementsError) throw placementsError;
-
-        // Transform the data
-        setTeamPerformance(performanceData || []);
-
-        const transformedResults =
-          resultsData?.filter(result => result.runners?.name !== 'Unknown Runner' && result.runners?.name) || [];
-
-        setLegResults(transformedResults);
-        setPlacements(placementsData || []);
+        setData({
+          results: resultsRes.data || [],
+          runnerStats: runnerStatsRes.data || [],
+          legVersionStats: legVersionStatsRes.data || [],
+          yearlySummary: yearlySummaryRes.data || [],
+        });
       } catch (err) {
         setError(
           err instanceof Error
@@ -79,7 +63,7 @@ export const useRelayData = () => {
     fetchData();
   }, []);
 
-  return { teamPerformance, legResults, placements, loading, error };
+  return { data, loading, error };
 };
 
 

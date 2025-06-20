@@ -1,4 +1,5 @@
-import { useParams } from "@tanstack/react-router";
+import { Link, useParams } from "@tanstack/react-router";
+import { Award, BarChart, Map, Users } from "lucide-react";
 import React from "react";
 import {
   CartesianGrid,
@@ -10,13 +11,18 @@ import {
   YAxis,
 } from "recharts";
 import { useRelayData } from "../hooks/useRelayData";
-import { formatPace, parseTimeToMinutes } from "../lib/utils";
+import { formatPace } from "../lib/utils";
+import { StatCard } from "./StatCard";
 
 const LegDetail: React.FC = () => {
   const { legNumber, version } = useParams({
     from: "/legs/$legNumber/$version",
   });
-  const { legResults, loading, error } = useRelayData();
+  const {
+    data: { legVersionStats, results },
+    loading,
+    error,
+  } = useRelayData();
 
   if (loading) {
     return (
@@ -38,13 +44,18 @@ const LegDetail: React.FC = () => {
   }
 
   // Filter results for this specific leg and version
-  const legData = legResults.filter(
+  const legStat = legVersionStats.find(
+    (l) =>
+      l.leg_number === Number(legNumber) && l.leg_version === Number(version)
+  );
+
+  const legData = results.filter(
     (result) =>
       result.leg_number === Number(legNumber) &&
       result.leg_version === Number(version)
   );
 
-  if (legData.length === 0) {
+  if (!legStat) {
     return (
       <div className="text-center py-12">
         <h3 className="text-lg font-medium text-gray-900 mb-2">
@@ -57,39 +68,19 @@ const LegDetail: React.FC = () => {
     );
   }
 
-  // Get leg details from the first result
-  const legDetails = legData[0];
-
   // Prepare data for the performance chart
   const performanceData = legData
-    .filter((result) => result.lap_time && result.leg_definitions?.distance)
     .map((result) => ({
       year: result.year,
-      runner: result.runners?.name,
-      pace: result.lap_time
-        ? parseTimeToMinutes(result.lap_time) /
-          (result.leg_definitions?.distance || 1)
-        : null,
-      time: result.lap_time ? parseTimeToMinutes(result.lap_time) : null,
+      runner: result.runner_name,
+      pace: result.pace,
+      time: result.time_in_minutes,
     }))
-    .sort((a, b) => a.year - b.year);
+    .sort((a, b) => (a.year || 0) - (b.year || 0));
 
-  // Calculate statistics
-  const times = performanceData
-    .map((d) => d.time)
-    .filter((t): t is number => t !== null);
-  const paces = performanceData
-    .map((d) => d.pace)
-    .filter((p): p is number => p !== null);
-
-  const stats = {
-    bestPace: Math.min(...paces),
-    avgPace: paces.reduce((a, b) => a + b, 0) / paces.length,
-    bestTime: Math.min(...times),
-    avgTime: times.reduce((a, b) => a + b, 0) / times.length,
-    totalRuns: legData.length,
-    uniqueRunners: new Set(legData.map((r) => r.runners?.name)).size,
-  };
+  const bestPaceRunners =
+    (legStat.best_pace_runner_years as { runner: string; year: number }[]) ||
+    [];
 
   return (
     <div className="space-y-8 animate-fade-in">
@@ -98,40 +89,41 @@ const LegDetail: React.FC = () => {
           Leg {legNumber} Details
         </h1>
         <p className="text-lg text-gray-600">
-          Version {version} • {legDetails.leg_definitions?.distance} miles • +
-          {legDetails.leg_definitions?.elevation_gain}ft elevation
+          Version {version} • {legStat.distance} miles • +
+          {legStat.elevation_gain}ft elevation
         </p>
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="card p-6">
-          <h3 className="text-sm font-medium text-gray-500 uppercase">
-            Best Pace
-          </h3>
-          <p className="mt-2 text-3xl font-bold text-gray-900">
-            {formatPace(stats.bestPace)}
-          </p>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div>
+          <StatCard
+            icon={<Award className="w-6 h-6 text-yellow-600" />}
+            label="Best Pace"
+            value={formatPace(legStat.best_pace || 0)}
+          />
+          {bestPaceRunners.length > 0 && (
+            <p className="text-xs text-gray-500 mt-1">
+              by {bestPaceRunners.map((r) => r.runner).join(", ")} in{" "}
+              {bestPaceRunners.map((r) => r.year).join(", ")}
+            </p>
+          )}
         </div>
-        <div className="card p-6">
-          <h3 className="text-sm font-medium text-gray-500 uppercase">
-            Average Pace
-          </h3>
-          <p className="mt-2 text-3xl font-bold text-gray-900">
-            {formatPace(stats.avgPace)}
-          </p>
-        </div>
-        <div className="card p-6">
-          <h3 className="text-sm font-medium text-gray-500 uppercase">
-            Total Runs
-          </h3>
-          <p className="mt-2 text-3xl font-bold text-gray-900">
-            {stats.totalRuns}
-          </p>
-          <p className="mt-1 text-sm text-gray-500">
-            by {stats.uniqueRunners} runners
-          </p>
-        </div>
+        <StatCard
+          icon={<BarChart className="w-6 h-6 text-blue-600" />}
+          label="Average Pace"
+          value={formatPace(legStat.average_pace || 0)}
+        />
+        <StatCard
+          icon={<Map className="w-6 h-6 text-green-600" />}
+          label="Total Runs"
+          value={legStat.runs?.toString() || "0"}
+        />
+        <StatCard
+          icon={<Users className="w-6 h-6 text-indigo-600" />}
+          label="Unique Runners"
+          value={legStat.unique_runners?.toString() || "0"}
+        />
       </div>
 
       {/* Performance Chart */}
@@ -141,9 +133,13 @@ const LegDetail: React.FC = () => {
         </h3>
         <ResponsiveContainer width="100%" height={400}>
           <LineChart data={performanceData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
             <XAxis dataKey="year" stroke="#6b7280" />
-            <YAxis stroke="#6b7280" />
+            <YAxis
+              stroke="#6b7280"
+              reversed
+              tickFormatter={(tick) => formatPace(tick)}
+            />
             <Tooltip
               contentStyle={{
                 backgroundColor: "white",
@@ -151,9 +147,9 @@ const LegDetail: React.FC = () => {
                 borderRadius: "8px",
                 boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
               }}
-              formatter={(value: any, name: string) => {
+              formatter={(value: any, name: string, props: any) => {
                 if (name === "pace") {
-                  return [formatPace(value), "Pace"];
+                  return [formatPace(value), `Pace (${props.payload.runner})`];
                 }
                 return [value, name];
               }}
@@ -199,28 +195,32 @@ const LegDetail: React.FC = () => {
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {legData
-                .sort((a, b) => b.year - a.year)
+                .sort((a, b) => (b.year || 0) - (a.year || 0))
                 .map((result, idx) => (
                   <tr
-                    key={`${result.year}-${result.runners?.name}`}
-                    className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}
+                    key={`${result.year}-${result.runner_name}`}
+                    className={
+                      idx % 2 === 0
+                        ? "bg-white"
+                        : "bg-gray-50 hover:bg-gray-100"
+                    }
                   >
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                       {result.year}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {result.runners?.name}
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 hover:text-primary-600">
+                      <Link
+                        to="/runners/$runnerName"
+                        params={{ runnerName: result.runner_name || "" }}
+                      >
+                        {result.runner_name}
+                      </Link>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {result.lap_time || "N/A"}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {result.lap_time && result.leg_definitions?.distance
-                        ? formatPace(
-                            parseTimeToMinutes(result.lap_time) /
-                              result.leg_definitions?.distance
-                          )
-                        : "N/A"}
+                      {formatPace(result.pace || 0)}
                     </td>
                   </tr>
                 ))}

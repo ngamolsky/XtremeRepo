@@ -20,6 +20,11 @@ export type Database = MergeDeep<
             average_pace: string
           }
         }
+        v_results_with_pace: {
+          Row: {
+            lap_time: string
+          }
+        }
       }
     }
   }
