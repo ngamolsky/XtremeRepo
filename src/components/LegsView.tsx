@@ -1,16 +1,30 @@
+import { Link, useNavigate } from "@tanstack/react-router";
 import React from "react";
-import { useRelayData } from "../hooks/useRelayData";
+import { JoinedResult, useRelayData } from "../hooks/useRelayData";
+import { formatPace } from "../lib/utils";
 
-// Helper to format pace
-const formatPace = (pace: number): string => {
-  if (!pace || pace === Infinity || isNaN(pace)) return "N/A";
-  const mins = Math.floor(pace);
-  const secs = Math.round((pace - mins) * 60);
-  return `${mins}:${secs.toString().padStart(2, "0")}/mi`;
-};
+interface LegStat {
+  leg: number;
+  version: number;
+  distance: number | null | undefined;
+  runs: number;
+  totalTime: number;
+  totalDistance: number;
+  bestPace: number;
+  runners: Set<string>;
+  elevation_gain: number | null | undefined;
+}
+
+interface ProcessedLeg extends Omit<LegStat, "runners" | "bestPace"> {
+  averagePace: number | null;
+  bestPace: number | null;
+  bestPaceRunnerYears: { runner: string; year: number }[];
+  runners: string[];
+}
 
 const LegsView: React.FC = () => {
   const { legResults, loading, error } = useRelayData();
+  const navigate = useNavigate();
 
   if (loading) {
     return (
@@ -32,7 +46,7 @@ const LegsView: React.FC = () => {
   }
 
   // Group by leg number and version
-  const legStats: Record<string, any> = {};
+  const legStats: Record<string, LegStat> = {};
   for (const result of legResults) {
     if (!result.leg_number || !result.leg_version) continue;
     const key = `${result.leg_number}-${result.leg_version}`;
@@ -40,32 +54,36 @@ const LegsView: React.FC = () => {
       legStats[key] = {
         leg: result.leg_number,
         version: result.leg_version,
-        distance: result.distance,
+        distance: result.leg_definitions?.distance,
         runs: 0,
         totalTime: 0,
         totalDistance: 0,
         bestPace: Infinity,
         runners: new Set<string>(),
-        elevation_gain: result.elevation_gain,
+        elevation_gain: result.leg_definitions?.elevation_gain,
       };
     }
-    if (result.lap_time && result.distance && result.distance > 0) {
+    if (
+      result.lap_time &&
+      result.leg_definitions?.distance &&
+      result.leg_definitions?.distance > 0
+    ) {
       const timeInMinutes = parseTimeToMinutes(result.lap_time);
-      const pace = timeInMinutes / result.distance;
+      const pace = timeInMinutes / result.leg_definitions?.distance;
       legStats[key].runs++;
       legStats[key].totalTime += timeInMinutes;
-      legStats[key].totalDistance += result.distance;
+      legStats[key].totalDistance += result.leg_definitions?.distance;
       if (pace < legStats[key].bestPace) {
         legStats[key].bestPace = pace;
       }
     }
-    if (result.runner) {
-      legStats[key].runners.add(result.runner);
+    if (result.runners?.name) {
+      legStats[key].runners.add(result.runners?.name);
     }
   }
 
-  const legs = Object.values(legStats)
-    .map((leg: any) => {
+  const legs: ProcessedLeg[] = Object.values(legStats)
+    .map((leg: LegStat) => {
       // Find runner(s) and year(s) with best pace
       let bestPaceRunnerYears: { runner: string; year: number }[] = [];
       if (
@@ -75,16 +93,24 @@ const LegsView: React.FC = () => {
       ) {
         bestPaceRunnerYears = legResults
           .filter(
-            (r: any) =>
+            (r: JoinedResult) =>
               r.leg_number === leg.leg &&
               r.leg_version === leg.version &&
               r.lap_time &&
-              r.distance &&
+              r.leg_definitions?.distance &&
               Math.abs(
-                parseTimeToMinutes(r.lap_time) / r.distance - leg.bestPace
+                parseTimeToMinutes(r.lap_time) / r.leg_definitions?.distance -
+                  leg.bestPace
               ) < 0.01
           )
-          .map((r: any) => ({ runner: r.runner, year: r.year }))
+          .map((r: JoinedResult) => ({
+            runner: r.runners?.name,
+            year: r.year,
+          }))
+          .filter(
+            (item): item is { runner: string; year: number } =>
+              item.runner !== undefined && item.year !== null
+          )
           .filter(
             (
               item: { runner: string; year: number },
@@ -114,8 +140,10 @@ const LegsView: React.FC = () => {
     })
     .sort((a, b) => a.leg - b.leg || b.version - a.version);
 
-  const legsV2 = legs.filter((leg: any) => leg.version === 2);
-  const legsV1 = legs.filter((leg: any) => leg.version === 1);
+  console.log(legs);
+
+  const legsV2 = legs.filter((leg: ProcessedLeg) => leg.version === 2);
+  const legsV1 = legs.filter((leg: ProcessedLeg) => leg.version === 1);
 
   // Compute year ranges for each version
   const versionYears: Record<number, { min: number; max: number }> = {};
@@ -184,8 +212,20 @@ const LegsView: React.FC = () => {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {legsV2.map((leg) => (
-                    <tr key={`${leg.leg}-${leg.version}`}>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    <tr
+                      key={`${leg.leg}-${leg.version}`}
+                      className="hover:bg-gray-50 cursor-pointer"
+                      onClick={() =>
+                        navigate({
+                          to: "/legs/$legNumber/$version",
+                          params: {
+                            legNumber: leg.leg.toString(),
+                            version: leg.version.toString(),
+                          },
+                        })
+                      }
+                    >
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium ">
                         {leg.leg}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
@@ -195,15 +235,20 @@ const LegsView: React.FC = () => {
                         {leg.distance ? `${leg.distance} mi` : "N/A"}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {leg.elevation_gain !== undefined
+                        {leg.elevation_gain !== undefined &&
+                        leg.elevation_gain !== null
                           ? `+${leg.elevation_gain} ft`
                           : "N/A"}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {formatPace(leg.averagePace)}
+                        {leg.averagePace !== null
+                          ? formatPace(leg.averagePace)
+                          : "N/A"}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {formatPace(leg.bestPace)}
+                        {leg.bestPace !== null
+                          ? formatPace(leg.bestPace)
+                          : "N/A"}
                         {leg.bestPaceRunnerYears &&
                           leg.bestPaceRunnerYears.length > 0 && (
                             <div className="flex flex-wrap gap-1 mt-1">
@@ -215,12 +260,15 @@ const LegsView: React.FC = () => {
                                   runner: string;
                                   year: number;
                                 }) => (
-                                  <span
+                                  <Link
                                     key={`${runner}-${year}`}
-                                    className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full"
+                                    to="/runners/$runnerName"
+                                    params={{ runnerName: runner }}
+                                    className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full hover:bg-green-200"
+                                    onClick={(e) => e.stopPropagation()}
                                   >
                                     {runner} ({year})
-                                  </span>
+                                  </Link>
                                 )
                               )}
                             </div>
@@ -229,12 +277,15 @@ const LegsView: React.FC = () => {
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         <div className="flex flex-wrap gap-1">
                           {leg.runners.map((runner: string) => (
-                            <span
+                            <Link
                               key={runner}
-                              className="px-2 py-1 bg-primary-100 text-primary-800 text-xs rounded-full"
+                              to="/runners/$runnerName"
+                              params={{ runnerName: runner }}
+                              className="px-2 py-1 bg-primary-100 text-primary-800 text-xs rounded-full hover:bg-primary-200"
+                              onClick={(e) => e.stopPropagation()}
                             >
                               {runner}
-                            </span>
+                            </Link>
                           ))}
                         </div>
                       </td>
@@ -279,7 +330,19 @@ const LegsView: React.FC = () => {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {legsV1.map((leg) => (
-                    <tr key={`${leg.leg}-${leg.version}`}>
+                    <tr
+                      key={`${leg.leg}-${leg.version}`}
+                      className="hover:bg-gray-50 cursor-pointer"
+                      onClick={() =>
+                        navigate({
+                          to: "/legs/$legNumber/$version",
+                          params: {
+                            legNumber: leg.leg.toString(),
+                            version: leg.version.toString(),
+                          },
+                        })
+                      }
+                    >
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                         {leg.leg}
                       </td>
@@ -290,15 +353,20 @@ const LegsView: React.FC = () => {
                         {leg.distance ? `${leg.distance} mi` : "N/A"}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {leg.elevation_gain !== undefined
+                        {leg.elevation_gain !== undefined &&
+                        leg.elevation_gain !== null
                           ? `+${leg.elevation_gain} ft`
                           : "N/A"}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {formatPace(leg.averagePace)}
+                        {leg.averagePace !== null
+                          ? formatPace(leg.averagePace)
+                          : "N/A"}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {formatPace(leg.bestPace)}
+                        {leg.bestPace !== null
+                          ? formatPace(leg.bestPace)
+                          : "N/A"}
                         {leg.bestPaceRunnerYears &&
                           leg.bestPaceRunnerYears.length > 0 && (
                             <div className="flex flex-wrap gap-1 mt-1">
@@ -310,12 +378,15 @@ const LegsView: React.FC = () => {
                                   runner: string;
                                   year: number;
                                 }) => (
-                                  <span
+                                  <Link
                                     key={`${runner}-${year}`}
-                                    className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full"
+                                    to="/runners/$runnerName"
+                                    params={{ runnerName: runner }}
+                                    className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full hover:bg-green-200"
+                                    onClick={(e) => e.stopPropagation()}
                                   >
                                     {runner} ({year})
-                                  </span>
+                                  </Link>
                                 )
                               )}
                             </div>
@@ -324,12 +395,15 @@ const LegsView: React.FC = () => {
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         <div className="flex flex-wrap gap-1">
                           {leg.runners.map((runner: string) => (
-                            <span
+                            <Link
                               key={runner}
-                              className="px-2 py-1 bg-primary-100 text-primary-800 text-xs rounded-full"
+                              to="/runners/$runnerName"
+                              params={{ runnerName: runner }}
+                              className="px-2 py-1 bg-primary-100 text-primary-800 text-xs rounded-full hover:bg-primary-200"
+                              onClick={(e) => e.stopPropagation()}
                             >
                               {runner}
-                            </span>
+                            </Link>
                           ))}
                         </div>
                       </td>

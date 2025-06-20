@@ -207,7 +207,7 @@ const HistoryView: React.FC = () => {
                       <div className="flex items-center space-x-6">
                         <div className="text-center">
                           <p className="text-2xl font-bold text-gray-900">
-                            {race.totalTime || "N/A"}
+                            {(race.totalTime as string) || "N/A"}
                           </p>
                           <p className="text-sm text-gray-600">Total Time</p>
                         </div>
@@ -296,11 +296,16 @@ const HistoryView: React.FC = () => {
                                   </span>
                                 </div>
                                 <p className="text-sm text-gray-600 mb-1">
-                                  Runner: {leg.runner || "Unknown"}
+                                  Runner: {leg.runners?.name || "Unknown"}
                                 </p>
                                 <div className="flex justify-between text-xs text-gray-500">
-                                  <span>{leg.distance || 0} miles</span>
-                                  <span>+{leg.elevation_gain || 0} ft</span>
+                                  <span>
+                                    {leg.leg_definitions?.distance || 0} miles
+                                  </span>
+                                  <span>
+                                    +{leg.leg_definitions?.elevation_gain || 0}{" "}
+                                    ft
+                                  </span>
                                 </div>
                               </div>
                             ))}
@@ -322,7 +327,9 @@ const HistoryView: React.FC = () => {
                               <p className="text-xl font-bold text-gray-900">
                                 {race.legResults
                                   .reduce(
-                                    (sum, leg) => sum + (leg.distance || 0),
+                                    (sum, leg) =>
+                                      sum +
+                                      (leg.leg_definitions?.distance || 0),
                                     0
                                   )
                                   .toFixed(1)}{" "}
@@ -335,7 +342,9 @@ const HistoryView: React.FC = () => {
                               </p>
                               <p className="text-xl font-bold text-gray-900">
                                 {race.legResults.reduce(
-                                  (sum, leg) => sum + (leg.elevation_gain || 0),
+                                  (sum, leg) =>
+                                    sum +
+                                    (leg.leg_definitions?.elevation_gain || 0),
                                   0
                                 )}{" "}
                                 ft

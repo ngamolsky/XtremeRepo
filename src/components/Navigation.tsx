@@ -12,8 +12,7 @@ import { supabase } from "../lib/supabase";
 
 const Navigation: React.FC = () => {
   const router = useRouter();
-  const currentPath = router.state.location.pathname;
-  const activeTab = currentPath === "/" ? "dashboard" : currentPath.slice(1);
+  const pathname = router.state.location.pathname;
 
   const tabs = [
     { id: "dashboard", label: "Dashboard", icon: BarChart3, path: "/" },
@@ -22,6 +21,16 @@ const Navigation: React.FC = () => {
     { id: "history", label: "History", icon: History, path: "/history" },
     { id: "photos", label: "Photos", icon: Camera, path: "/photos" },
   ];
+
+  const getActiveTabId = () => {
+    if (pathname === "/") {
+      return "dashboard";
+    }
+    const topLevelPath = pathname.substring(1).split("/")[0];
+    const matchingTab = tabs.find((tab) => tab.path === `/${topLevelPath}`);
+    return matchingTab ? matchingTab.id : "dashboard";
+  };
+  const activeTabId = getActiveTabId();
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -52,11 +61,16 @@ const Navigation: React.FC = () => {
                 <Link
                   key={tab.id}
                   to={tab.path}
-                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
-                    activeTab === tab.id
-                      ? "bg-primary-50 text-primary-700 border border-primary-200"
-                      : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
-                  }`}
+                  activeOptions={tab.path === "/" ? { exact: true } : {}}
+                  className="flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-all duration-200"
+                  activeProps={{
+                    className:
+                      "bg-primary-50 text-primary-700 border border-primary-200",
+                  }}
+                  inactiveProps={{
+                    className:
+                      "text-gray-600 hover:text-gray-900 hover:bg-gray-50",
+                  }}
                 >
                   <Icon className="w-4 h-4" />
                   <span>{tab.label}</span>
@@ -77,7 +91,7 @@ const Navigation: React.FC = () => {
           {/* Mobile Navigation */}
           <div className="md:hidden flex items-center space-x-2">
             <select
-              value={activeTab}
+              value={activeTabId}
               onChange={(e) =>
                 router.navigate({
                   to:

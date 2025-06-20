@@ -80,7 +80,7 @@ const Dashboard: React.FC = () => {
     .map((result) => ({
       leg: `Leg ${result.leg_number}`,
       time: result.lap_time ? parseTimeToMinutes(result.lap_time) : 0,
-      runner: result.runner ? result.runner : "Missing Runner Name ",
+      runner: result.runners?.name || "Missing Runner Name ",
     }));
 
   return (
@@ -116,7 +116,7 @@ const Dashboard: React.FC = () => {
         />
         <StatCard
           title="Latest Time"
-          value={latestPerformance?.total_time || "N/A"}
+          value={(latestPerformance?.total_time as string) || "N/A"}
           icon={Clock}
           subtitle={`${latestPerformance?.year || "No data"} race`}
         />
@@ -254,7 +254,7 @@ const Dashboard: React.FC = () => {
                       {perf.year}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {perf.total_time || "N/A"}
+                      {(perf.total_time as string) || "N/A"}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {getPercentile(perf.division_place, perf.division_teams)}
@@ -263,7 +263,7 @@ const Dashboard: React.FC = () => {
                       {getPercentile(perf.overall_place, perf.overall_teams)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {perf.average_pace || "N/A"}
+                      {(perf.average_pace as string) || "N/A"}
                     </td>
                   </tr>
                 ))}

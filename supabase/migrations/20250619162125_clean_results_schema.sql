@@ -85,3 +85,30 @@ CREATE TRIGGER link_auth_user_trigger
     BEFORE INSERT OR UPDATE ON "public"."runners"
     FOR EACH ROW
     EXECUTE FUNCTION link_auth_user();
+
+-- Create function to link runners when auth users are created
+CREATE OR REPLACE FUNCTION link_runner_to_auth_user()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- Try to find and update a runner with matching email
+    UPDATE public.runners
+    SET auth_user_id = NEW.id
+    WHERE email = NEW.email
+    AND auth_user_id IS NULL;
+    
+    RETURN NEW;
+END;
+$$ language 'plpgsql';
+
+-- Create trigger to automatically link runners when auth users are created
+CREATE TRIGGER link_runner_auth_user_trigger
+    AFTER INSERT ON auth.users
+    FOR EACH ROW
+    EXECUTE FUNCTION link_runner_to_auth_user();
+
+-- Also run it on update in case email changes
+CREATE TRIGGER link_runner_auth_user_update_trigger
+    AFTER UPDATE OF email ON auth.users
+    FOR EACH ROW
+    WHEN (OLD.email IS DISTINCT FROM NEW.email)
+    EXECUTE FUNCTION link_runner_to_auth_user();

@@ -1,9 +1,9 @@
-import { Outlet } from "@tanstack/react-router";
-import AuthWrapper from "./components/AuthWrapper";
-import Navigation from "./components/Navigation";
+import { Outlet, createRootRoute } from "@tanstack/react-router";
+import AuthWrapper from "../components/AuthWrapper";
+import Navigation from "../components/Navigation";
 
-function App() {
-  return (
+export const Route = createRootRoute({
+  component: () => (
     <AuthWrapper>
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
         <Navigation />
@@ -12,7 +12,5 @@ function App() {
         </main>
       </div>
     </AuthWrapper>
-  );
-}
-
-export default App;
+  ),
+});
