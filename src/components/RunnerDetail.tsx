@@ -1,4 +1,5 @@
 import { useParams } from "@tanstack/react-router";
+import { LogOut } from "lucide-react";
 import React from "react";
 import {
   CartesianGrid,
@@ -9,13 +10,23 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { useIsMyProfile } from "../hooks/useIsMyProfile";
 import { useRelayData } from "../hooks/useRelayData";
+import { supabase } from "../lib/supabase";
 import { formatPace, parseTimeToMinutes } from "../lib/utils";
 import { LegPill } from "./LegPill";
 
 const RunnerDetail: React.FC = () => {
   const { runnerName } = useParams({ from: "/runners/$runnerName" });
   const { legResults, loading, error } = useRelayData();
+
+  const runnerData = legResults.filter(
+    (result) => result.runners?.name === runnerName
+  );
+
+  const runnerAuthId =
+    runnerData.length > 0 ? runnerData[0].runners?.auth_user_id : undefined;
+  const { isMyProfile } = useIsMyProfile(runnerAuthId);
 
   if (loading) {
     return (
@@ -36,10 +47,9 @@ const RunnerDetail: React.FC = () => {
     );
   }
 
-  // Filter results for this specific runner
-  const runnerData = legResults.filter(
-    (result) => result.runners?.name === runnerName
-  );
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+  };
 
   if (runnerData.length === 0) {
     return (
@@ -98,6 +108,15 @@ const RunnerDetail: React.FC = () => {
           {stats.years} {stats.years === 1 ? "year" : "years"} •{" "}
           {stats.totalRuns} {stats.totalRuns === 1 ? "run" : "runs"}
         </p>
+        {isMyProfile && (
+          <button
+            onClick={handleSignOut}
+            className="mt-4 flex items-center space-x-2 px-4 py-2 rounded-lg font-medium text-gray-600 hover:text-red-600 hover:bg-red-50 transition-all duration-200 mx-auto"
+          >
+            <LogOut className="w-4 h-4" />
+            <span>Sign Out</span>
+          </button>
+        )}
       </div>
 
       {/* Stats Grid */}

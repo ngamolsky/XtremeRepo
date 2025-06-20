@@ -303,9 +303,15 @@ const TeamView: React.FC = () => {
                   {runner.races.slice(0, 3).map((race: any, index: number) => {
                     let pace = "N/A";
                     let duration = race.lap_time || "N/A";
-                    if (race.lap_time && race.distance && race.distance > 0) {
+                    if (
+                      race.lap_time &&
+                      race.leg_definitions?.distance &&
+                      race.leg_definitions.distance > 0
+                    ) {
                       const timeInMinutes = parseTimeToMinutes(race.lap_time);
-                      pace = formatPace(timeInMinutes / race.distance);
+                      pace = formatPace(
+                        timeInMinutes / race.leg_definitions.distance
+                      );
                     }
                     return (
                       <div key={index} className="flex justify-between text-xs">

@@ -1,12 +1,5 @@
 import { Link, useRouter } from "@tanstack/react-router";
-import {
-  BarChart3,
-  Camera,
-  History,
-  LogOut,
-  Trophy,
-  Users,
-} from "lucide-react";
+import { BarChart3, Camera, History, Trophy, User, Users } from "lucide-react";
 import React from "react";
 import { supabase } from "../lib/supabase";
 
@@ -78,14 +71,18 @@ const Navigation: React.FC = () => {
               );
             })}
 
-            {/* Sign Out Button */}
-            <button
-              onClick={handleSignOut}
-              className="flex items-center space-x-2 px-4 py-2 rounded-lg font-medium text-gray-600 hover:text-red-600 hover:bg-red-50 transition-all duration-200 ml-4"
+            {/* Profile Button */}
+            <Link
+              to="/profile"
+              className="flex items-center space-x-2 px-4 py-2 rounded-lg font-medium text-gray-600 hover:text-primary-600 hover:bg-primary-50 transition-all duration-200 ml-4"
+              activeProps={{
+                className:
+                  "bg-primary-50 text-primary-700 border border-primary-200",
+              }}
             >
-              <LogOut className="w-4 h-4" />
-              <span>Sign Out</span>
-            </button>
+              <User className="w-4 h-4" />
+              <span>Me</span>
+            </Link>
           </div>
 
           {/* Mobile Navigation */}
@@ -106,12 +103,15 @@ const Navigation: React.FC = () => {
                 </option>
               ))}
             </select>
-            <button
-              onClick={handleSignOut}
-              className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+            <Link
+              to="/profile"
+              className="p-2 text-gray-600 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
+              activeProps={{
+                className: "text-primary-700 bg-primary-50",
+              }}
             >
-              <LogOut className="w-4 h-4" />
-            </button>
+              <User className="w-4 h-4" />
+            </Link>
           </div>
         </div>
       </div>
