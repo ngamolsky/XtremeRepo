@@ -1,5 +1,3 @@
-import { parse as parseCSV } from 'papaparse';
-
 export type Placement = {
   year: number;
   division: string;
@@ -58,9 +56,49 @@ export async function handleUpload(request: Request): Promise<Response> {
 }
 
 function parseRaceCSV(text: string): { placements: Placement[]; results: Result[] } {
-  // Use PapaParse to parse CSV
-  const { data } = parseCSV(text, { header: true, skipEmptyLines: true });
-  return splitRaceData(data as Record<string, string>[]);
+  // Simple CSV parser that works in Cloudflare Workers
+  const lines = text.split('\n').filter(line => line.trim() !== '');
+  if (lines.length === 0) {
+    return { placements: [], results: [] };
+  }
+
+  // Parse headers
+  const headers = parseCSVLine(lines[0]);
+  const data: Record<string, string>[] = [];
+
+  // Parse data rows
+  for (let i = 1; i < lines.length; i++) {
+    const values = parseCSVLine(lines[i]);
+    const row: Record<string, string> = {};
+    headers.forEach((header, index) => {
+      row[header] = values[index] || '';
+    });
+    data.push(row);
+  }
+
+  return splitRaceData(data);
+}
+
+function parseCSVLine(line: string): string[] {
+  const result: string[] = [];
+  let current = '';
+  let inQuotes = false;
+  
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i];
+    
+    if (char === '"') {
+      inQuotes = !inQuotes;
+    } else if (char === ',' && !inQuotes) {
+      result.push(current.trim());
+      current = '';
+    } else {
+      current += char;
+    }
+  }
+  
+  result.push(current.trim());
+  return result;
 }
 
 function splitRaceData(data: Record<string, string>[]): { placements: Placement[]; results: Result[] } {
