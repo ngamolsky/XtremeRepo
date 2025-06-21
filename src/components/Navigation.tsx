@@ -1,5 +1,5 @@
 import { Link, useRouter } from "@tanstack/react-router";
-import { BarChart3, Camera, History, Trophy, User, Users } from "lucide-react";
+import { BarChart3, Camera, History, Trophy, User, Users, Upload } from "lucide-react";
 import React from "react";
 import { supabase } from "../lib/supabase";
 
@@ -13,6 +13,7 @@ const Navigation: React.FC = () => {
     { id: "legs", label: "Legs", icon: BarChart3, path: "/legs" },
     { id: "history", label: "History", icon: History, path: "/history" },
     { id: "photos", label: "Photos", icon: Camera, path: "/photos" },
+    { id: "upload", label: "Upload", icon: Upload, path: "/upload" },
   ];
 
   const getActiveTabId = () => {
