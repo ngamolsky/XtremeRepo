@@ -1,5 +1,4 @@
 import { parse as parseCSV } from 'papaparse';
-import * as XLSX from 'xlsx';
 
 export type Placement = {
   year: number;
@@ -44,10 +43,13 @@ export async function handleUpload(request: Request): Promise<Response> {
     const text = await file.text();
     ({ placements, results } = parseRaceCSV(text));
   } else if (fileName.endsWith('.xls') || fileName.endsWith('.xlsx')) {
-    const arrayBuffer = await file.arrayBuffer();
-    ({ placements, results } = parseRaceXLS(arrayBuffer));
+    // For now, return an error for XLS files since xlsx library is not compatible with Cloudflare Workers
+    return new Response('XLS/XLSX files are not supported in this environment. Please convert to CSV format.', { 
+      status: 400,
+      headers: { 'Content-Type': 'application/json' }
+    });
   } else {
-    return new Response('Unsupported file type', { status: 400 });
+    return new Response('Unsupported file type. Please use CSV format.', { status: 400 });
   }
 
   return new Response(JSON.stringify({ placements, results }), {
@@ -59,14 +61,6 @@ function parseRaceCSV(text: string): { placements: Placement[]; results: Result[
   // Use PapaParse to parse CSV
   const { data } = parseCSV(text, { header: true, skipEmptyLines: true });
   return splitRaceData(data as Record<string, string>[]);
-}
-
-function parseRaceXLS(buffer: ArrayBuffer): { placements: Placement[]; results: Result[] } {
-  const workbook = XLSX.read(buffer, { type: 'array' });
-  // Assume first sheet
-  const sheet = workbook.Sheets[workbook.SheetNames[0]];
-  const data = XLSX.utils.sheet_to_json<Record<string, string>>(sheet, { defval: '' });
-  return splitRaceData(data);
 }
 
 function splitRaceData(data: Record<string, string>[]): { placements: Placement[]; results: Result[] } {

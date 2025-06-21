@@ -121,10 +121,10 @@ const UploadView: React.FC = () => {
       <h1 className="text-2xl font-bold mb-4 text-gray-900">Upload Official Race Data</h1>
       {/* File Upload Section */}
       <div className="mb-8">
-        <label className="block text-sm font-medium text-gray-700 mb-2">Upload CSV/XLS File</label>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Upload CSV File</label>
         <input
           type="file"
-          accept=".csv,.xls,.xlsx"
+          accept=".csv"
           onChange={e => {
             setFile(e.target.files?.[0] || null);
             setParsedData(null);
