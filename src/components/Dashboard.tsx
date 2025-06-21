@@ -4,20 +4,23 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
+  Legend,
   Line,
   LineChart,
-  Legend,
   ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
 } from "recharts";
 import { useRelayData } from "../hooks/useRelayData";
-import StatCard from "./StatCard";
+import { StatCard } from "./StatCard";
 
 const Dashboard: React.FC = () => {
-  const { teamPerformance, legResults, placements, loading, error } =
-    useRelayData();
+  const {
+    data: { yearlySummary, results },
+    loading,
+    error,
+  } = useRelayData();
 
   if (loading) {
     return (
@@ -43,45 +46,37 @@ const Dashboard: React.FC = () => {
   }
 
   // Calculate stats from real data
-  const latestPerformance = teamPerformance[0];
-  const bestPercentile =
-    placements.length > 0
+  const latestPerformance = yearlySummary[0];
+  const bestOverallPercentile =
+    yearlySummary.length > 0
       ? Math.min(
-          ...placements.map((p) =>
-            p.overall_place && p.overall_teams
-              ? (p.overall_place / p.overall_teams) * 100
-              : Infinity
-          )
+          ...yearlySummary
+            .map((p) => p.overall_percentile)
+            .filter((p): p is number => p !== null)
         )
       : null;
-  const averagePercentile =
-    placements.length > 0
-      ? Math.round(
-          placements.reduce((sum, p) => {
-            if (p.overall_place && p.overall_teams) {
-              return sum + (p.overall_place / p.overall_teams) * 100;
-            }
-            return sum;
-          }, 0) / placements.length
-        )
+  const averageOverallPercentile =
+    yearlySummary.length > 0
+      ? yearlySummary.reduce((sum, p) => sum + (p.overall_percentile || 0), 0) /
+        yearlySummary.length
       : null;
 
   // Prepare chart data
-  const performanceChartData = teamPerformance
+  const performanceChartData = yearlySummary
     .map((perf) => ({
       year: perf.year,
-      placement: perf.overall_place,
-      totalTeams: perf.overall_teams,
+      division: perf.division_percentile,
+      overall: perf.overall_percentile,
     }))
     .reverse();
 
   const currentYear = latestPerformance?.year || new Date().getFullYear();
-  const legPerformanceData = legResults
+  const legPerformanceData = results
     .filter((result) => result.year === currentYear)
     .map((result) => ({
       leg: `Leg ${result.leg_number}`,
-      time: result.lap_time ? parseTimeToMinutes(result.lap_time) : 0,
-      runner: result.runner ? result.runner : "Missing Runner Name ",
+      time: result.time_in_minutes,
+      runner: result.runner_name || "Missing Runner Name",
     }));
 
   return (
@@ -99,42 +94,31 @@ const Dashboard: React.FC = () => {
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard
-          title="Total Races"
-          value={placements.length}
-          icon={Calendar}
-          subtitle="Years of competition"
+          icon={<Calendar className="w-6 h-6" />}
+          label="Total Races"
+          value={yearlySummary.length.toString()}
         />
         <StatCard
-          title="Best Percentile"
+          icon={<Trophy className="w-6 h-6" />}
+          label="Best Percentile"
           value={
-            bestPercentile !== null && bestPercentile !== Infinity
-              ? `Top ${Math.round(bestPercentile)}%`
+            bestOverallPercentile !== null
+              ? `Top ${Math.round(bestOverallPercentile)}%`
               : "N/A"
           }
-          icon={Trophy}
-          subtitle="All-time best finish (percentile)"
-          className="bg-gradient-to-br from-yellow-50 to-orange-50 border-yellow-200"
         />
         <StatCard
-          title="Latest Time"
-          value={latestPerformance?.total_time || "N/A"}
-          icon={Clock}
-          subtitle={`${latestPerformance?.year || "No data"} race`}
+          icon={<Clock className="w-6 h-6" />}
+          label="Latest Time"
+          value={latestPerformance?.total_time?.toString() || "N/A"}
         />
         <StatCard
-          title="Avg Percentile"
+          icon={<TrendingUp className="w-6 h-6" />}
+          label="Avg Percentile"
           value={
-            averagePercentile !== null ? `Top ${averagePercentile}%` : "N/A"
-          }
-          icon={TrendingUp}
-          subtitle="Across all races (percentile)"
-          trend={
-            latestPerformance?.improvement
-              ? {
-                  value: latestPerformance.improvement,
-                  isPositive: latestPerformance.improvement > 0,
-                }
-              : undefined
+            averageOverallPercentile !== null
+              ? `Top ${Math.round(averageOverallPercentile)}%`
+              : "N/A"
           }
         />
       </div>
@@ -147,19 +131,13 @@ const Dashboard: React.FC = () => {
             Performance Percentile Trend
           </h3>
           <p className="text-sm text-gray-500 mb-4">
-            Lower percentile indicates better performance (e.g., 10% means top 10% of teams)
+            Lower percentile indicates better performance (e.g., 10% means top
+            10% of teams)
           </p>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart
-                data={teamPerformance
-                  .slice()
-                  .reverse()
-                  .map((perf) => ({
-                    year: perf.year,
-                    division: getRelativeRank(perf.division_place, perf.division_teams),
-                    overall: getRelativeRank(perf.overall_place, perf.overall_teams),
-                  }))}
+                data={performanceChartData}
                 margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
               >
                 <CartesianGrid strokeDasharray="3 3" />
@@ -174,7 +152,12 @@ const Dashboard: React.FC = () => {
                   tickFormatter={(value) => `${value.toFixed(0)}%`}
                   domain={[0, 100]}
                   reversed={true}
-                  label={{ value: 'Percentile', angle: -90, position: 'insideLeft', style: { fill: '#6B7280' } }}
+                  label={{
+                    value: "Percentile",
+                    angle: -90,
+                    position: "insideLeft",
+                    style: { fill: "#6B7280" },
+                  }}
                 />
                 <Tooltip
                   contentStyle={{
@@ -246,10 +229,10 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Recent Performance Summary */}
-      {teamPerformance.length > 0 && (
+      {yearlySummary.length > 0 && (
         <div className="card p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            Recent Performance
+            Year-over-Year Performance
           </h3>
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
@@ -262,36 +245,41 @@ const Dashboard: React.FC = () => {
                     Total Time
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Division Rank
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Overall Rank
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Avg Pace
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Overall Placement
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Division Placement
                   </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {teamPerformance.slice(0, 5).map((perf) => (
+                {yearlySummary.map((perf, idx) => (
                   <tr
-                    key={perf.year}
-                    className="hover:bg-gray-50 transition-colors"
+                    key={idx}
+                    className={
+                      idx % 2 === 0
+                        ? "bg-white"
+                        : "bg-gray-50 hover:bg-gray-100"
+                    }
                   >
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                       {perf.year}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {perf.total_time || "N/A"}
+                      {perf.total_time?.toString()}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {getRank(perf.division_place, perf.division_teams)}
+                      {perf.average_pace?.toString()}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {getRank(perf.overall_place, perf.overall_teams)}
+                      {perf.overall_place} of {perf.overall_teams}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {perf.average_pace || "N/A"}
+                      {perf.division_place} of {perf.division_teams} (
+                      {perf.division})
                     </td>
                   </tr>
                 ))}
@@ -302,30 +290,6 @@ const Dashboard: React.FC = () => {
       )}
     </div>
   );
-};
-
-// Helper function to parse time strings to minutes
-const parseTimeToMinutes = (timeString: string): number => {
-  const parts = timeString.split(":");
-  if (parts.length >= 2) {
-    const hours = parseInt(parts[0]) || 0;
-    const minutes = parseInt(parts[1]) || 0;
-    const seconds = parseInt(parts[2]) || 0;
-    return hours * 60 + minutes + seconds / 60;
-  }
-  return 0;
-};
-
-// Helper to format rank
-const getRank = (place?: number | null, teams?: number | null): string => {
-  if (!place || !teams || teams < 1) return "N/A";
-  return `${place} of ${teams}`;
-};
-
-// Helper to calculate relative rank (lower is better)
-const getRelativeRank = (place?: number | null, teams?: number | null): number | null => {
-  if (!place || !teams || teams < 1) return null;
-  return (place / teams) * 100;
 };
 
 export default Dashboard;

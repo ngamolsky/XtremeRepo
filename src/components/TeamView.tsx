@@ -1,9 +1,14 @@
+import { Link, useNavigate } from "@tanstack/react-router";
 import { Award, Target, User, Users } from "lucide-react";
 import React from "react";
 import { useRelayData } from "../hooks/useRelayData";
+import { formatPace } from "../lib/utils";
+import { Tables } from "../types/database.types";
+import { LegPill } from "./LegPill";
 
 const TeamView: React.FC = () => {
-  const { legResults, loading, error } = useRelayData();
+  const { data, loading, error } = useRelayData();
+  const navigate = useNavigate();
 
   if (loading) {
     return (
@@ -24,106 +29,49 @@ const TeamView: React.FC = () => {
     );
   }
 
-  // Group results by runner and calculate stats
-  const runnerStats = legResults.reduce((acc, result) => {
-    const runnerName = result.runner || "Unknown";
-    if (runnerName === "Unknown") return acc;
+  const { runnerStats, results, yearlySummary } = data;
 
-    if (!acc[runnerName]) {
-      acc[runnerName] = {
-        name: runnerName,
-        races: [],
-        totalRaces: 0,
-        bestTime: Infinity,
-        totalTimeMinutes: 0,
-        totalDistance: 0,
-        bestPace: Infinity,
-        legs: new Set<number>(),
-      };
-    }
+  const runners = runnerStats
+    .filter((runner) => runner.runner_name)
+    .map((runner) => {
+      const bestPaceLegsWithVersions: { leg: number; version: number }[] =
+        (runner.best_pace_legs_with_versions as {
+          leg: number;
+          version: number;
+        }[]) || [];
 
-    acc[runnerName].races.push(result);
-    acc[runnerName].totalRaces++;
-    acc[runnerName].legs.add(result.leg_number);
+      const legsRun: { leg: number; latestVersion: number }[] =
+        (runner.legs_run as { leg: number; latestVersion: number }[]) || [];
 
-    if (result.lap_time && result.distance && result.distance > 0) {
-      const timeInMinutes = parseTimeToMinutes(result.lap_time);
-      acc[runnerName].totalTimeMinutes += timeInMinutes;
-      acc[runnerName].totalDistance += result.distance;
-      const pace = timeInMinutes / result.distance;
-      if (pace < acc[runnerName].bestPace) {
-        acc[runnerName].bestPace = pace;
-      }
-      if (timeInMinutes < acc[runnerName].bestTime) {
-        acc[runnerName].bestTime = timeInMinutes;
-      }
-    }
+      const recentRaces = results
+        .filter((r) => r.runner_name === runner.runner_name)
+        .sort((a, b) => (b.year || 0) - (a.year || 0))
+        .slice(0, 3);
 
-    return acc;
-  }, {} as Record<string, any>);
+      const years = Array.from(
+        new Set(
+          results
+            .filter((r) => r.runner_name === runner.runner_name)
+            .map((r) => r.year)
+        )
+      ).sort((a, b) => (a || 0) - (b || 0));
 
-  const formatPace = (pace: number): string => {
-    if (!pace || pace === Infinity || isNaN(pace)) return "N/A";
-    const mins = Math.floor(pace);
-    const secs = Math.round((pace - mins) * 60);
-    return `${mins}:${secs.toString().padStart(2, "0")}/mi`;
-  };
-
-  const runners = Object.values(runnerStats)
-    .map((runner: any) => {
-      const averagePace =
-        runner.totalDistance > 0
-          ? runner.totalTimeMinutes / runner.totalDistance
-          : null;
-      const bestPace = runner.bestPace !== Infinity ? runner.bestPace : null;
-      const bestPaceFormatted = formatPace(runner.bestPace);
-      const averagePaceFormatted = formatPace(
-        runner.totalDistance > 0
-          ? runner.totalTimeMinutes / runner.totalDistance
-          : NaN
-      );
-      const legsRun = Array.from(runner.legs).sort((a: any, b: any) => a - b);
-      // Find leg(s) and year(s) where best pace was achieved
-      let bestPaceLegsWithYears: { leg: number; year: number }[] = [];
-      if (bestPace !== null) {
-        bestPaceLegsWithYears = runner.races
-          .filter((race: any) => {
-            if (race.lap_time && race.distance && race.distance > 0) {
-              const pace = parseTimeToMinutes(race.lap_time) / race.distance;
-              return Math.abs(pace - bestPace) < 0.01;
-            }
-            return false;
-          })
-          .map((race: any) => ({ leg: race.leg_number, year: race.year }))
-          .filter(
-            (
-              item: { leg: number; year: number },
-              idx: number,
-              arr: { leg: number; year: number }[]
-            ) =>
-              arr.findIndex(
-                (x: { leg: number; year: number }) =>
-                  x.leg === item.leg && x.year === item.year
-              ) === idx
-          )
-          .sort(
-            (
-              a: { leg: number; year: number },
-              b: { leg: number; year: number }
-            ) => a.leg - b.leg || a.year - b.year
-          );
-      }
       return {
-        ...runner,
-        averagePace,
-        bestPace,
-        bestPaceFormatted,
-        averagePaceFormatted,
-        legsRun,
-        bestPaceLegsWithYears,
+        name: runner.runner_name as string,
+        totalRaces: runner.total_races || 0,
+        bestPace: runner.best_pace,
+        averagePace: runner.average_pace,
+        bestPaceFormatted: formatPace(runner.best_pace || 0),
+        averagePaceFormatted: formatPace(runner.average_pace || 0),
+        legsRun: legsRun.sort((a, b) => a.leg - b.leg),
+        bestPaceLegsWithVersions,
+        recentRaces,
+        years,
       };
     })
-    .sort((a: any, b: any) => b.totalRaces - a.totalRaces);
+    .sort((a, b) => b.totalRaces - a.totalRaces);
+
+  console.log(runners);
 
   return (
     <div className="space-y-8 animate-fade-in">
@@ -144,15 +92,13 @@ const TeamView: React.FC = () => {
         </div>
         <div className="card p-6 text-center">
           <Target className="w-8 h-8 text-green-600 mx-auto mb-3" />
-          <h3 className="text-2xl font-bold text-gray-900">
-            {legResults.length}
-          </h3>
+          <h3 className="text-2xl font-bold text-gray-900">{results.length}</h3>
           <p className="text-gray-600">Total Legs Run</p>
         </div>
         <div className="card p-6 text-center">
           <Award className="w-8 h-8 text-yellow-600 mx-auto mb-3" />
           <h3 className="text-2xl font-bold text-gray-900">
-            {new Set(legResults.map((r) => r.year)).size}
+            {yearlySummary.length}
           </h3>
           <p className="text-gray-600">Years Competed</p>
         </div>
@@ -162,9 +108,11 @@ const TeamView: React.FC = () => {
       {runners.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {runners.map((runner) => (
-            <div
+            <Link
               key={runner.name}
-              className="card p-6 hover:shadow-lg transition-all duration-200"
+              to="/runners/$runnerName"
+              params={{ runnerName: runner.name }}
+              className="card p-6 hover:shadow-lg transition-all duration-200 block"
             >
               <div className="flex items-center mb-4">
                 <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-primary-700 rounded-full flex items-center justify-center text-white font-bold text-lg">
@@ -191,17 +139,25 @@ const TeamView: React.FC = () => {
                   <span className="text-sm text-gray-600">Best Pace</span>
                   <span className="font-semibold text-gray-900 flex items-center gap-2">
                     {runner.bestPaceFormatted}
-                    {runner.bestPaceLegsWithYears &&
-                      runner.bestPaceLegsWithYears.length > 0 && (
+                    {runner.bestPaceLegsWithVersions &&
+                      runner.bestPaceLegsWithVersions.length > 0 && (
                         <span className="flex flex-wrap gap-1">
-                          {runner.bestPaceLegsWithYears.map(
-                            ({ leg, year }: { leg: number; year: number }) => (
-                              <span
-                                key={`${leg}-${year}`}
-                                className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full"
+                          {runner.bestPaceLegsWithVersions.map(
+                            ({
+                              leg,
+                              version,
+                            }: {
+                              leg: number;
+                              version: number;
+                            }) => (
+                              <LegPill
+                                key={`${leg}-${version}`}
+                                leg={leg}
+                                version={version}
+                                className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full hover:bg-green-200"
                               >
-                                Leg {leg} ({year})
-                              </span>
+                                Leg {leg} (v{version})
+                              </LegPill>
                             )
                           )}
                         </span>
@@ -217,14 +173,24 @@ const TeamView: React.FC = () => {
                 <div className="flex justify-between items-start">
                   <span className="text-sm text-gray-600">Legs Run</span>
                   <div className="flex flex-wrap gap-1">
-                    {runner.legsRun.map((leg: number) => (
-                      <span
-                        key={leg}
-                        className="px-2 py-1 bg-primary-100 text-primary-800 text-xs rounded-full"
-                      >
-                        {leg}
-                      </span>
-                    ))}
+                    {runner.legsRun.map(
+                      ({
+                        leg,
+                        latestVersion,
+                      }: {
+                        leg: number;
+                        latestVersion: number;
+                      }) => (
+                        <LegPill
+                          key={leg}
+                          leg={leg}
+                          version={latestVersion}
+                          className="px-2 py-1 bg-primary-100 text-primary-800 text-xs rounded-full hover:bg-primary-200"
+                        >
+                          {leg}
+                        </LegPill>
+                      )
+                    )}
                   </div>
                 </div>
               </div>
@@ -235,28 +201,30 @@ const TeamView: React.FC = () => {
                   Recent Races
                 </h4>
                 <div className="space-y-1">
-                  {runner.races.slice(0, 3).map((race: any, index: number) => {
-                    let pace = "N/A";
-                    let duration = race.lap_time || "N/A";
-                    if (race.lap_time && race.distance && race.distance > 0) {
-                      const timeInMinutes = parseTimeToMinutes(race.lap_time);
-                      pace = formatPace(timeInMinutes / race.distance);
+                  {runner.recentRaces.map(
+                    (race: Tables<"v_results_with_pace">, index: number) => {
+                      const pace = formatPace(race.pace || 0);
+                      const duration = race.lap_time || "N/A";
+
+                      return (
+                        <div
+                          key={index}
+                          className="flex justify-between text-xs"
+                        >
+                          <span className="text-gray-600">
+                            {race.year} - Leg {race.leg_number}
+                          </span>
+                          <span className="text-gray-900">
+                            {duration} <span className="text-gray-400">|</span>{" "}
+                            {pace}
+                          </span>
+                        </div>
+                      );
                     }
-                    return (
-                      <div key={index} className="flex justify-between text-xs">
-                        <span className="text-gray-600">
-                          {race.year} - Leg {race.leg_number}
-                        </span>
-                        <span className="text-gray-900">
-                          {duration} <span className="text-gray-400">|</span>{" "}
-                          {pace}
-                        </span>
-                      </div>
-                    );
-                  })}
+                  )}
                 </div>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       ) : (
@@ -305,7 +273,13 @@ const TeamView: React.FC = () => {
                 {runners.map((runner) => (
                   <tr
                     key={runner.name}
-                    className="hover:bg-gray-50 transition-colors"
+                    className="hover:bg-gray-50 cursor-pointer"
+                    onClick={() =>
+                      navigate({
+                        to: "/runners/$runnerName",
+                        params: { runnerName: runner.name },
+                      })
+                    }
                   >
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
@@ -323,23 +297,25 @@ const TeamView: React.FC = () => {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       <span className="flex items-center gap-2">
                         {runner.bestPaceFormatted}
-                        {runner.bestPaceLegsWithYears &&
-                          runner.bestPaceLegsWithYears.length > 0 && (
+                        {runner.bestPaceLegsWithVersions &&
+                          runner.bestPaceLegsWithVersions.length > 0 && (
                             <span className="flex flex-wrap gap-1">
-                              {runner.bestPaceLegsWithYears.map(
+                              {runner.bestPaceLegsWithVersions.map(
                                 ({
                                   leg,
-                                  year,
+                                  version,
                                 }: {
                                   leg: number;
-                                  year: number;
+                                  version: number;
                                 }) => (
-                                  <span
-                                    key={`${leg}-${year}`}
-                                    className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full"
+                                  <LegPill
+                                    key={`${leg}-${version}`}
+                                    leg={leg}
+                                    version={version}
+                                    className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full hover:bg-green-200"
                                   >
-                                    Leg {leg} ({year})
-                                  </span>
+                                    Leg {leg} (v{version})
+                                  </LegPill>
                                 )
                               )}
                             </span>
@@ -351,33 +327,38 @@ const TeamView: React.FC = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex flex-wrap gap-1">
-                        {runner.legsRun.map((leg: number) => (
-                          <span
-                            key={leg}
-                            className="px-2 py-1 bg-primary-100 text-primary-800 text-xs rounded-full"
-                          >
-                            {leg}
-                          </span>
-                        ))}
+                        {runner.legsRun.map(
+                          ({
+                            leg,
+                            latestVersion,
+                          }: {
+                            leg: number;
+                            latestVersion: number;
+                          }) => (
+                            <LegPill
+                              key={leg}
+                              leg={leg}
+                              version={latestVersion}
+                              className="px-2 py-1 bg-primary-100 text-primary-800 text-xs rounded-full hover:bg-primary-200"
+                            >
+                              {leg}
+                            </LegPill>
+                          )
+                        )}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       <div className="flex flex-wrap gap-1">
-                        {Array.from(
-                          new Set(runner.races.map((r: any) => r.year))
-                        )
-                          .sort((a, b) => Number(a) - Number(b))
-                          .map((year) => {
-                            const y = Number(year);
-                            return (
-                              <span
-                                key={y}
-                                className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full"
-                              >
-                                {y}
-                              </span>
-                            );
-                          })}
+                        {runner.years.map((year) => {
+                          return (
+                            <span
+                              key={year}
+                              className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full"
+                            >
+                              {year}
+                            </span>
+                          );
+                        })}
                       </div>
                     </td>
                   </tr>
@@ -392,17 +373,6 @@ const TeamView: React.FC = () => {
 };
 
 // Helper functions
-const parseTimeToMinutes = (timeString: string): number => {
-  const parts = timeString.split(":");
-  if (parts.length >= 2) {
-    const hours = parseInt(parts[0]) || 0;
-    const minutes = parseInt(parts[1]) || 0;
-    const seconds = parseInt(parts[2]) || 0;
-    return hours * 60 + minutes + seconds / 60;
-  }
-  return 0;
-};
-
 const getInitials = (name: string): string => {
   return name
     .split(" ")

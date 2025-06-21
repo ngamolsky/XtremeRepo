@@ -1,27 +1,29 @@
-import {
-  BarChart3,
-  Camera,
-  History,
-  LogOut,
-  Trophy,
-  Users,
-} from "lucide-react";
+import { Link, useRouter } from "@tanstack/react-router";
+import { BarChart3, Camera, History, Trophy, User, Users } from "lucide-react";
 import React from "react";
 import { supabase } from "../lib/supabase";
 
-interface NavigationProps {
-  activeTab: string;
-  onTabChange: (tab: string) => void;
-}
+const Navigation: React.FC = () => {
+  const router = useRouter();
+  const pathname = router.state.location.pathname;
 
-const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange }) => {
   const tabs = [
-    { id: "dashboard", label: "Dashboard", icon: BarChart3 },
-    { id: "team", label: "Team", icon: Users },
-    { id: "legs", label: "Legs", icon: BarChart3 },
-    { id: "history", label: "History", icon: History },
-    { id: "photos", label: "Photos", icon: Camera },
+    { id: "dashboard", label: "Dashboard", icon: BarChart3, path: "/" },
+    { id: "team", label: "Team", icon: Users, path: "/team" },
+    { id: "legs", label: "Legs", icon: BarChart3, path: "/legs" },
+    { id: "history", label: "History", icon: History, path: "/history" },
+    { id: "photos", label: "Photos", icon: Camera, path: "/photos" },
   ];
+
+  const getActiveTabId = () => {
+    if (pathname === "/") {
+      return "dashboard";
+    }
+    const topLevelPath = pathname.substring(1).split("/")[0];
+    const matchingTab = tabs.find((tab) => tab.path === `/${topLevelPath}`);
+    return matchingTab ? matchingTab.id : "dashboard";
+  };
+  const activeTabId = getActiveTabId();
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -49,36 +51,50 @@ const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange }) => {
             {tabs.map((tab) => {
               const Icon = tab.icon;
               return (
-                <button
+                <Link
                   key={tab.id}
-                  onClick={() => onTabChange(tab.id)}
-                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
-                    activeTab === tab.id
-                      ? "bg-primary-50 text-primary-700 border border-primary-200"
-                      : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
-                  }`}
+                  to={tab.path}
+                  activeOptions={tab.path === "/" ? { exact: true } : {}}
+                  className="flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-all duration-200"
+                  activeProps={{
+                    className:
+                      "bg-primary-50 text-primary-700 border border-primary-200",
+                  }}
+                  inactiveProps={{
+                    className:
+                      "text-gray-600 hover:text-gray-900 hover:bg-gray-50",
+                  }}
                 >
                   <Icon className="w-4 h-4" />
                   <span>{tab.label}</span>
-                </button>
+                </Link>
               );
             })}
 
-            {/* Sign Out Button */}
-            <button
-              onClick={handleSignOut}
-              className="flex items-center space-x-2 px-4 py-2 rounded-lg font-medium text-gray-600 hover:text-red-600 hover:bg-red-50 transition-all duration-200 ml-4"
+            {/* Profile Button */}
+            <Link
+              to="/profile"
+              className="flex items-center space-x-2 px-4 py-2 rounded-lg font-medium text-gray-600 hover:text-primary-600 hover:bg-primary-50 transition-all duration-200 ml-4"
+              activeProps={{
+                className:
+                  "bg-primary-50 text-primary-700 border border-primary-200",
+              }}
             >
-              <LogOut className="w-4 h-4" />
-              <span>Sign Out</span>
-            </button>
+              <User className="w-4 h-4" />
+              <span>Me</span>
+            </Link>
           </div>
 
           {/* Mobile Navigation */}
           <div className="md:hidden flex items-center space-x-2">
             <select
-              value={activeTab}
-              onChange={(e) => onTabChange(e.target.value)}
+              value={activeTabId}
+              onChange={(e) =>
+                router.navigate({
+                  to:
+                    e.target.value === "dashboard" ? "/" : `/${e.target.value}`,
+                })
+              }
               className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
             >
               {tabs.map((tab) => (
@@ -87,12 +103,15 @@ const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange }) => {
                 </option>
               ))}
             </select>
-            <button
-              onClick={handleSignOut}
-              className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+            <Link
+              to="/profile"
+              className="p-2 text-gray-600 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
+              activeProps={{
+                className: "text-primary-700 bg-primary-50",
+              }}
             >
-              <LogOut className="w-4 h-4" />
-            </button>
+              <User className="w-4 h-4" />
+            </Link>
           </div>
         </div>
       </div>

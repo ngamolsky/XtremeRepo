@@ -10,18 +10,16 @@ const AuthForm: React.FC = () => {
   const [message, setMessage] = useState<string | null>(null);
 
   const validateEmail = (email: string) => {
-    // Accept either username or username@xtreme-falcons.com
-    return (
-      email.length > 0 &&
-      (email.endsWith("@xtreme-falcons.com") || !email.includes("@"))
-    );
+    // Since we now have a visual suffix, users only enter their username
+    // So we just need to check that it's not empty and doesn't contain @
+    return email.length > 0 && !email.includes("@");
   };
 
-  // Helper to normalize email
+  // Helper to normalize email - always append @xtreme-falcons.com
   const normalizeEmail = (email: string) => {
-    if (email.endsWith("@xtreme-falcons.com")) return email;
-    if (email.includes("@")) return email; // If user enters a different domain, keep as is (will fail validation)
-    return `${email}@xtreme-falcons.com`;
+    // Remove any @xtreme-falcons.com if user somehow added it
+    const cleanUsername = email.replace("@xtreme-falcons.com", "").trim();
+    return `${cleanUsername}@xtreme-falcons.com`;
   };
 
   const getRedirectUrl = () => {
@@ -36,9 +34,7 @@ const AuthForm: React.FC = () => {
     setMessage(null);
 
     if (!validateEmail(email)) {
-      setError(
-        "Please use your @xtreme-falcons.com email address or just your username"
-      );
+      setError("Please enter your username (without @xtreme-falcons.com)");
       setLoading(false);
       return;
     }
@@ -78,8 +74,6 @@ const AuthForm: React.FC = () => {
               emailRedirectTo: getRedirectUrl(),
             },
           });
-
-          console.log(signUpError);
 
           if (signUpError) throw signUpError;
           setMessage(
@@ -140,20 +134,26 @@ const AuthForm: React.FC = () => {
               >
                 Email Address
               </label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                <input
-                  id="email"
-                  type="text"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="your.name or your.name@xtreme-falcons.com"
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
-                  required
-                />
+              <div className="relative flex items-center">
+                <div className="relative flex-1">
+                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                  <input
+                    id="email"
+                    type="text"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="your.name"
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-l-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
+                    required
+                  />
+                </div>
+                <div className="bg-gray-100 px-3 py-3 border border-l-0 border-gray-300 rounded-r-lg text-gray-600 text-sm font-medium">
+                  @xtreme-falcons.com
+                </div>
               </div>
               <p className="text-xs text-gray-500 mt-1">
-                Enter your username or full @xtreme-falcons.com email address
+                Enter just your username - we'll add @xtreme-falcons.com
+                automatically
               </p>
             </div>
 
@@ -165,8 +165,8 @@ const AuthForm: React.FC = () => {
               {loading
                 ? "Please wait..."
                 : isSignUp
-                ? "Create Account"
-                : "Sign In"}
+                  ? "Create Account"
+                  : "Sign In"}
             </button>
           </form>
 
