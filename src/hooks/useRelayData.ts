@@ -34,7 +34,7 @@ export const useRelayData = () => {
           supabase.from("v_results_with_pace").select("*"),
           supabase.from("v_runner_stats").select("*"),
           supabase.from("v_leg_version_stats").select("*"),
-          supabase.from("v_yearly_summary").select("*"),
+          supabase.from("v_yearly_summary").select("*").order("year", { ascending: false }),
         ]);
 
         if (resultsRes.error) throw resultsRes.error;
