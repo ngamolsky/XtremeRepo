@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as UploadRouteImport } from './routes/upload'
 import { Route as TeamRouteImport } from './routes/team'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as PhotosRouteImport } from './routes/photos'
@@ -20,6 +21,11 @@ import { Route as LegsIndexRouteImport } from './routes/legs.index'
 import { Route as RunnersRunnerNameRouteImport } from './routes/runners.$runnerName'
 import { Route as LegsLegNumberVersionRouteImport } from './routes/legs.$legNumber.$version'
 
+const UploadRoute = UploadRouteImport.update({
+  id: '/upload',
+  path: '/upload',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TeamRoute = TeamRouteImport.update({
   id: '/team',
   path: '/team',
@@ -79,6 +85,7 @@ export interface FileRoutesByFullPath {
   '/photos': typeof PhotosRoute
   '/profile': typeof ProfileRoute
   '/team': typeof TeamRoute
+  '/upload': typeof UploadRoute
   '/runners/$runnerName': typeof RunnersRunnerNameRoute
   '/legs/': typeof LegsIndexRoute
   '/legs/$legNumber/$version': typeof LegsLegNumberVersionRoute
@@ -90,6 +97,7 @@ export interface FileRoutesByTo {
   '/photos': typeof PhotosRoute
   '/profile': typeof ProfileRoute
   '/team': typeof TeamRoute
+  '/upload': typeof UploadRoute
   '/runners/$runnerName': typeof RunnersRunnerNameRoute
   '/legs': typeof LegsIndexRoute
   '/legs/$legNumber/$version': typeof LegsLegNumberVersionRoute
@@ -103,6 +111,7 @@ export interface FileRoutesById {
   '/photos': typeof PhotosRoute
   '/profile': typeof ProfileRoute
   '/team': typeof TeamRoute
+  '/upload': typeof UploadRoute
   '/runners/$runnerName': typeof RunnersRunnerNameRoute
   '/legs/': typeof LegsIndexRoute
   '/legs/$legNumber/$version': typeof LegsLegNumberVersionRoute
@@ -117,6 +126,7 @@ export interface FileRouteTypes {
     | '/photos'
     | '/profile'
     | '/team'
+    | '/upload'
     | '/runners/$runnerName'
     | '/legs/'
     | '/legs/$legNumber/$version'
@@ -128,6 +138,7 @@ export interface FileRouteTypes {
     | '/photos'
     | '/profile'
     | '/team'
+    | '/upload'
     | '/runners/$runnerName'
     | '/legs'
     | '/legs/$legNumber/$version'
@@ -140,6 +151,7 @@ export interface FileRouteTypes {
     | '/photos'
     | '/profile'
     | '/team'
+    | '/upload'
     | '/runners/$runnerName'
     | '/legs/'
     | '/legs/$legNumber/$version'
@@ -153,11 +165,19 @@ export interface RootRouteChildren {
   PhotosRoute: typeof PhotosRoute
   ProfileRoute: typeof ProfileRoute
   TeamRoute: typeof TeamRoute
+  UploadRoute: typeof UploadRoute
   RunnersRunnerNameRoute: typeof RunnersRunnerNameRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/upload': {
+      id: '/upload'
+      path: '/upload'
+      fullPath: '/upload'
+      preLoaderRoute: typeof UploadRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/team': {
       id: '/team'
       path: '/team'
@@ -251,6 +271,7 @@ const rootRouteChildren: RootRouteChildren = {
   PhotosRoute: PhotosRoute,
   ProfileRoute: ProfileRoute,
   TeamRoute: TeamRoute,
+  UploadRoute: UploadRoute,
   RunnersRunnerNameRoute: RunnersRunnerNameRoute,
 }
 export const routeTree = rootRouteImport

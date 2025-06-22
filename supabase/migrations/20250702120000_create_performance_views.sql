@@ -144,3 +144,35 @@ FROM
   team_performance_summary tps
 LEFT JOIN
   placements p ON tps.year = p.year; 
+
+
+  create policy "Allow authenticated users to insert placements"
+on "public"."placements"
+as permissive
+for insert
+to authenticated
+with check (true);
+
+
+create policy "Allow authenticated users to update placements"
+on "public"."placements"
+as permissive
+for update
+to authenticated
+using (true);
+
+
+create policy "Allow authenticated users to insert results"
+on "public"."results"
+as permissive
+for insert
+to authenticated
+with check (true);
+
+
+create policy "Allow authenticated users to update results"
+on "public"."results"
+as permissive
+for update
+to authenticated
+using (true);
