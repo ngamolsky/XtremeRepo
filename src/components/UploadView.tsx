@@ -116,6 +116,44 @@ const UploadView: React.FC = () => {
     setLoading(false);
   };
 
+  const uploadFile = async (file: File) => {
+    const { data } = await supabase.auth.getSession();
+    const accessToken = data.session?.access_token;
+    if (!accessToken) {
+      setFileError('You must be logged in!');
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+        },
+        body: formData,
+      });
+
+      if (response.ok) {
+        const responseData = await response.json();
+        setParsedData({
+          placements: responseData.placements || [],
+          results: responseData.results || []
+        });
+        setFileError(null);
+      } else {
+        const errorText = await response.text();
+        setFileError(`Upload failed: ${response.statusText} - ${errorText}`);
+      }
+    } catch (error) {
+      setFileError(`Upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setFileLoading(false);
+    }
+  };
+
   return (
     <div className="max-w-md mx-auto bg-white p-8 rounded-xl shadow-md animate-fade-in">
       <h1 className="text-2xl font-bold mb-4 text-gray-900">Upload Official Race Data</h1>
@@ -141,27 +179,10 @@ const UploadView: React.FC = () => {
             setFileLoading(true);
             setFileError(null);
             setParsedData(null);
-            const formData = new FormData();
-            formData.append('file', file);
-            try {
-              const res = await fetch('/api/upload', {
-                method: 'POST',
-                body: formData,
-              });
-              if (!res.ok) {
-                const text = await res.text();
-                throw new Error(text || 'Failed to parse file');
-              }
-              const data = await res.json();
-              setParsedData(data);
-            } catch (err: any) {
-              setFileError(err.message || 'Failed to parse file');
-            } finally {
-              setFileLoading(false);
-            }
+            await uploadFile(file);
           }}
         >
-          {fileLoading ? 'Parsing...' : 'Parse File'}
+          {fileLoading ? 'Uploading...' : 'Upload File'}
         </button>
         {fileError && <div className="text-red-600 text-sm">{fileError}</div>}
         {parsedData && (
