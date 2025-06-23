@@ -1,6 +1,15 @@
 import React, { useEffect, useRef, useState } from "react";
 import { supabase } from "../lib/supabase";
 import type { Tables } from "../types/database.generated";
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
+import { Label } from "./ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
+import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
+import { Progress } from "./ui/progress";
+import { Badge } from "./ui/badge";
+import { MultiSelect, type Option } from "./ui/multi-select";
+import { Upload, X, Info } from "lucide-react";
 
 type Runner = Tables<"runners">;
 type LegDefinition = Tables<"leg_definitions">;
@@ -210,188 +219,207 @@ const UploadPhotosView: React.FC = () => {
     }
   };
 
-  const getProgressColor = (progress: number) => {
-    if (progress === -1) return "bg-red-500";
-    if (progress === 100) return "bg-green-500";
-    return "bg-blue-500";
-  };
+  // Convert runners to options for MultiSelect
+  const runnerOptions: Option[] = runners.map((runner) => ({
+    label: runner.name,
+    value: runner.id,
+  }));
 
   return (
-    <div className="space-y-6">
-      <h2 className="text-xl font-semibold text-gray-900">Upload Photos</h2>
-
-      {/* File Selection */}
-      <div className="bg-gray-50 p-6 rounded-lg">
-        <h3 className="text-lg font-medium mb-4">Select Photos</h3>
-        <input
-          type="file"
-          accept="image/*"
-          multiple
-          onChange={handleFileSelect}
-          className="block w-full border border-gray-300 rounded-md shadow-sm p-2 mb-2"
-          ref={fileInputRef}
-        />
-        <p className="text-sm text-gray-600">
-          Select one or more photos to upload. Supported formats: JPG, PNG, GIF,
-          WebP
+    <div className="space-y-6 p-6">
+      <div className="text-center">
+        <h2 className="text-2xl font-bold text-foreground">Upload Photos</h2>
+        <p className="text-muted-foreground mt-2">
+          Share memorable moments from the race
         </p>
       </div>
+
+      {/* File Selection */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Upload className="h-5 w-5" />
+            Select Photos
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="border-2 border-dashed border-border rounded-lg p-8 text-center hover:border-primary/50 transition-colors">
+              <Upload className="h-8 w-8 text-muted-foreground mx-auto mb-4" />
+              <div className="space-y-2">
+                <Button 
+                  variant="outline" 
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isUploading}
+                >
+                  Choose Photos
+                </Button>
+                <p className="text-sm text-muted-foreground">
+                  or drag and drop multiple photos here
+                </p>
+              </div>
+            </div>
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={handleFileSelect}
+              className="hidden"
+              ref={fileInputRef}
+            />
+            <p className="text-xs text-muted-foreground">
+              Supported formats: JPG, PNG, GIF, WebP. Maximum file size: 10MB per photo.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Photo Preview and Metadata */}
       {selectedFiles.length > 0 && (
         <div className="space-y-4">
-          <h3 className="text-lg font-medium">
-            Photos to Upload ({selectedFiles.length})
-          </h3>
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold">
+              Photos to Upload ({selectedFiles.length})
+            </h3>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => {
+                selectedFiles.forEach((photo) => URL.revokeObjectURL(photo.preview));
+                setSelectedFiles([]);
+                setUploadProgress({});
+              }}
+              disabled={isUploading}
+            >
+              Clear All
+            </Button>
+          </div>
 
           {selectedFiles.map((photo, index) => (
-            <div
-              key={index}
-              className="bg-white border rounded-lg p-4 space-y-4"
-            >
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
-                {/* Photo Preview */}
-                <div className="flex-shrink-0">
-                  <img
-                    src={photo.preview}
-                    alt={`Preview ${index + 1}`}
-                    className="w-full h-auto max-h-[70vh] object-contain rounded-lg bg-gray-100"
-                  />
-                  <button
-                    onClick={() => removePhoto(index)}
-                    className="mt-2 text-red-600 hover:text-red-800 text-sm"
-                    disabled={isUploading}
-                  >
-                    Remove
-                  </button>
-                </div>
-
-                {/* Metadata Form */}
-                <div className="flex-1 grid grid-cols-1 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Year *
-                    </label>
-                    <input
-                      type="number"
-                      value={metadata.year}
-                      onChange={(e) =>
-                        setMetadata((prev) => ({
-                          ...prev,
-                          year: parseInt(e.target.value),
-                        }))
-                      }
-                      className="block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500"
-                      required
-                      disabled={isUploading}
-                    />
+            <Card key={index} className="overflow-hidden">
+              <CardContent className="p-6">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Photo Preview */}
+                  <div className="space-y-4">
+                    <div className="relative">
+                      <img
+                        src={photo.preview}
+                        alt={`Preview ${index + 1}`}
+                        className="w-full h-auto max-h-80 object-contain rounded-md border bg-muted"
+                      />
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        className="absolute top-2 right-2"
+                        onClick={() => removePhoto(index)}
+                        disabled={isUploading}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    {uploadProgress[index] !== undefined && (
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between text-sm">
+                          <span>Upload Progress</span>
+                          <span>
+                            {uploadProgress[index] === -1 ? "Failed" : `${uploadProgress[index]}%`}
+                          </span>
+                        </div>
+                        <Progress 
+                          value={uploadProgress[index] === -1 ? 100 : uploadProgress[index]} 
+                          className={uploadProgress[index] === -1 ? "bg-destructive" : ""}
+                        />
+                      </div>
+                    )}
                   </div>
 
-                  <div>
-                    <label
-                      htmlFor="legNumber"
-                      className="block text-sm font-medium text-gray-700 mb-1"
-                    >
-                      Leg (optional)
-                    </label>
-                    <select
-                      id="legNumber"
-                      value={metadata.selectedLeg || ""}
-                      onChange={(e) =>
-                        setMetadata((prev) => ({
-                          ...prev,
-                          selectedLeg: e.target.value || null,
-                        }))
-                      }
-                      className="block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500"
-                      disabled={isUploading}
-                    >
-                      <option value="">None</option>
-                      {legDefinitions.map((leg) => (
-                        <option
-                          key={`${leg.number}-${leg.version}`}
-                          value={`${leg.number}-${leg.version}`}
-                        >
-                          {`Leg ${leg.number} (v${leg.version})`}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                  {/* Metadata Form */}
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="year">Year *</Label>
+                      <Input
+                        id="year"
+                        type="number"
+                        value={metadata.year}
+                        onChange={(e) =>
+                          setMetadata((prev) => ({
+                            ...prev,
+                            year: parseInt(e.target.value),
+                          }))
+                        }
+                        disabled={isUploading}
+                        min="2000"
+                        max="2030"
+                      />
+                    </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Description
-                    </label>
-                    <input
-                      type="text"
-                      value={metadata.caption}
-                      onChange={(e) =>
-                        setMetadata((prev) => ({
-                          ...prev,
-                          caption: e.target.value,
-                        }))
-                      }
-                      placeholder="Brief description of the photo..."
-                      className="block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500"
-                      disabled={isUploading}
-                    />
-                  </div>
+                    <div className="space-y-2">
+                      <Label>Leg (optional)</Label>
+                      <Select 
+                        value={metadata.selectedLeg || ""} 
+                        onValueChange={(value) =>
+                          setMetadata((prev) => ({
+                            ...prev,
+                            selectedLeg: value || null,
+                          }))
+                        }
+                        disabled={isUploading}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a leg" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="">None</SelectItem>
+                          {legDefinitions.map((leg) => (
+                            <SelectItem
+                              key={`${leg.number}-${leg.version}`}
+                              value={`${leg.number}-${leg.version}`}
+                            >
+                              Leg {leg.number} (v{leg.version})
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Tag Runners
-                    </label>
-                    <select
-                      multiple
-                      value={metadata.selectedRunners}
-                      onChange={(e) => {
-                        const selectedOptions = Array.from(
-                          e.target.selectedOptions,
-                          (option) => option.value
-                        );
-                        setMetadata((prev) => ({
-                          ...prev,
-                          selectedRunners: selectedOptions,
-                        }));
-                      }}
-                      className="block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 h-32"
-                      disabled={isUploading}
-                    >
-                      {runners.map((runner) => (
-                        <option key={runner.id} value={runner.id}>
-                          {runner.name}
-                        </option>
-                      ))}
-                    </select>
-                    <p className="text-sm text-gray-500 mt-1">
-                      Hold Ctrl/Cmd to select multiple runners
-                    </p>
-                  </div>
-                </div>
-              </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="caption">Description</Label>
+                      <Input
+                        id="caption"
+                        value={metadata.caption}
+                        onChange={(e) =>
+                          setMetadata((prev) => ({
+                            ...prev,
+                            caption: e.target.value,
+                          }))
+                        }
+                        placeholder="Brief description of the photo..."
+                        disabled={isUploading}
+                      />
+                    </div>
 
-              {/* Upload Progress */}
-              {uploadProgress[index] !== undefined && (
-                <div className="mt-4">
-                  <div className="flex justify-between text-sm text-gray-600 mb-1">
-                    <span>Upload Progress</span>
-                    <span>
-                      {uploadProgress[index] === -1
-                        ? "Failed"
-                        : `${uploadProgress[index]}%`}
-                    </span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div
-                      className={`h-2 rounded-full transition-all duration-300 ${getProgressColor(uploadProgress[index])}`}
-                      style={{
-                        width: `${uploadProgress[index] === -1 ? 100 : uploadProgress[index]}%`,
-                      }}
-                    />
+                    <div className="space-y-2">
+                      <Label>Tag Runners</Label>
+                      <MultiSelect
+                        options={runnerOptions}
+                        selected={metadata.selectedRunners}
+                        onChange={(selected) =>
+                          setMetadata((prev) => ({
+                            ...prev,
+                            selectedRunners: selected,
+                          }))
+                        }
+                        placeholder="Select runners in this photo..."
+                        disabled={isUploading}
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Search and select multiple runners who appear in this photo
+                      </p>
+                    </div>
                   </div>
                 </div>
-              )}
-            </div>
+              </CardContent>
+            </Card>
           ))}
         </div>
       )}
@@ -399,38 +427,53 @@ const UploadPhotosView: React.FC = () => {
       {/* Upload Button */}
       {selectedFiles.length > 0 && (
         <div className="flex justify-end">
-          <button
+          <Button
             onClick={uploadPhotos}
             disabled={isUploading || selectedFiles.length === 0}
-            className="btn-primary px-6 py-3"
+            size="lg"
+            className="min-w-32"
           >
-            {isUploading
-              ? "Uploading..."
-              : `Upload ${selectedFiles.length} Photo(s)`}
-          </button>
+            {isUploading ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                Uploading...
+              </>
+            ) : (
+              `Upload ${selectedFiles.length} Photo${selectedFiles.length > 1 ? 's' : ''}`
+            )}
+          </Button>
         </div>
       )}
 
       {/* Messages */}
       {uploadStatus && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded whitespace-pre-line">
-          {uploadStatus}
-        </div>
+        <Card className={uploadStatus.includes("Successfully") ? "border-green-200 bg-green-50" : "border-red-200 bg-red-50"}>
+          <CardContent className="p-4">
+            <p className={`text-sm whitespace-pre-line ${uploadStatus.includes("Successfully") ? "text-green-800" : "text-red-700"}`}>
+              {uploadStatus}
+            </p>
+          </CardContent>
+        </Card>
       )}
 
       {/* Instructions */}
-      <div className="bg-blue-50 border border-blue-200 text-blue-800 px-4 py-3 rounded">
-        <h4 className="font-medium mb-2">Photo Upload Guidelines:</h4>
-        <ul className="text-sm space-y-1">
-          <li>
-            • A year must be provided for each photo. Associating a leg is
-            optional.
-          </li>
-          <li>• Add descriptive tags to help others find photos</li>
-          <li>• Supported formats: JPG, PNG, GIF, WebP</li>
-          <li>• Photos will be organized by year and leg number</li>
-        </ul>
-      </div>
+      <Card className="border-blue-200 bg-blue-50">
+        <CardContent className="p-4">
+          <div className="flex items-start gap-3">
+            <Info className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+            <div>
+              <h4 className="font-medium text-blue-800 mb-2">Photo Upload Guidelines:</h4>
+              <ul className="text-sm text-blue-700 space-y-1">
+                <li>• A year must be provided for each photo. Associating a leg is optional.</li>
+                <li>• Add descriptive tags to help others find photos</li>
+                <li>• Supported formats: JPG, PNG, GIF, WebP</li>
+                <li>• Photos will be organized by year and leg number</li>
+                <li>• Use the runner tags to make photos searchable by team member</li>
+              </ul>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };

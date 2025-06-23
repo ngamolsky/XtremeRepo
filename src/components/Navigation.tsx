@@ -1,7 +1,11 @@
 import { Link, useRouter } from "@tanstack/react-router";
-import { BarChart3, Camera, History, Trophy, User, Users, Upload } from "lucide-react";
+import { BarChart3, Camera, History, Trophy, User, Users, Upload, LogOut } from "lucide-react";
 import React from "react";
 import { supabase } from "../lib/supabase";
+import { Button } from "./ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
+import { Separator } from "./ui/separator";
+import { cn } from "../lib/utils";
 
 const Navigation: React.FC = () => {
   const router = useRouter();
@@ -30,20 +34,26 @@ const Navigation: React.FC = () => {
     await supabase.auth.signOut();
   };
 
+  const handleMobileNavigation = (value: string) => {
+    router.navigate({
+      to: value === "dashboard" ? "/" : `/${value}`,
+    });
+  };
+
   return (
-    <nav className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
+    <nav className="bg-background border-b border-border sticky top-0 z-50 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-700 rounded-lg flex items-center justify-center">
-              <Trophy className="w-6 h-6 text-white" />
+            <div className="w-10 h-10 bg-gradient-to-br from-primary to-primary/80 rounded-lg flex items-center justify-center">
+              <Trophy className="w-6 h-6 text-primary-foreground" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-gray-900">
+              <h1 className="text-xl font-bold text-foreground">
                 Relay Dashboard
               </h1>
-              <p className="text-xs text-gray-500">Team Performance Tracker</p>
+              <p className="text-xs text-muted-foreground">Team Performance Tracker</p>
             </div>
           </div>
 
@@ -56,14 +66,14 @@ const Navigation: React.FC = () => {
                   key={tab.id}
                   to={tab.path}
                   activeOptions={tab.path === "/" ? { exact: true } : {}}
-                  className="flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-all duration-200"
+                  className={cn(
+                    "flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-all duration-200",
+                    "text-muted-foreground hover:text-foreground hover:bg-accent hover:text-accent-foreground"
+                  )}
                   activeProps={{
-                    className:
-                      "bg-primary-50 text-primary-700 border border-primary-200",
-                  }}
-                  inactiveProps={{
-                    className:
-                      "text-gray-600 hover:text-gray-900 hover:bg-gray-50",
+                    className: cn(
+                      "bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground"
+                    ),
                   }}
                 >
                   <Icon className="w-4 h-4" />
@@ -72,47 +82,75 @@ const Navigation: React.FC = () => {
               );
             })}
 
+            <Separator orientation="vertical" className="h-6 mx-2" />
+
             {/* Profile Button */}
             <Link
               to="/profile"
-              className="flex items-center space-x-2 px-4 py-2 rounded-lg font-medium text-gray-600 hover:text-primary-600 hover:bg-primary-50 transition-all duration-200 ml-4"
+              className={cn(
+                "flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-all duration-200",
+                "text-muted-foreground hover:text-foreground hover:bg-accent hover:text-accent-foreground"
+              )}
               activeProps={{
-                className:
-                  "bg-primary-50 text-primary-700 border border-primary-200",
+                className: cn(
+                  "bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground"
+                ),
               }}
             >
               <User className="w-4 h-4" />
-              <span>Me</span>
+              <span>Profile</span>
             </Link>
+
+            {/* Sign Out Button */}
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={handleSignOut}
+              className="text-muted-foreground hover:text-foreground"
+            >
+              <LogOut className="w-4 h-4 mr-2" />
+              Sign Out
+            </Button>
           </div>
 
           {/* Mobile Navigation */}
           <div className="md:hidden flex items-center space-x-2">
-            <select
-              value={activeTabId}
-              onChange={(e) =>
-                router.navigate({
-                  to:
-                    e.target.value === "dashboard" ? "/" : `/${e.target.value}`,
-                })
-              }
-              className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            <Select value={activeTabId} onValueChange={handleMobileNavigation}>
+              <SelectTrigger className="w-32">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {tabs.map((tab) => (
+                  <SelectItem key={tab.id} value={tab.id}>
+                    <div className="flex items-center space-x-2">
+                      <tab.icon className="w-4 h-4" />
+                      <span>{tab.label}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            
+            <Button variant="ghost" size="sm" asChild>
+              <Link
+                to="/profile"
+                className="p-2"
+                activeProps={{
+                  className: "bg-primary text-primary-foreground",
+                }}
+              >
+                <User className="w-4 h-4" />
+              </Link>
+            </Button>
+
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={handleSignOut}
+              className="p-2"
             >
-              {tabs.map((tab) => (
-                <option key={tab.id} value={tab.id}>
-                  {tab.label}
-                </option>
-              ))}
-            </select>
-            <Link
-              to="/profile"
-              className="p-2 text-gray-600 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
-              activeProps={{
-                className: "text-primary-700 bg-primary-50",
-              }}
-            >
-              <User className="w-4 h-4" />
-            </Link>
+              <LogOut className="w-4 h-4" />
+            </Button>
           </div>
         </div>
       </div>

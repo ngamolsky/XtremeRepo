@@ -14,7 +14,30 @@ import {
 } from "recharts";
 import { useRelayData } from "../hooks/useRelayData";
 import { formatPace } from "../lib/utils";
-import { StatCard } from "./StatCard";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
+import { Badge } from "./ui/badge";
+
+interface StatCardProps {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+  description?: string;
+}
+
+const StatCard: React.FC<StatCardProps> = ({ icon, label, value, description }) => (
+  <Card>
+    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+      <CardTitle className="text-sm font-medium">{label}</CardTitle>
+      <div className="text-muted-foreground">{icon}</div>
+    </CardHeader>
+    <CardContent>
+      <div className="text-2xl font-bold">{value}</div>
+      {description && (
+        <p className="text-xs text-muted-foreground">{description}</p>
+      )}
+    </CardContent>
+  </Card>
+);
 
 const Dashboard: React.FC = () => {
   const {
@@ -26,23 +49,25 @@ const Dashboard: React.FC = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-        <h3 className="text-lg font-semibold text-red-800 mb-2">
-          Connection Error
-        </h3>
-        <p className="text-red-700">{error}</p>
-        <p className="text-red-600 text-sm mt-2">
-          Make sure your Supabase environment variables are configured
-          correctly.
-        </p>
-      </div>
+      <Card className="border-destructive bg-destructive/10">
+        <CardHeader>
+          <CardTitle className="text-destructive">Connection Error</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-destructive">{error}</p>
+          <p className="text-muted-foreground text-sm mt-2">
+            Make sure your Supabase environment variables are configured
+            correctly.
+          </p>
+        </CardContent>
+      </Card>
     );
   }
 
@@ -82,13 +107,13 @@ const Dashboard: React.FC = () => {
     }));
 
   return (
-    <div className="space-y-8 animate-fade-in">
+    <div className="space-y-8 animate-fade-in p-6">
       {/* Header */}
-      <div className="text-center">
-        <h1 className="text-4xl font-bold text-gray-900 mb-2">
+      <div className="text-center space-y-2">
+        <h1 className="text-4xl font-bold text-foreground">
           Team Performance Dashboard
         </h1>
-        <p className="text-lg text-gray-600">
+        <p className="text-lg text-muted-foreground">
           Track your relay race journey and achievements
         </p>
       </div>
@@ -99,6 +124,7 @@ const Dashboard: React.FC = () => {
           icon={<Calendar className="w-6 h-6" />}
           label="Total Races"
           value={yearlySummary.length.toString()}
+          description="Completed race seasons"
         />
         <StatCard
           icon={<Trophy className="w-6 h-6" />}
@@ -108,11 +134,13 @@ const Dashboard: React.FC = () => {
               ? `Top ${Math.round(bestOverallPercentile)}%`
               : "N/A"
           }
+          description="Best overall performance"
         />
         <StatCard
           icon={<Clock className="w-6 h-6" />}
           label="Latest Time"
           value={latestPerformance?.total_time?.toString() || "N/A"}
+          description={`Race ${latestPerformance?.year || "N/A"}`}
         />
         <StatCard
           icon={<TrendingUp className="w-6 h-6" />}
@@ -122,173 +150,185 @@ const Dashboard: React.FC = () => {
               ? `Top ${Math.round(averageOverallPercentile)}%`
               : "N/A"
           }
+          description="Average performance"
         />
       </div>
 
       {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Placement Trend */}
-        <div className="card p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            Performance Percentile Trend
-          </h3>
-          <p className="text-sm text-gray-500 mb-4">
-            Lower percentile indicates better performance (e.g., 10% means top
-            10% of teams)
-          </p>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart
-                data={performanceChartData}
-                margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis
-                  dataKey="year"
-                  tick={{ fill: "#6B7280" }}
-                  tickLine={{ stroke: "#6B7280" }}
-                />
-                <YAxis
-                  tick={{ fill: "#6B7280" }}
-                  tickLine={{ stroke: "#6B7280" }}
-                  tickFormatter={(value) => `${value.toFixed(0)}%`}
-                  domain={[0, 100]}
-                  reversed={true}
-                  label={{
-                    value: "Percentile",
-                    angle: -90,
-                    position: "insideLeft",
-                    style: { fill: "#6B7280" },
-                  }}
-                />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "#1F2937",
-                    border: "none",
-                    borderRadius: "0.375rem",
-                    color: "#F9FAFB",
-                  }}
-                  formatter={(value: number) => [`${value.toFixed(1)}%`, ""]}
-                />
-                <Legend />
-                <Line
-                  type="monotone"
-                  dataKey="division"
-                  name="Division"
-                  stroke="#3B82F6"
-                  strokeWidth={2}
-                  dot={{ fill: "#3B82F6", strokeWidth: 2 }}
-                  activeDot={{ r: 6 }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="overall"
-                  name="Overall"
-                  stroke="#10B981"
-                  strokeWidth={2}
-                  dot={{ fill: "#10B981", strokeWidth: 2 }}
-                  activeDot={{ r: 6 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
+        <Card>
+          <CardHeader>
+            <CardTitle>Performance Percentile Trend</CardTitle>
+            <CardDescription>
+              Lower percentile indicates better performance (e.g., 10% means top
+              10% of teams)
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart
+                  data={performanceChartData}
+                  margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis
+                    dataKey="year"
+                    tick={{ fill: "hsl(var(--muted-foreground))" }}
+                    tickLine={{ stroke: "hsl(var(--muted-foreground))" }}
+                  />
+                  <YAxis
+                    tick={{ fill: "hsl(var(--muted-foreground))" }}
+                    tickLine={{ stroke: "hsl(var(--muted-foreground))" }}
+                    tickFormatter={(value) => `${value.toFixed(0)}%`}
+                    domain={[0, 100]}
+                    reversed={true}
+                    label={{
+                      value: "Percentile",
+                      angle: -90,
+                      position: "insideLeft",
+                      style: { fill: "hsl(var(--muted-foreground))" },
+                    }}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "hsl(var(--popover))",
+                      border: "1px solid hsl(var(--border))",
+                      borderRadius: "6px",
+                      color: "hsl(var(--popover-foreground))",
+                    }}
+                    formatter={(value: number) => [`${value.toFixed(1)}%`, ""]}
+                  />
+                  <Legend />
+                  <Line
+                    type="monotone"
+                    dataKey="division"
+                    name="Division"
+                    stroke="hsl(var(--primary))"
+                    strokeWidth={2}
+                    dot={{ fill: "hsl(var(--primary))", strokeWidth: 2 }}
+                    activeDot={{ r: 6 }}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="overall"
+                    name="Overall"
+                    stroke="#10B981"
+                    strokeWidth={2}
+                    dot={{ fill: "#10B981", strokeWidth: 2 }}
+                    activeDot={{ r: 6 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Leg Performance */}
-        <div className="card p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            Latest Race - Leg Performance ({currentYear})
-          </h3>
-          {legPerformanceData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={legPerformanceData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis dataKey="leg" stroke="#6b7280" />
-                <YAxis stroke="#6b7280" />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "white",
-                    border: "1px solid #e5e7eb",
-                    borderRadius: "8px",
-                    boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
-                  }}
-                  formatter={(_value: any, _name: any, props: any) => {
-                    return [
-                      `${props?.payload?.pace}`,
-                      `Time (${props?.payload?.runner || "Unknown Runner"})`,
-                    ];
-                  }}
-                />
-                <Bar dataKey="time" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          ) : (
-            <div className="flex items-center justify-center h-64 text-gray-500">
-              No leg performance data available
-            </div>
-          )}
-        </div>
+        <Card>
+          <CardHeader>
+            <CardTitle>Latest Race - Leg Performance ({currentYear})</CardTitle>
+            <CardDescription>
+              Individual leg times and performance by runner
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {legPerformanceData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={legPerformanceData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <XAxis dataKey="leg" stroke="hsl(var(--muted-foreground))" />
+                  <YAxis stroke="hsl(var(--muted-foreground))" />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "hsl(var(--popover))",
+                      border: "1px solid hsl(var(--border))",
+                      borderRadius: "6px",
+                      boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+                    }}
+                    formatter={(_value: any, _name: any, props: any) => {
+                      return [
+                        `${props?.payload?.pace}`,
+                        `Time (${props?.payload?.runner || "Unknown Runner"})`,
+                      ];
+                    }}
+                  />
+                  <Bar dataKey="time" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex items-center justify-center h-64 text-muted-foreground">
+                No leg performance data available
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
 
       {/* Recent Performance Summary */}
       {yearlySummary.length > 0 && (
-        <div className="card p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            Year-over-Year Performance
-          </h3>
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Year
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Total Time
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Avg Pace
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Overall Placement
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Division Placement
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {yearlySummary.map((perf, idx) => (
-                  <tr
-                    key={idx}
-                    className={
-                      idx % 2 === 0
-                        ? "bg-white"
-                        : "bg-gray-50 hover:bg-gray-100"
-                    }
-                  >
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {perf.year}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {perf.total_time?.toString()}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {perf.average_pace?.toString()}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {perf.overall_place} of {perf.overall_teams}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {perf.division_place} of {perf.division_teams} (
-                      {perf.division})
-                    </td>
+        <Card>
+          <CardHeader>
+            <CardTitle>Year-over-Year Performance</CardTitle>
+            <CardDescription>
+              Historical performance data and team placements
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-border">
+                <thead className="bg-muted">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                      Year
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                      Total Time
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                      Avg Pace
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                      Overall Placement
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                      Division Placement
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+                </thead>
+                <tbody className="bg-background divide-y divide-border">
+                  {yearlySummary.map((perf, idx) => (
+                    <tr
+                      key={idx}
+                      className={
+                        idx % 2 === 0
+                          ? "bg-background"
+                          : "bg-muted/50 hover:bg-muted"
+                      }
+                    >
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">
+                        <Badge variant="outline">{perf.year}</Badge>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
+                        {perf.total_time?.toString()}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
+                        {perf.average_pace?.toString()}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
+                        {perf.overall_place} of {perf.overall_teams}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
+                        {perf.division_place} of {perf.division_teams} ({perf.division})
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
       )}
     </div>
   );
