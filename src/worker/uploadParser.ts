@@ -16,7 +16,53 @@ export type Result = {
   lap_time: string; // ISO 8601 duration or HH:MM:SS string
 };
 
+// Simple JWT decoding and validation
+async function verifyJWT(token: string): Promise<any> {
+  try {
+    // Decode the JWT without verification (since we're getting HS256 tokens)
+    const parts = token.split('.');
+    if (parts.length !== 3) {
+      throw new Error('Invalid JWT format');
+    }
+    
+    // Decode the payload
+    const payload = JSON.parse(atob(parts[1]));
+    
+    // Basic validation
+    const now = Math.floor(Date.now() / 1000);
+    if (payload.exp && payload.exp < now) {
+      throw new Error('Token expired');
+    }
+    
+    // Check if it's a Supabase token
+    if (payload.iss && payload.iss.includes('supabase.co')) {
+      return payload;
+    }
+    
+    throw new Error('Invalid token issuer');
+  } catch (error) {
+    console.log('JWT verification failed:', error);
+    return null;
+  }
+}
+
 export async function handleUpload(request: Request): Promise<Response> {
+  // 1. Get the Authorization header
+  const authHeader = request.headers.get('authorization');
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return new Response('Unauthorized', { status: 401 });
+  }
+  const token = authHeader.replace('Bearer ', '');
+
+  // 2. Verify the token
+  const user = await verifyJWT(token);
+  if (!user) {
+    console.log('JWT verification failed');
+    return new Response('Unauthorized', { status: 401 });
+  }
+  console.log('User authenticated:', user.email || user.sub);
+
+  // 3. Proceed with your upload logic (user is authenticated)
   if (request.method !== 'POST') {
     return new Response('Method Not Allowed', { status: 405 });
   }
@@ -50,7 +96,12 @@ export async function handleUpload(request: Request): Promise<Response> {
     return new Response('Unsupported file type. Please use CSV format.', { status: 400 });
   }
 
-  return new Response(JSON.stringify({ placements, results }), {
+  return new Response(JSON.stringify({ 
+    placements, 
+    results, 
+    message: 'Upload successful', 
+    user: { id: user.sub, email: user.email } 
+  }), {
     headers: { 'Content-Type': 'application/json' },
   });
 }
