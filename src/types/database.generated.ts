@@ -17,10 +17,10 @@ export type Database = {
     Functions: {
       graphql: {
         Args: {
-          extensions?: Json
+          variables?: Json
           operationName?: string
           query?: string
-          variables?: Json
+          extensions?: Json
         }
         Returns: Json
       }
@@ -54,6 +54,95 @@ export type Database = {
           version?: number
         }
         Relationships: []
+      }
+      photo_tags: {
+        Row: {
+          photo_id: string
+          runner_id: string
+        }
+        Insert: {
+          photo_id: string
+          runner_id: string
+        }
+        Update: {
+          photo_id?: string
+          runner_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "photo_tags_photo_id_fkey"
+            columns: ["photo_id"]
+            isOneToOne: false
+            referencedRelation: "photos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "photo_tags_runner_id_fkey"
+            columns: ["runner_id"]
+            isOneToOne: false
+            referencedRelation: "runners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      photos: {
+        Row: {
+          caption: string | null
+          category: string | null
+          created_at: string
+          file_name: string
+          file_size: number | null
+          id: string
+          is_public: boolean | null
+          leg_number: number | null
+          leg_version: number | null
+          mime_type: string | null
+          storage_path: string
+          updated_at: string
+          uploaded_by: string | null
+          year: number
+        }
+        Insert: {
+          caption?: string | null
+          category?: string | null
+          created_at?: string
+          file_name: string
+          file_size?: number | null
+          id?: string
+          is_public?: boolean | null
+          leg_number?: number | null
+          leg_version?: number | null
+          mime_type?: string | null
+          storage_path: string
+          updated_at?: string
+          uploaded_by?: string | null
+          year: number
+        }
+        Update: {
+          caption?: string | null
+          category?: string | null
+          created_at?: string
+          file_name?: string
+          file_size?: number | null
+          id?: string
+          is_public?: boolean | null
+          leg_number?: number | null
+          leg_version?: number | null
+          mime_type?: string | null
+          storage_path?: string
+          updated_at?: string
+          uploaded_by?: string | null
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "photos_leg_number_fkey"
+            columns: ["leg_number", "leg_version"]
+            isOneToOne: false
+            referencedRelation: "leg_definitions"
+            referencedColumns: ["number", "version"]
+          },
+        ]
       }
       placements: {
         Row: {

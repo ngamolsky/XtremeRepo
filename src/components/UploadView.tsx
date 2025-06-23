@@ -1,246 +1,47 @@
-import React, { useState } from "react";
-import { supabase } from "../lib/supabase";
-
-const defaultPlacement = {
-  year: "",
-  division: "",
-  division_place: "",
-  division_teams: "",
-  overall_place: "",
-  overall_teams: "",
-  bib: "",
-};
-const defaultResult = {
-  year: "",
-  leg_number: "",
-  leg_version: "",
-  runner: "",
-  lap_time: "",
-};
+import { Link, useSearch } from "@tanstack/react-router";
+import React from "react";
+import UploadPhotosView from "./UploadPhotosView";
+import UploadResultsView from "./UploadResultsView";
 
 const UploadView: React.FC = () => {
-  const [placement, setPlacement] = useState({ ...defaultPlacement });
-  const [results, setResults] = useState(Array(7).fill(null).map(() => ({ ...defaultResult })));
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [file, setFile] = useState<File | null>(null);
-  const [fileLoading, setFileLoading] = useState(false);
-  const [fileError, setFileError] = useState<string | null>(null);
-  const [parsedData, setParsedData] = useState<{
-    placements: any[];
-    results: any[];
-  } | null>(null);
+  const { tab } = useSearch({ from: "/upload" });
 
-  // Placement field change
-  const handlePlacementChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setPlacement({ ...placement, [e.target.name]: e.target.value });
-  };
+  const tabs = [
+    { id: "results", label: "Race Results", component: UploadResultsView },
+    { id: "photos", label: "Photos", component: UploadPhotosView },
+  ];
 
-  // Results field change
-  const handleResultChange = (idx: number, e: React.ChangeEvent<HTMLInputElement>) => {
-    const newResults = results.slice();
-    newResults[idx] = { ...newResults[idx], [e.target.name]: e.target.value };
-    setResults(newResults);
-  };
-
-  // Populate form fields from parsedData
-  React.useEffect(() => {
-    if (parsedData) {
-      if (parsedData.placements && parsedData.placements.length > 0) {
-        setPlacement({ ...defaultPlacement, ...parsedData.placements[0] });
-      }
-      if (parsedData.results && parsedData.results.length > 0) {
-        // Fill up to 7, pad with defaults if less
-        const filled = parsedData.results.slice(0, 7).map(r => ({ ...defaultResult, ...r }));
-        while (filled.length < 7) filled.push({ ...defaultResult });
-        setResults(filled);
-      }
-    }
-  }, [parsedData]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setMessage(null);
-    setError(null);
-    // Validate placement
-    for (const key of Object.keys(defaultPlacement)) {
-      if (!placement[key as keyof typeof defaultPlacement]) {
-        setError("All placement fields are required.");
-        setLoading(false);
-        return;
-      }
-    }
-    // Validate results
-    for (let i = 0; i < 7; ++i) {
-      for (const key of Object.keys(defaultResult)) {
-        if (!results[i][key as keyof typeof defaultResult]) {
-          setError(`All fields required for result row ${i + 1}.`);
-          setLoading(false);
-          return;
-        }
-      }
-    }
-    // Upsert placement
-    const { error: placementError } = await supabase.from("placements").upsert([
-      {
-        year: Number(placement.year),
-        division: placement.division,
-        division_place: Number(placement.division_place),
-        division_teams: Number(placement.division_teams),
-        overall_place: Number(placement.overall_place),
-        overall_teams: Number(placement.overall_teams),
-        bib: Number(placement.bib),
-      },
-    ]);
-    if (placementError) {
-      setError(placementError.message);
-      setLoading(false);
-      return;
-    }
-    // Upsert results
-    const resultsToInsert = results.map(r => ({
-      year: Number(r.year),
-      leg_number: Number(r.leg_number),
-      leg_version: Number(r.leg_version),
-      runner: r.runner,
-      lap_time: r.lap_time,
-    }));
-    const { error: resultsError } = await supabase.from("results").upsert(resultsToInsert);
-    if (resultsError) {
-      setError(resultsError.message);
-    } else {
-      setMessage("Race data uploaded successfully!");
-    }
-    setLoading(false);
-  };
-
-  const uploadFile = async (file: File) => {
-    const { data } = await supabase.auth.getSession();
-    const accessToken = data.session?.access_token;
-    if (!accessToken) {
-      setFileError('You must be logged in!');
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append('file', file);
-
-    try {
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-        },
-        body: formData,
-      });
-
-      if (response.ok) {
-        const responseData = await response.json();
-        setParsedData({
-          placements: responseData.placements || [],
-          results: responseData.results || []
-        });
-        setFileError(null);
-      } else {
-        const errorText = await response.text();
-        setFileError(`Upload failed: ${response.statusText} - ${errorText}`);
-      }
-    } catch (error) {
-      setFileError(`Upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    } finally {
-      setFileLoading(false);
-    }
-  };
+  const activeTab = tabs.find((t) => t.id === tab) || tabs[0];
+  const ActiveComponent = activeTab.component;
 
   return (
-    <div className="max-w-md mx-auto bg-white p-8 rounded-xl shadow-md animate-fade-in">
-      <h1 className="text-2xl font-bold mb-4 text-gray-900">Upload Official Race Data</h1>
-      {/* File Upload Section */}
-      <div className="mb-8">
-        <label className="block text-sm font-medium text-gray-700 mb-2">Upload CSV File</label>
-        <input
-          type="file"
-          accept=".csv"
-          onChange={e => {
-            setFile(e.target.files?.[0] || null);
-            setParsedData(null);
-            setFileError(null);
-          }}
-          className="block w-full border border-gray-300 rounded-md shadow-sm p-2 mb-2"
-        />
-        <button
-          className="btn-primary w-full mb-2"
-          disabled={!file || fileLoading}
-          onClick={async e => {
-            e.preventDefault();
-            if (!file) return;
-            setFileLoading(true);
-            setFileError(null);
-            setParsedData(null);
-            await uploadFile(file);
-          }}
-        >
-          {fileLoading ? 'Uploading...' : 'Upload File'}
-        </button>
-        {fileError && <div className="text-red-600 text-sm">{fileError}</div>}
-        {parsedData && (
-          <div className="mt-4 text-xs max-h-48 overflow-auto bg-gray-50 p-2 rounded">
-            <div className="font-bold mb-1">Placements:</div>
-            <pre className="mb-2">{JSON.stringify(parsedData.placements, null, 2)}</pre>
-            <div className="font-bold mb-1">Results:</div>
-            <pre>{JSON.stringify(parsedData.results, null, 2)}</pre>
-          </div>
-        )}
+    <div className="max-w-6xl mx-auto bg-white p-8 rounded-xl shadow-md animate-fade-in">
+      <h1 className="text-3xl font-bold mb-6 text-gray-900">Upload Data</h1>
+
+      {/* Tab Navigation */}
+      <div className="border-b border-gray-200 mb-8">
+        <nav className="-mb-px flex space-x-8">
+          {tabs.map((tabItem) => (
+            <Link
+              key={tabItem.id}
+              to="/upload"
+              search={{ tab: tabItem.id as "results" | "photos" }}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                activeTab.id === tabItem.id
+                  ? "border-blue-500 text-blue-600"
+                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+              }`}
+            >
+              {tabItem.label}
+            </Link>
+          ))}
+        </nav>
       </div>
-      {/* Placements Form */}
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <h2 className="text-lg font-semibold mb-2">Placements</h2>
-        {Object.entries(defaultPlacement).map(([key, _]) => (
-          <div key={key}>
-            <label className="block text-sm font-medium text-gray-700 capitalize">{key.replace(/_/g, ' ')}</label>
-            <input
-              type={key === 'division' ? 'text' : 'number'}
-              name={key}
-              value={placement[key as keyof typeof defaultPlacement]}
-              onChange={handlePlacementChange}
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
-              required
-            />
-          </div>
-        ))}
-        <h2 className="text-lg font-semibold mt-6 mb-2">Results</h2>
-        {results.map((result, idx) => (
-          <div key={idx} className="border p-2 mb-2 rounded bg-gray-50">
-            <div className="font-semibold mb-1">Leg {idx + 1}</div>
-            {Object.entries(defaultResult).map(([key, _]) => (
-              <div key={key}>
-                <label className="block text-xs font-medium text-gray-700 capitalize">{key.replace(/_/g, ' ')}</label>
-                <input
-                  type={key === 'runner' || key === 'lap_time' ? 'text' : 'number'}
-                  name={key}
-                  value={result[key as keyof typeof defaultResult]}
-                  onChange={e => handleResultChange(idx, e)}
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-1 text-xs"
-                  required
-                />
-              </div>
-            ))}
-          </div>
-        ))}
-        {error && <div className="text-red-600 text-sm">{error}</div>}
-        {message && <div className="text-green-600 text-sm">{message}</div>}
-        <button
-          type="submit"
-          className="btn-primary w-full"
-          disabled={loading}
-        >
-          {loading ? "Uploading..." : "Upload Data"}
-        </button>
-      </form>
+
+      {/* Tab Content */}
+      <ActiveComponent />
     </div>
   );
 };
 
-export default UploadView; 
+export default UploadView;

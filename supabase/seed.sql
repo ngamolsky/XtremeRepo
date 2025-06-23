@@ -182,3 +182,22 @@ INSERT INTO public.results (year, leg_number, leg_version, user_id, lap_time) VA
 (2024, 5, 2, (SELECT id FROM public.runners WHERE name = 'Sean Searle'), INTERVAL '01:47:20'), -- Sean Searle
 (2024, 6, 2, (SELECT id FROM public.runners WHERE name = 'Multiple Runners'), INTERVAL '01:27:42'), -- Multiple Runners
 (2024, 7, 2, (SELECT id FROM public.runners WHERE name = 'Peter Lubbers'), INTERVAL '01:39:44'); -- Peter Lubbers
+
+
+-- Storage policies for photos bucket
+
+-- Create the photos bucket (if it doesn't exist)
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('xtreme-photos', 'xtreme-photos', true)
+ON CONFLICT (id) DO NOTHING;
+
+-- Allow authenticated users to upload photos
+CREATE POLICY "Allow authenticated users to upload photos"
+ON storage.objects FOR INSERT
+TO authenticated
+WITH CHECK (bucket_id = 'xtreme-photos');
+
+-- Allow everyone to view public photos
+CREATE POLICY "Allow public read access to photos"
+ON storage.objects FOR SELECT
+USING (bucket_id = 'xtreme-photos');

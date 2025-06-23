@@ -13,6 +13,7 @@ import {
   YAxis,
 } from "recharts";
 import { useRelayData } from "../hooks/useRelayData";
+import { formatPace } from "../lib/utils";
 import { StatCard } from "./StatCard";
 
 const Dashboard: React.FC = () => {
@@ -76,6 +77,7 @@ const Dashboard: React.FC = () => {
     .map((result) => ({
       leg: `Leg ${result.leg_number}`,
       time: result.time_in_minutes,
+      pace: result.pace ? formatPace(result.pace) : null,
       runner: result.runner_name || "Missing Runner Name",
     }));
 
@@ -210,9 +212,9 @@ const Dashboard: React.FC = () => {
                     borderRadius: "8px",
                     boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
                   }}
-                  formatter={(value: any, _name: any, props: any) => {
+                  formatter={(_value: any, _name: any, props: any) => {
                     return [
-                      `${value.toFixed(1)} min`,
+                      `${props?.payload?.pace}`,
                       `Time (${props?.payload?.runner || "Unknown Runner"})`,
                     ];
                   }}

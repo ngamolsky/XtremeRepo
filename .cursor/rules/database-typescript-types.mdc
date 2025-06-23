@@ -1,0 +1,6 @@
+---
+description: How to update Typescript types from database changes
+globs: 
+alwaysApply: false
+---
+Whenever updating database types and wanting to generated typescript types from them, simply make sure migrations are applied locally and the run `npm run gen-types`.
