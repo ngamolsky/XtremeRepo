@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
-import { Camera, Calendar, Tag, Search, Filter, Upload, Image } from 'lucide-react';
+import { Camera, Calendar, Tag, Search, Filter, Upload, Image, Plus } from 'lucide-react';
+import { FloatingActionButton } from './ui/FloatingActionButton';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
+import UploadPhotosView from './UploadPhotosView';
 
 // Mock photo data - replace with real data from your database
 const mockPhotos = [
@@ -57,6 +60,7 @@ const PhotosView: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedYear, setSelectedYear] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [showUploadDialog, setShowUploadDialog] = useState(false);
 
   const categories = ['all', 'action', 'team', 'celebration', 'preparation'];
   const years = ['all', ...Array.from(new Set(mockPhotos.map(photo => photo.year.toString()))).sort().reverse()];
@@ -195,17 +199,22 @@ const PhotosView: React.FC = () => {
         </div>
       )}
 
-      {/* Upload Section */}
-      <div className="bg-gradient-to-r from-primary-50 to-purple-50 rounded-xl border border-primary-200 p-8 text-center">
-        <Upload className="w-12 h-12 text-primary-600 mx-auto mb-4" />
-        <h3 className="text-xl font-semibold text-gray-900 mb-2">Have photos to share?</h3>
-        <p className="text-gray-600 mb-4">
-          Help us build our photo collection by sharing your race memories
-        </p>
-        <button className="btn-primary">
-          Upload Photos
-        </button>
-      </div>
+      {/* Floating Action Button */}
+      <FloatingActionButton
+        icon={Plus}
+        label="Upload photos"
+        onClick={() => setShowUploadDialog(true)}
+      />
+
+      {/* Upload Dialog */}
+      <Dialog open={showUploadDialog} onOpenChange={setShowUploadDialog}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Upload Photos</DialogTitle>
+          </DialogHeader>
+          <UploadPhotosView />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

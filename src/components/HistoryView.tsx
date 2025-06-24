@@ -3,15 +3,19 @@ import {
   ChevronDown,
   ChevronUp,
   Clock,
+  Plus,
   Trophy,
   Users,
 } from "lucide-react";
 import React, { useState } from "react";
+import { Link, useRouter } from "@tanstack/react-router";
 import { useRelayData } from "../hooks/useRelayData";
 import { formatPace } from "../lib/utils";
 import { Tables } from "../types/database.types";
+import { FloatingActionButton } from "./ui/FloatingActionButton";
 
 const HistoryView: React.FC = () => {
+  const router = useRouter();
   const {
     data: { yearlySummary, results },
     loading,
@@ -134,9 +138,9 @@ const HistoryView: React.FC = () => {
         <div className="space-y-4">
           {raceHistory.map((race) => (
             <div key={race.year} className="card overflow-hidden">
-              <div
+              <div 
                 className="p-6 cursor-pointer hover:bg-gray-50 transition-colors"
-                onClick={() => toggleExpanded(race.year!)}
+                onClick={() => window.location.href = `/history/${race.year}`}
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-4">
@@ -185,11 +189,7 @@ const HistoryView: React.FC = () => {
                         <p className="text-sm text-gray-600 mt-1">Division</p>
                       </div>
                     )}
-                    {expandedYear === race.year ? (
-                      <ChevronUp className="w-6 h-6 text-gray-500" />
-                    ) : (
-                      <ChevronDown className="w-6 h-6 text-gray-500" />
-                    )}
+                    <ChevronDown className="w-6 h-6 text-gray-500" />
                   </div>
                 </div>
               </div>
@@ -269,6 +269,13 @@ const HistoryView: React.FC = () => {
           </p>
         </div>
       )}
+
+      {/* Floating Action Button */}
+      <FloatingActionButton
+        icon={Plus}
+        label="Add new race"
+        onClick={() => window.location.href = `/history/${new Date().getFullYear()}?edit=true`}
+      />
     </div>
   );
 };

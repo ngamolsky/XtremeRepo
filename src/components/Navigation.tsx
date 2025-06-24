@@ -5,7 +5,6 @@ import {
   History,
   LogOut,
   Trophy,
-  Upload,
   User,
   Users,
 } from "lucide-react";
@@ -32,7 +31,6 @@ const Navigation: React.FC = () => {
     { id: "legs", label: "Legs", icon: BarChart3, path: "/legs" },
     { id: "history", label: "History", icon: History, path: "/history" },
     { id: "photos", label: "Photos", icon: Camera, path: "/photos" },
-    { id: "upload", label: "Upload", icon: Upload, path: "/upload" },
   ];
 
   const getActiveTabId = () => {
