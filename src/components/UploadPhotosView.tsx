@@ -356,11 +356,11 @@ const UploadPhotosView: React.FC = () => {
                     <div className="space-y-2">
                       <Label>Leg (optional)</Label>
                       <Select 
-                        value={metadata.selectedLeg || ""} 
+                        value={metadata.selectedLeg || "none"} 
                         onValueChange={(value) =>
                           setMetadata((prev) => ({
                             ...prev,
-                            selectedLeg: value || null,
+                            selectedLeg: value === "none" ? null : value,
                           }))
                         }
                         disabled={isUploading}
@@ -369,7 +369,7 @@ const UploadPhotosView: React.FC = () => {
                           <SelectValue placeholder="Select a leg" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">None</SelectItem>
+                          <SelectItem value="none">None</SelectItem>
                           {legDefinitions.map((leg) => (
                             <SelectItem
                               key={`${leg.number}-${leg.version}`}
