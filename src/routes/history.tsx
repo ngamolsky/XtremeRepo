@@ -1,6 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
-import HistoryView from "../components/HistoryView";
+import { Outlet, createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/history")({
-  component: HistoryView,
+  component: () => <Outlet />,
 });

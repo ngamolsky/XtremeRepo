@@ -140,7 +140,7 @@ const HistoryView: React.FC = () => {
             <div key={race.year} className="card overflow-hidden">
               <div 
                 className="p-6 cursor-pointer hover:bg-gray-50 transition-colors"
-                onClick={() => window.location.href = `/history/${race.year}`}
+                onClick={() => router.navigate({ to: '/history/$year', params: { year: race.year!.toString() } })}
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-4">
@@ -274,7 +274,7 @@ const HistoryView: React.FC = () => {
       <FloatingActionButton
         icon={Plus}
         label="Add new race"
-        onClick={() => window.location.href = `/history/${new Date().getFullYear()}?edit=true`}
+        onClick={() => router.navigate({ to: '/history/$year', params: { year: new Date().getFullYear().toString() }, search: { edit: true } })}
       />
     </div>
   );

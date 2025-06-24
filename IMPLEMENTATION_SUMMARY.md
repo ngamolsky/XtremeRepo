@@ -54,14 +54,16 @@
 
 ## Files Modified
 - `src/components/Navigation.tsx` - Removed upload tab
-- `src/components/HistoryView.tsx` - Added FAB and navigation links
+- `src/components/HistoryView.tsx` - Added FAB and proper router navigation
 - `src/components/PhotosView.tsx` - Added FAB and modal dialog
 - `src/routes/upload.tsx` - Deleted (functionality moved to other components)
+- `src/routes/history.tsx` - Modified to use Outlet for child routes
 - `vite.config.ts` - Fixed syntax error
 
 ## Files Created
 - `src/components/ui/FloatingActionButton.tsx` - Reusable FAB component
 - `src/routes/history.$year.tsx` - Race detail route
+- `src/routes/history.index.tsx` - History list route (moved from main history route)
 - `src/components/RaceDetailView.tsx` - Race detail page component
 
 ## Benefits
@@ -71,5 +73,23 @@
 - **Enhanced Race Management**: Individual race pages allow for better data management
 - **Preserved Functionality**: All upload features still available, just better integrated
 
+## Routing Architecture
+The history routing follows TanStack Router's nested route pattern:
+- `/history` - Main history route with `<Outlet />` 
+- `/history/` (index) - Shows the history list (HistoryView)
+- `/history/{year}` - Shows individual race details (RaceDetailView)
+
+This structure allows for clean navigation and proper route nesting, similar to how the legs routes work.
+
+## Navigation
+- **History List**: Click on any race card to navigate to its detail page
+- **Race Detail**: Back button returns to history list, edit button enables inline editing
+- **FAB Navigation**: Plus button creates new race for current year in edit mode
+
 ## Next Steps
-The implementation is complete and ready for testing. The development server should automatically regenerate route types to include the new history detail route.
+✅ **COMPLETED**: The race detail page navigation is now working correctly! 
+
+- Click on any race in the history tab to view its details
+- Use the floating action button to add new races
+- Edit existing race data inline on detail pages
+- Upload CSV files directly from race detail pages

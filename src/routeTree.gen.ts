@@ -9,7 +9,6 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as UploadRouteImport } from './routes/upload'
 import { Route as TeamRouteImport } from './routes/team'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as PhotosRouteImport } from './routes/photos'
@@ -18,14 +17,11 @@ import { Route as HistoryRouteImport } from './routes/history'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as LegsIndexRouteImport } from './routes/legs.index'
+import { Route as HistoryIndexRouteImport } from './routes/history.index'
 import { Route as RunnersRunnerNameRouteImport } from './routes/runners.$runnerName'
+import { Route as HistoryYearRouteImport } from './routes/history.$year'
 import { Route as LegsLegNumberVersionRouteImport } from './routes/legs.$legNumber.$version'
 
-const UploadRoute = UploadRouteImport.update({
-  id: '/upload',
-  path: '/upload',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const TeamRoute = TeamRouteImport.update({
   id: '/team',
   path: '/team',
@@ -66,10 +62,20 @@ const LegsIndexRoute = LegsIndexRouteImport.update({
   path: '/',
   getParentRoute: () => LegsRoute,
 } as any)
+const HistoryIndexRoute = HistoryIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => HistoryRoute,
+} as any)
 const RunnersRunnerNameRoute = RunnersRunnerNameRouteImport.update({
   id: '/runners/$runnerName',
   path: '/runners/$runnerName',
   getParentRoute: () => rootRouteImport,
+} as any)
+const HistoryYearRoute = HistoryYearRouteImport.update({
+  id: '/$year',
+  path: '/$year',
+  getParentRoute: () => HistoryRoute,
 } as any)
 const LegsLegNumberVersionRoute = LegsLegNumberVersionRouteImport.update({
   id: '/$legNumber/$version',
@@ -80,25 +86,26 @@ const LegsLegNumberVersionRoute = LegsLegNumberVersionRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
-  '/history': typeof HistoryRoute
+  '/history': typeof HistoryRouteWithChildren
   '/legs': typeof LegsRouteWithChildren
   '/photos': typeof PhotosRoute
   '/profile': typeof ProfileRoute
   '/team': typeof TeamRoute
-  '/upload': typeof UploadRoute
+  '/history/$year': typeof HistoryYearRoute
   '/runners/$runnerName': typeof RunnersRunnerNameRoute
+  '/history/': typeof HistoryIndexRoute
   '/legs/': typeof LegsIndexRoute
   '/legs/$legNumber/$version': typeof LegsLegNumberVersionRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
-  '/history': typeof HistoryRoute
   '/photos': typeof PhotosRoute
   '/profile': typeof ProfileRoute
   '/team': typeof TeamRoute
-  '/upload': typeof UploadRoute
+  '/history/$year': typeof HistoryYearRoute
   '/runners/$runnerName': typeof RunnersRunnerNameRoute
+  '/history': typeof HistoryIndexRoute
   '/legs': typeof LegsIndexRoute
   '/legs/$legNumber/$version': typeof LegsLegNumberVersionRoute
 }
@@ -106,13 +113,14 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
-  '/history': typeof HistoryRoute
+  '/history': typeof HistoryRouteWithChildren
   '/legs': typeof LegsRouteWithChildren
   '/photos': typeof PhotosRoute
   '/profile': typeof ProfileRoute
   '/team': typeof TeamRoute
-  '/upload': typeof UploadRoute
+  '/history/$year': typeof HistoryYearRoute
   '/runners/$runnerName': typeof RunnersRunnerNameRoute
+  '/history/': typeof HistoryIndexRoute
   '/legs/': typeof LegsIndexRoute
   '/legs/$legNumber/$version': typeof LegsLegNumberVersionRoute
 }
@@ -126,20 +134,21 @@ export interface FileRouteTypes {
     | '/photos'
     | '/profile'
     | '/team'
-    | '/upload'
+    | '/history/$year'
     | '/runners/$runnerName'
+    | '/history/'
     | '/legs/'
     | '/legs/$legNumber/$version'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/dashboard'
-    | '/history'
     | '/photos'
     | '/profile'
     | '/team'
-    | '/upload'
+    | '/history/$year'
     | '/runners/$runnerName'
+    | '/history'
     | '/legs'
     | '/legs/$legNumber/$version'
   id:
@@ -151,8 +160,9 @@ export interface FileRouteTypes {
     | '/photos'
     | '/profile'
     | '/team'
-    | '/upload'
+    | '/history/$year'
     | '/runners/$runnerName'
+    | '/history/'
     | '/legs/'
     | '/legs/$legNumber/$version'
   fileRoutesById: FileRoutesById
@@ -160,24 +170,16 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DashboardRoute: typeof DashboardRoute
-  HistoryRoute: typeof HistoryRoute
+  HistoryRoute: typeof HistoryRouteWithChildren
   LegsRoute: typeof LegsRouteWithChildren
   PhotosRoute: typeof PhotosRoute
   ProfileRoute: typeof ProfileRoute
   TeamRoute: typeof TeamRoute
-  UploadRoute: typeof UploadRoute
   RunnersRunnerNameRoute: typeof RunnersRunnerNameRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/upload': {
-      id: '/upload'
-      path: '/upload'
-      fullPath: '/upload'
-      preLoaderRoute: typeof UploadRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/team': {
       id: '/team'
       path: '/team'
@@ -234,12 +236,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LegsIndexRouteImport
       parentRoute: typeof LegsRoute
     }
+    '/history/': {
+      id: '/history/'
+      path: '/'
+      fullPath: '/history/'
+      preLoaderRoute: typeof HistoryIndexRouteImport
+      parentRoute: typeof HistoryRoute
+    }
     '/runners/$runnerName': {
       id: '/runners/$runnerName'
       path: '/runners/$runnerName'
       fullPath: '/runners/$runnerName'
       preLoaderRoute: typeof RunnersRunnerNameRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/history/$year': {
+      id: '/history/$year'
+      path: '/$year'
+      fullPath: '/history/$year'
+      preLoaderRoute: typeof HistoryYearRouteImport
+      parentRoute: typeof HistoryRoute
     }
     '/legs/$legNumber/$version': {
       id: '/legs/$legNumber/$version'
@@ -250,6 +266,19 @@ declare module '@tanstack/react-router' {
     }
   }
 }
+
+interface HistoryRouteChildren {
+  HistoryYearRoute: typeof HistoryYearRoute
+  HistoryIndexRoute: typeof HistoryIndexRoute
+}
+
+const HistoryRouteChildren: HistoryRouteChildren = {
+  HistoryYearRoute: HistoryYearRoute,
+  HistoryIndexRoute: HistoryIndexRoute,
+}
+
+const HistoryRouteWithChildren =
+  HistoryRoute._addFileChildren(HistoryRouteChildren)
 
 interface LegsRouteChildren {
   LegsIndexRoute: typeof LegsIndexRoute
@@ -266,12 +295,11 @@ const LegsRouteWithChildren = LegsRoute._addFileChildren(LegsRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DashboardRoute: DashboardRoute,
-  HistoryRoute: HistoryRoute,
+  HistoryRoute: HistoryRouteWithChildren,
   LegsRoute: LegsRouteWithChildren,
   PhotosRoute: PhotosRoute,
   ProfileRoute: ProfileRoute,
   TeamRoute: TeamRoute,
-  UploadRoute: UploadRoute,
   RunnersRunnerNameRoute: RunnersRunnerNameRoute,
 }
 export const routeTree = rootRouteImport
