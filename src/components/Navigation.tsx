@@ -1,11 +1,26 @@
 import { Link, useRouter } from "@tanstack/react-router";
-import { BarChart3, Camera, History, Trophy, User, Users, Upload, LogOut } from "lucide-react";
+import {
+  BarChart3,
+  Camera,
+  History,
+  LogOut,
+  Trophy,
+  Upload,
+  User,
+  Users,
+} from "lucide-react";
 import React from "react";
 import { supabase } from "../lib/supabase";
-import { Button } from "./ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
-import { Separator } from "./ui/separator";
 import { cn } from "../lib/utils";
+import { Button } from "./ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
+import { Separator } from "./ui/separator";
 
 const Navigation: React.FC = () => {
   const router = useRouter();
@@ -53,7 +68,9 @@ const Navigation: React.FC = () => {
               <h1 className="text-xl font-bold text-foreground">
                 Relay Dashboard
               </h1>
-              <p className="text-xs text-muted-foreground">Team Performance Tracker</p>
+              <p className="text-xs text-muted-foreground">
+                Team Performance Tracker
+              </p>
             </div>
           </div>
 
@@ -98,19 +115,8 @@ const Navigation: React.FC = () => {
               }}
             >
               <User className="w-4 h-4" />
-              <span>Profile</span>
+              <span>Me</span>
             </Link>
-
-            {/* Sign Out Button */}
-            <Button 
-              variant="ghost" 
-              size="sm"
-              onClick={handleSignOut}
-              className="text-muted-foreground hover:text-foreground"
-            >
-              <LogOut className="w-4 h-4 mr-2" />
-              Sign Out
-            </Button>
           </div>
 
           {/* Mobile Navigation */}
@@ -130,7 +136,7 @@ const Navigation: React.FC = () => {
                 ))}
               </SelectContent>
             </Select>
-            
+
             <Button variant="ghost" size="sm" asChild>
               <Link
                 to="/profile"
@@ -143,8 +149,8 @@ const Navigation: React.FC = () => {
               </Link>
             </Button>
 
-            <Button 
-              variant="ghost" 
+            <Button
+              variant="ghost"
               size="sm"
               onClick={handleSignOut}
               className="p-2"

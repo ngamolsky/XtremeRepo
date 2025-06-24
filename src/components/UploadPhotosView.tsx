@@ -1,15 +1,20 @@
+import { Info, Upload, X } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 import { supabase } from "../lib/supabase";
 import type { Tables } from "../types/database.generated";
 import { Button } from "./ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
-import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
-import { Progress } from "./ui/progress";
-import { Badge } from "./ui/badge";
 import { MultiSelect, type Option } from "./ui/multi-select";
-import { Upload, X, Info } from "lucide-react";
+import { Progress } from "./ui/progress";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
 
 type Runner = Tables<"runners">;
 type LegDefinition = Tables<"leg_definitions">;
@@ -247,8 +252,8 @@ const UploadPhotosView: React.FC = () => {
             <div className="border-2 border-dashed border-border rounded-lg p-8 text-center hover:border-primary/50 transition-colors">
               <Upload className="h-8 w-8 text-muted-foreground mx-auto mb-4" />
               <div className="space-y-2">
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   onClick={() => fileInputRef.current?.click()}
                   disabled={isUploading}
                 >
@@ -268,7 +273,8 @@ const UploadPhotosView: React.FC = () => {
               ref={fileInputRef}
             />
             <p className="text-xs text-muted-foreground">
-              Supported formats: JPG, PNG, GIF, WebP. Maximum file size: 10MB per photo.
+              Supported formats: JPG, PNG, GIF, WebP. Maximum file size: 10MB
+              per photo.
             </p>
           </div>
         </CardContent>
@@ -281,11 +287,13 @@ const UploadPhotosView: React.FC = () => {
             <h3 className="text-lg font-semibold">
               Photos to Upload ({selectedFiles.length})
             </h3>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               size="sm"
               onClick={() => {
-                selectedFiles.forEach((photo) => URL.revokeObjectURL(photo.preview));
+                selectedFiles.forEach((photo) =>
+                  URL.revokeObjectURL(photo.preview)
+                );
                 setSelectedFiles([]);
                 setUploadProgress({});
               }}
@@ -322,12 +330,20 @@ const UploadPhotosView: React.FC = () => {
                         <div className="flex items-center justify-between text-sm">
                           <span>Upload Progress</span>
                           <span>
-                            {uploadProgress[index] === -1 ? "Failed" : `${uploadProgress[index]}%`}
+                            {uploadProgress[index] === -1
+                              ? "Failed"
+                              : `${uploadProgress[index]}%`}
                           </span>
                         </div>
-                        <Progress 
-                          value={uploadProgress[index] === -1 ? 100 : uploadProgress[index]} 
-                          className={uploadProgress[index] === -1 ? "bg-destructive" : ""}
+                        <Progress
+                          value={
+                            uploadProgress[index] === -1
+                              ? 100
+                              : uploadProgress[index]
+                          }
+                          className={
+                            uploadProgress[index] === -1 ? "bg-destructive" : ""
+                          }
                         />
                       </div>
                     )}
@@ -355,8 +371,8 @@ const UploadPhotosView: React.FC = () => {
 
                     <div className="space-y-2">
                       <Label>Leg (optional)</Label>
-                      <Select 
-                        value={metadata.selectedLeg || "none"} 
+                      <Select
+                        value={metadata.selectedLeg || "none"}
                         onValueChange={(value) =>
                           setMetadata((prev) => ({
                             ...prev,
@@ -413,7 +429,8 @@ const UploadPhotosView: React.FC = () => {
                         disabled={isUploading}
                       />
                       <p className="text-xs text-muted-foreground">
-                        Search and select multiple runners who appear in this photo
+                        Search and select multiple runners who appear in this
+                        photo
                       </p>
                     </div>
                   </div>
@@ -439,7 +456,7 @@ const UploadPhotosView: React.FC = () => {
                 Uploading...
               </>
             ) : (
-              `Upload ${selectedFiles.length} Photo${selectedFiles.length > 1 ? 's' : ''}`
+              `Upload ${selectedFiles.length} Photo${selectedFiles.length > 1 ? "s" : ""}`
             )}
           </Button>
         </div>
@@ -447,9 +464,17 @@ const UploadPhotosView: React.FC = () => {
 
       {/* Messages */}
       {uploadStatus && (
-        <Card className={uploadStatus.includes("Successfully") ? "border-green-200 bg-green-50" : "border-red-200 bg-red-50"}>
+        <Card
+          className={
+            uploadStatus.includes("Successfully")
+              ? "border-green-200 bg-green-50"
+              : "border-red-200 bg-red-50"
+          }
+        >
           <CardContent className="p-4">
-            <p className={`text-sm whitespace-pre-line ${uploadStatus.includes("Successfully") ? "text-green-800" : "text-red-700"}`}>
+            <p
+              className={`text-sm whitespace-pre-line ${uploadStatus.includes("Successfully") ? "text-green-800" : "text-red-700"}`}
+            >
               {uploadStatus}
             </p>
           </CardContent>
@@ -462,13 +487,20 @@ const UploadPhotosView: React.FC = () => {
           <div className="flex items-start gap-3">
             <Info className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
             <div>
-              <h4 className="font-medium text-blue-800 mb-2">Photo Upload Guidelines:</h4>
+              <h4 className="font-medium text-blue-800 mb-2">
+                Photo Upload Guidelines:
+              </h4>
               <ul className="text-sm text-blue-700 space-y-1">
-                <li>• A year must be provided for each photo. Associating a leg is optional.</li>
+                <li>
+                  • A year must be provided for each photo. Associating a leg is
+                  optional.
+                </li>
                 <li>• Add descriptive tags to help others find photos</li>
                 <li>• Supported formats: JPG, PNG, GIF, WebP</li>
                 <li>• Photos will be organized by year and leg number</li>
-                <li>• Use the runner tags to make photos searchable by team member</li>
+                <li>
+                  • Use the runner tags to make photos searchable by team member
+                </li>
               </ul>
             </div>
           </div>
