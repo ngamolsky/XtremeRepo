@@ -59,11 +59,28 @@ const UploadView: React.FC = () => {
     }
   }, [parsedData]);
 
+  // Helper function to get runner ID by name
+  const getRunnerIdByName = async (runnerName: string): Promise<string | null> => {
+    const { data, error } = await supabase
+      .from('runners')
+      .select('id')
+      .eq('name', runnerName)
+      .single();
+    
+    if (error) {
+      console.error(`Error finding runner "${runnerName}":`, error);
+      return null;
+    }
+    
+    return data?.id || null;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setMessage(null);
     setError(null);
+    
     // Validate placement
     for (const key of Object.keys(defaultPlacement)) {
       if (!placement[key as keyof typeof defaultPlacement]) {
@@ -72,6 +89,7 @@ const UploadView: React.FC = () => {
         return;
       }
     }
+    
     // Validate results
     for (let i = 0; i < 7; ++i) {
       for (const key of Object.keys(defaultResult)) {
@@ -82,38 +100,69 @@ const UploadView: React.FC = () => {
         }
       }
     }
-    // Upsert placement
-    const { error: placementError } = await supabase.from("placements").upsert([
-      {
-        year: Number(placement.year),
-        division: placement.division,
-        division_place: Number(placement.division_place),
-        division_teams: Number(placement.division_teams),
-        overall_place: Number(placement.overall_place),
-        overall_teams: Number(placement.overall_teams),
-        bib: Number(placement.bib),
-      },
-    ]);
-    if (placementError) {
-      setError(placementError.message);
+    
+    try {
+      // Upsert placement
+      const { error: placementError } = await supabase.from("placements").upsert([
+        {
+          year: Number(placement.year),
+          division: placement.division,
+          division_place: Number(placement.division_place),
+          division_teams: Number(placement.division_teams),
+          overall_place: Number(placement.overall_place),
+          overall_teams: Number(placement.overall_teams),
+          bib: Number(placement.bib),
+        },
+      ]);
+      
+      if (placementError) {
+        setError(placementError.message);
+        setLoading(false);
+        return;
+      }
+      
+      // Process results - look up runner IDs and prepare for insertion
+      const resultsToInsert = [];
+      
+      for (const result of results) {
+        if (result.runner.trim()) {
+          const runnerId = await getRunnerIdByName(result.runner);
+          
+          if (!runnerId) {
+            setError(`Runner "${result.runner}" not found in the database. Please ensure the runner name matches exactly.`);
+            setLoading(false);
+            return;
+          }
+          
+          resultsToInsert.push({
+            year: Number(result.year),
+            leg_number: Number(result.leg_number),
+            leg_version: Number(result.leg_version),
+            user_id: runnerId, // Use the runner ID instead of runner name
+            lap_time: result.lap_time,
+          });
+        }
+      }
+      
+      if (resultsToInsert.length === 0) {
+        setError("No valid results to insert.");
+        setLoading(false);
+        return;
+      }
+      
+      // Upsert results
+      const { error: resultsError } = await supabase.from("results").upsert(resultsToInsert);
+      
+      if (resultsError) {
+        setError(resultsError.message);
+      } else {
+        setMessage("Race data uploaded successfully!");
+      }
+    } catch (error) {
+      setError(`An error occurred: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
       setLoading(false);
-      return;
     }
-    // Upsert results
-    const resultsToInsert = results.map(r => ({
-      year: Number(r.year),
-      leg_number: Number(r.leg_number),
-      leg_version: Number(r.leg_version),
-      runner: r.runner,
-      lap_time: r.lap_time,
-    }));
-    const { error: resultsError } = await supabase.from("results").upsert(resultsToInsert);
-    if (resultsError) {
-      setError(resultsError.message);
-    } else {
-      setMessage("Race data uploaded successfully!");
-    }
-    setLoading(false);
   };
 
   const uploadFile = async (file: File) => {
