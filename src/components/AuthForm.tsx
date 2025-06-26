@@ -1,9 +1,10 @@
-import { AlertCircle, Mail, Trophy } from "lucide-react";
+import { AlertCircle, Mail, Trophy, User } from "lucide-react";
 import React, { useState } from "react";
 import { supabase } from "../lib/supabase";
 
 const AuthForm: React.FC = () => {
   const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
   const [isSignUp, setIsSignUp] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -13,6 +14,10 @@ const AuthForm: React.FC = () => {
     // Since we now have a visual suffix, users only enter their username
     // So we just need to check that it's not empty and doesn't contain @
     return email.length > 0 && !email.includes("@");
+  };
+
+  const validateName = (name: string) => {
+    return name.trim().length > 0;
   };
 
   // Helper to normalize email - always append @xtreme-falcons.com
@@ -27,6 +32,85 @@ const AuthForm: React.FC = () => {
     return `${window.location.origin}/`;
   };
 
+  // Function to sync runner data with the runners table
+  const syncRunnerData = async (userEmail: string, userName: string, authUserId: string) => {
+    try {
+      // First, try to find an existing runner by email
+      let { data: existingRunner, error: fetchError } = await supabase
+        .from('runners')
+        .select('*')
+        .eq('email', userEmail)
+        .single();
+
+      if (fetchError && fetchError.code !== 'PGRST116') {
+        // PGRST116 is "not found" error, which is expected if no runner exists
+        throw fetchError;
+      }
+
+      if (existingRunner) {
+        // Update existing runner with auth_user_id and any missing data
+        const updateData: any = { auth_user_id: authUserId };
+        if (!existingRunner.name && userName) {
+          updateData.name = userName;
+        }
+        
+        const { error: updateError } = await supabase
+          .from('runners')
+          .update(updateData)
+          .eq('id', existingRunner.id);
+
+        if (updateError) throw updateError;
+        return existingRunner.id;
+      }
+
+      // If no runner found by email, try to find by name
+      if (userName) {
+        let { data: runnerByName, error: nameFetchError } = await supabase
+          .from('runners')
+          .select('*')
+          .eq('name', userName)
+          .single();
+
+        if (nameFetchError && nameFetchError.code !== 'PGRST116') {
+          throw nameFetchError;
+        }
+
+        if (runnerByName) {
+          // Update existing runner with auth_user_id and email
+          const updateData: any = { auth_user_id: authUserId };
+          if (!runnerByName.email && userEmail) {
+            updateData.email = userEmail;
+          }
+
+          const { error: updateError } = await supabase
+            .from('runners')
+            .update(updateData)
+            .eq('id', runnerByName.id);
+
+          if (updateError) throw updateError;
+          return runnerByName.id;
+        }
+      }
+
+      // If no existing runner found, create a new one
+      const { data: newRunner, error: insertError } = await supabase
+        .from('runners')
+        .insert({
+          email: userEmail,
+          name: userName,
+          auth_user_id: authUserId
+        })
+        .select()
+        .single();
+
+      if (insertError) throw insertError;
+      return newRunner.id;
+    } catch (error) {
+      console.error('Error syncing runner data:', error);
+      throw error;
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -39,6 +123,12 @@ const AuthForm: React.FC = () => {
       return;
     }
 
+    if (isSignUp && !validateName(name)) {
+      setError("Please enter your full name");
+      setLoading(false);
+      return;
+    }
+
     // Normalize email before sending to Supabase
     const normalizedEmail = normalizeEmail(email);
 
@@ -47,15 +137,29 @@ const AuthForm: React.FC = () => {
 
     try {
       if (isSignUp) {
-        const { error } = await supabase.auth.signUp({
+        const { data: authData, error } = await supabase.auth.signUp({
           email: normalizedEmail,
           password: authPassword,
           options: {
             emailRedirectTo: getRedirectUrl(),
+            data: {
+              name: name.trim(),
+            },
           },
         });
 
         if (error) throw error;
+
+        // If signup was successful and we have a user, sync with runners table
+        if (authData.user) {
+          try {
+            await syncRunnerData(normalizedEmail, name.trim(), authData.user.id);
+          } catch (syncError) {
+            console.error('Failed to sync runner data:', syncError);
+            // Don't fail the signup if runner sync fails
+          }
+        }
+
         setMessage("Check your email for the confirmation link!");
       } else {
         const { error } = await supabase.auth.signInWithPassword({
@@ -63,22 +167,12 @@ const AuthForm: React.FC = () => {
           password: authPassword,
         });
 
-        console.log(error);
-
         if (error) {
-          // If sign in fails, try to sign up automatically
-          const { error: signUpError } = await supabase.auth.signUp({
-            email: normalizedEmail,
-            password: authPassword,
-            options: {
-              emailRedirectTo: getRedirectUrl(),
-            },
-          });
-
-          if (signUpError) throw signUpError;
-          setMessage(
-            "Account created! Check your email for the confirmation link."
-          );
+          // If sign in fails, redirect to sign up page
+          setError("Account not found. Please sign up to create your account.");
+          setIsSignUp(true);
+          // Pre-fill the email field for sign up
+          setEmail(email);
         }
       }
     } catch (error: any) {
@@ -127,6 +221,29 @@ const AuthForm: React.FC = () => {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
+            {isSignUp && (
+              <div>
+                <label
+                  htmlFor="name"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Full Name
+                </label>
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                  <input
+                    id="name"
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Your full name"
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
+                    required={isSignUp}
+                  />
+                </div>
+              </div>
+            )}
+
             <div>
               <label
                 htmlFor="email"
@@ -172,7 +289,13 @@ const AuthForm: React.FC = () => {
 
           <div className="mt-6 text-center">
             <button
-              onClick={() => setIsSignUp(!isSignUp)}
+              onClick={() => {
+                setIsSignUp(!isSignUp);
+                // Clear name field when switching to sign in
+                if (!isSignUp) {
+                  setName("");
+                }
+              }}
               className="text-primary-600 hover:text-primary-700 text-sm font-medium"
             >
               {isSignUp
