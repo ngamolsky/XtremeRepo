@@ -6,7 +6,9 @@ import {
   stepCountIs,
   streamText,
   tool,
+  type ImagePart,
   type ModelMessage,
+  type TextPart,
 } from "ai";
 import { Database } from "../types/database.types";
 import { handleUpload } from "./uploadParser";
@@ -49,6 +51,14 @@ type ChatModelConfig = {
 type ClientChatMessage = {
   role: "user" | "assistant";
   content: string;
+  attachments?: ClientChatAttachment[];
+};
+
+type ClientChatAttachment = {
+  name?: string;
+  mediaType?: string;
+  dataUrl?: string;
+  size?: number;
 };
 
 type PageContext = {
@@ -71,8 +81,6 @@ type ResultWithPaceRow = Database["public"]["Views"]["v_results_with_pace"]["Row
 type RunnerParticipationRow = Database["public"]["Views"]["v_runner_participations"]["Row"];
 type LegObservationRow = Database["public"]["Tables"]["leg_result_observations"]["Row"];
 type LegObservationWithPaceRow = Database["public"]["Views"]["v_leg_result_observations_with_pace"]["Row"];
-type ResultInsert = Database["public"]["Tables"]["results"]["Insert"];
-type RaceParticipationInsert = Database["public"]["Tables"]["race_participations"]["Insert"];
 type LegObservationInsert = Database["public"]["Tables"]["leg_result_observations"]["Insert"];
 type LegObservationUpdate = Database["public"]["Tables"]["leg_result_observations"]["Update"];
 
@@ -84,29 +92,6 @@ type LegObservationSourceType =
   | "manual_runner"
   | "manual_admin"
   | "other";
-
-type AddLegPerformanceInput = {
-  year: number;
-  legNumber: number;
-  legVersion: number;
-  runnerName: string;
-  lapTime: string;
-  notes?: string;
-  createRunnerIfMissing?: boolean;
-  overwriteExisting?: boolean;
-};
-
-type SetYearNotesInput = {
-  year: number;
-  notes: string;
-};
-
-type AddRaceParticipationInput = {
-  year: number;
-  runnerName: string;
-  notes?: string;
-  createRunnerIfMissing?: boolean;
-};
 
 type SaveLegObservationInput = {
   observationId?: string;
@@ -123,14 +108,7 @@ type SaveLegObservationInput = {
   elevationGain?: number;
   notes?: string;
   metadata?: Record<string, unknown>;
-  createRunnerIfMissing?: boolean;
   overwriteExisting?: boolean;
-};
-
-type SetLegPerformanceNotesInput = {
-  year: number;
-  legNumber: number;
-  notes: string;
 };
 
 type RunnerIndexEntry = {
@@ -189,6 +167,14 @@ const jsonHeaders = {
   "Content-Type": "application/json",
 };
 
+const supportedChatImageMediaTypes = new Set([
+  "image/png",
+  "image/jpeg",
+  "image/webp",
+]);
+const maxChatImageSizeBytes = 4 * 1024 * 1024;
+const maxImagesPerMessage = 1;
+
 const chatModels: Record<ChatModelId, ChatModelConfig> = {
   "gpt-5.5": {
     id: "gpt-5.5",
@@ -224,8 +210,17 @@ async function handleChat(request: Request, env: Env): Promise<Response> {
     );
   }
 
-  const messages = sanitizeMessages(body.messages);
+  const sanitizedMessages = sanitizeMessages(body.messages);
   const authorizationHeader = request.headers.get("authorization") ?? undefined;
+
+  if (sanitizedMessages.error) {
+    return Response.json(
+      { error: sanitizedMessages.error },
+      { status: 400, headers: jsonHeaders }
+    );
+  }
+
+  const messages = sanitizedMessages.messages;
 
   if (messages.length === 0) {
     return Response.json(
@@ -276,7 +271,7 @@ async function verifyRaceDataAccess(
 ): Promise<Response | null> {
   if (!authorizationHeader?.startsWith("Bearer ")) {
     return Response.json(
-      { error: "Sign in before using the agent so it can read and update race data." },
+      { error: "Sign in before using the agent so it can read race data and save provisional observations." },
       { status: 401, headers: jsonHeaders }
     );
   }
@@ -381,23 +376,123 @@ function resolveModel(selectedModel: ChatModelConfig, env: Env) {
   return createOpenAI({ apiKey: env.OPENAI_API_KEY })(selectedModel.id);
 }
 
-function sanitizeMessages(messages: ClientChatMessage[] | undefined): ModelMessage[] {
+function sanitizeMessages(
+  messages: ClientChatMessage[] | undefined
+): { messages: ModelMessage[]; error?: string } {
   if (!messages) {
-    return [];
+    return { messages: [] };
   }
 
-  return messages
+  const sanitizedMessages: ModelMessage[] = [];
+
+  for (const message of messages
     .filter(
-      (message) =>
-        (message.role === "user" || message.role === "assistant") &&
-        typeof message.content === "string" &&
-        message.content.trim().length > 0
+      (message) => message.role === "user" || message.role === "assistant"
     )
-    .slice(-12)
-    .map((message) => ({
-      role: message.role,
-      content: message.content.trim().slice(0, 4000),
-    }));
+    .slice(-12)) {
+    const text =
+      typeof message.content === "string"
+        ? message.content.trim().slice(0, 4000)
+        : "";
+
+    if (message.role === "assistant") {
+      if (text) {
+        sanitizedMessages.push({
+          role: "assistant",
+          content: text,
+        });
+      }
+      continue;
+    }
+
+    const attachmentResult = sanitizeImageAttachments(message.attachments);
+    if (attachmentResult.error) {
+      return { messages: [], error: attachmentResult.error };
+    }
+
+    if (!text && attachmentResult.images.length === 0) {
+      continue;
+    }
+
+    if (attachmentResult.images.length === 0) {
+      sanitizedMessages.push({
+        role: "user",
+        content: text,
+      });
+      continue;
+    }
+
+    const content: Array<TextPart | ImagePart> = [
+      ...(text ? [{ type: "text" as const, text }] : []),
+      ...attachmentResult.images,
+    ];
+
+    sanitizedMessages.push({
+      role: "user",
+      content,
+    });
+  }
+
+  return { messages: sanitizedMessages };
+}
+
+function sanitizeImageAttachments(
+  attachments: ClientChatAttachment[] | undefined
+): { images: ImagePart[]; error?: string } {
+  if (!attachments?.length) {
+    return { images: [] };
+  }
+
+  const images: ImagePart[] = [];
+
+  for (const attachment of attachments.slice(0, maxImagesPerMessage)) {
+    const dataUrl = typeof attachment.dataUrl === "string" ? attachment.dataUrl : "";
+    const parsedDataUrl = parseImageDataUrl(dataUrl);
+    const mediaType = parsedDataUrl?.mediaType || attachment.mediaType;
+
+    if (!parsedDataUrl || !mediaType || !supportedChatImageMediaTypes.has(mediaType)) {
+      return {
+        images: [],
+        error: "Attach a PNG, JPG, or WebP screenshot.",
+      };
+    }
+
+    const estimatedSize = estimateBase64ByteLength(parsedDataUrl.base64Data);
+    if (estimatedSize > maxChatImageSizeBytes) {
+      return {
+        images: [],
+        error: "Keep screenshots under 4 MB.",
+      };
+    }
+
+    images.push({
+      type: "image",
+      image: parsedDataUrl.base64Data,
+      mediaType,
+    });
+  }
+
+  return { images };
+}
+
+function parseImageDataUrl(
+  dataUrl: string
+): { mediaType: string; base64Data: string } | null {
+  const match = dataUrl.match(/^data:([^;,]+);base64,([A-Za-z0-9+/=]+)$/);
+
+  if (!match) {
+    return null;
+  }
+
+  return {
+    mediaType: match[1].toLowerCase(),
+    base64Data: match[2],
+  };
+}
+
+function estimateBase64ByteLength(base64Data: string): number {
+  const padding = base64Data.endsWith("==") ? 2 : base64Data.endsWith("=") ? 1 : 0;
+  return Math.floor((base64Data.length * 3) / 4) - padding;
 }
 
 function createRelayClient(env: Env, authorizationHeader?: string): DataClient {
@@ -816,14 +911,6 @@ function describeToolUse(toolName: string, input: unknown): string {
       return `Reading ${stringValue(params.year) || "year"} results`;
     case "saveLegObservation":
       return "Saving provisional leg data";
-    case "addLegPerformance":
-      return "Saving canonical leg result";
-    case "addRaceParticipation":
-      return "Saving race participation";
-    case "setYearNotes":
-      return "Saving year notes";
-    case "setLegPerformanceNotes":
-      return "Saving leg notes";
     default:
       return `Using ${formatToolName(toolName)}`;
   }
@@ -884,7 +971,11 @@ Use data terms precisely. A "leg run", "ran leg", "result", or "performance" mea
 
 Resolve names softly. First names, partial names, lowercase names, and common short forms are acceptable when the runner index makes the match clear. Do not ask for full names just because the user supplied only a first name. If a partial name matches multiple runners and the answer would differ, call findRunner for the likely matches, explain the ambiguity briefly, and ask one short clarifying question.
 
-You can also add race-year participation, add or update provisional leg observations, add official canonical leg performance results, and maintain optional fun tidbit notes on years or individual canonical leg runs. Race-year participation means the runner is counted for that year even when their leg is unknown; collect race year and runner name, with optional notes, and do not ask for a leg or lap time unless the user is adding a specific leg result or observation. Race start time is stored on the race year; assume 7:00 AM unless the data says otherwise, and note that 2024 started at 6:00 AM. For any ad hoc leg data write, assume it is non-canonical and call saveLegObservation unless the user explicitly says the data is official, canonical, verified, the real time, the official race result, or should replace the official result. For a provisional observation, collect race year, leg number, leg version, runner name, and at least one observed field such as lap time, moving time, elapsed time, distance, elevation gain, notes, or metadata. Source type defaults to manual_runner; use apple_watch, garmin, phone, strava, manual_runner, manual_admin, or other when the user gives the source. For an official canonical leg performance write, collect exactly: race year, leg number, leg version, runner name, and lap time. Notes are optional. Ask short follow-up questions until every required field is known. Do not invent missing fields. If the runner is missing or ambiguous, ask the user to choose an existing runner or explicitly confirm creating a new runner. If a canonical result already exists for the same race year and leg number, ask the user to confirm replacement before overwriting. Once a write succeeds, summarize the saved row and label whether it is canonical or provisional.
+Canonical data is read-only. You can read official/canonical results, placements, participation, runner records, race notes, and leg notes, but you cannot write, replace, edit, or delete them. If the user asks you to edit official/canonical data, refuse briefly and offer to save the supplied values only as a provisional non-canonical observation when they include runner/device/app source data. Do not claim that provisional data is official, verified, canonical, or a replacement for official results.
+
+Your only write capability is adding or updating provisional leg observations with saveLegObservation. For any ad hoc leg data write, use saveLegObservation and label it non-canonical. For a provisional observation, collect race year, leg number, leg version, an existing runner name, and at least one observed field such as lap time, moving time, elapsed time, distance, elevation gain, notes, or metadata. Source type defaults to manual_runner; use apple_watch, garmin, phone, strava, manual_runner, manual_admin, or other when the user gives the source. Ask short follow-up questions until every required field is known. Do not invent missing fields. If the runner is missing or ambiguous, ask the user to choose an existing runner; do not create new runners.
+
+When the user attaches a screenshot or image from Strava, Garmin, Apple Watch, phone fitness apps, or similar sources, treat visible values as provisional non-canonical source evidence. Extract only values visible in the image or supplied by the user. Prefer source_type strava for Strava screenshots, and include useful provenance in sourceLabel, notes, or metadata such as the app name, screenshot filename, visible activity title, and any uncertainty. If required fields like year, leg number, leg version, runner, or the intended source are not visible or supplied, ask for them before saving. Once a write succeeds, summarize the saved row and label it provisional/non-canonical.
 
 If the user asks a question that depends on the current screen, use the page context below to scope the answer first. Keep answers concise and practical, cite the years/runners/legs you used, and say when the data does not contain enough information.
 
@@ -1043,35 +1134,6 @@ function createRelayTools(supabase: DataClient, limitToolExecution: ToolExecutio
         return { year, summary: summary[0] ?? null, results, observations, participations };
       }),
     }),
-    addRaceParticipation: tool({
-      description:
-        "Add or update a runner's race-year participation when the runner is known to have raced that year but the leg assignment or lap time is unknown.",
-      inputSchema: jsonSchema<AddRaceParticipationInput>({
-        type: "object",
-        properties: {
-          year: {
-            type: "number",
-            description: "Race year, such as 2015.",
-          },
-          runnerName: {
-            type: "string",
-            description: "Exact runner name.",
-          },
-          notes: {
-            type: "string",
-            description: "Optional note about uncertainty, source, or known partial details.",
-          },
-          createRunnerIfMissing: {
-            type: "boolean",
-            description:
-              "Set true only when the user explicitly confirms creating a runner if no exact runner exists.",
-          },
-        },
-        required: ["year", "runnerName"],
-        additionalProperties: false,
-      }),
-      execute: limitToolExecution(async (input) => addRaceParticipation(supabase, input)),
-    }),
     saveLegObservation: tool({
       description:
         "Add or update non-canonical runner/device data for a leg. Use this by default for ad hoc times, watch/Garmin/phone/Strava data, runner-submitted distance/elevation, or any data not explicitly stated to be official/canonical.",
@@ -1136,11 +1198,6 @@ function createRelayTools(supabase: DataClient, limitToolExecution: ToolExecutio
             description: "Optional extra source metadata as key-value pairs.",
             additionalProperties: true,
           },
-          createRunnerIfMissing: {
-            type: "boolean",
-            description:
-              "Set true only when the user explicitly confirms creating a runner if no exact runner exists.",
-          },
           overwriteExisting: {
             type: "boolean",
             description:
@@ -1151,96 +1208,6 @@ function createRelayTools(supabase: DataClient, limitToolExecution: ToolExecutio
         additionalProperties: false,
       }),
       execute: limitToolExecution(async (input) => saveLegObservation(supabase, input)),
-    }),
-    addLegPerformance: tool({
-      description:
-        "Add or replace one official/canonical runner performance result for a relay leg. Use only when the user explicitly says the data is official, canonical, verified, the real time, or should replace the official result.",
-      inputSchema: jsonSchema<AddLegPerformanceInput>({
-        type: "object",
-        properties: {
-          year: {
-            type: "number",
-            description: "Race year, such as 2025.",
-          },
-          legNumber: {
-            type: "number",
-            description: "Relay leg number.",
-          },
-          legVersion: {
-            type: "number",
-            description: "Route version for that leg.",
-          },
-          runnerName: {
-            type: "string",
-            description: "Exact runner name.",
-          },
-          lapTime: {
-            type: "string",
-            description: "Lap time as HH:MM:SS, H:MM:SS, or a clear hours/minutes/seconds phrase.",
-          },
-          notes: {
-            type: "string",
-            description: "Optional fun tidbit notes for this specific leg run.",
-          },
-          createRunnerIfMissing: {
-            type: "boolean",
-            description:
-              "Set true only when the user explicitly confirms creating a runner if no exact runner exists.",
-          },
-          overwriteExisting: {
-            type: "boolean",
-            description:
-              "Set true only when the user explicitly confirms replacing an existing result for the same year and leg.",
-          },
-        },
-        required: ["year", "legNumber", "legVersion", "runnerName", "lapTime"],
-        additionalProperties: false,
-      }),
-      execute: limitToolExecution(async (input) => addLegPerformance(supabase, input)),
-    }),
-    setYearNotes: tool({
-      description:
-        "Set or clear optional fun tidbit notes for a race year. Call after the user provides the year and note text.",
-      inputSchema: jsonSchema<SetYearNotesInput>({
-        type: "object",
-        properties: {
-          year: {
-            type: "number",
-            description: "Race year, such as 2025.",
-          },
-          notes: {
-            type: "string",
-            description: "Notes to save. Use an empty string to clear notes.",
-          },
-        },
-        required: ["year", "notes"],
-        additionalProperties: false,
-      }),
-      execute: limitToolExecution(async (input) => setYearNotes(supabase, input)),
-    }),
-    setLegPerformanceNotes: tool({
-      description:
-        "Set or clear optional fun tidbit notes for one existing leg run. Call after the user provides year, leg number, and note text.",
-      inputSchema: jsonSchema<SetLegPerformanceNotesInput>({
-        type: "object",
-        properties: {
-          year: {
-            type: "number",
-            description: "Race year, such as 2025.",
-          },
-          legNumber: {
-            type: "number",
-            description: "Relay leg number.",
-          },
-          notes: {
-            type: "string",
-            description: "Notes to save. Use an empty string to clear notes.",
-          },
-        },
-        required: ["year", "legNumber", "notes"],
-        additionalProperties: false,
-      }),
-      execute: limitToolExecution(async (input) => setLegPerformanceNotes(supabase, input)),
     }),
   };
 }
@@ -1288,6 +1255,16 @@ async function saveLegObservation(supabase: DataClient, input: SaveLegObservatio
       ok: false,
       action: "ask_for_missing_fields",
       missingFields,
+    };
+  }
+
+  if (!(await isLegObservationSchemaReady(supabase))) {
+    return {
+      ok: false,
+      action: "schema_migration_required",
+      message:
+        "The provisional leg data table/view is not in Supabase yet. Run the latest migration before saving runner/device observations.",
+      migration: "supabase/migrations/20260606080000_add_leg_result_observations.sql",
     };
   }
 
@@ -1362,7 +1339,7 @@ async function saveLegObservation(supabase: DataClient, input: SaveLegObservatio
     };
   }
 
-  const runner = await resolveRunner(supabase, runnerName, Boolean(input.createRunnerIfMissing));
+  const runner = await resolveRunner(supabase, runnerName);
 
   if (!runner.ok) {
     return runner;
@@ -1498,347 +1475,14 @@ async function saveLegObservation(supabase: DataClient, input: SaveLegObservatio
   };
 }
 
-async function addLegPerformance(supabase: DataClient, input: AddLegPerformanceInput) {
-  const year = normalizeInteger(input.year);
-  const legNumber = normalizeInteger(input.legNumber);
-  const legVersion = normalizeInteger(input.legVersion);
-  const runnerName = input.runnerName.trim();
-  const lapTime = normalizeLapTime(input.lapTime);
-
-  const missingFields = [
-    !year && "race year",
-    !legNumber && "leg number",
-    !legVersion && "leg version",
-    !runnerName && "runner name",
-    !lapTime && "lap time as HH:MM:SS",
-  ].filter(Boolean);
-
-  if (missingFields.length > 0) {
-    return {
-      ok: false,
-      action: "ask_for_missing_fields",
-      missingFields,
-    };
-  }
-
-  if (!(await isLegObservationSchemaReady(supabase))) {
-    return {
-      ok: false,
-      action: "schema_migration_required",
-      message:
-        "The provisional leg data table/view is not in Supabase yet. Run the latest migration before saving runner/device observations.",
-      migration: "supabase/migrations/20260606080000_add_leg_result_observations.sql",
-    };
-  }
-
-  const [placement, legDefinition] = await Promise.all([
-    fetchMaybeRow(
-      supabase
-        .from("placements")
-        .select("*")
-        .eq("year", year)
-        .maybeSingle()
-    ),
-    fetchMaybeRow(
-      supabase
-        .from("leg_definitions")
-        .select("*")
-        .eq("number", legNumber)
-        .eq("version", legVersion)
-        .maybeSingle()
-    ),
-  ]);
-
-  if (!placement) {
-    return {
-      ok: false,
-      action: "ask_for_existing_race_year_or_placement",
-      message:
-        "This race year is not in placements yet. Ask for official placement details or choose an existing year before adding leg performance.",
-      year,
-    };
-  }
-
-  if (!legDefinition) {
-    const matchingLegVersions = await fetchRows(
-      supabase
-        .from("leg_definitions")
-        .select("*")
-        .eq("number", legNumber)
-        .order("version", { ascending: true })
-    );
-
-    return {
-      ok: false,
-      action: "ask_for_valid_leg_version",
-      message: "That leg/version is not defined.",
-      legNumber,
-      requestedVersion: legVersion,
-      availableVersions: matchingLegVersions,
-    };
-  }
-
-  const runner = await resolveRunner(supabase, runnerName, Boolean(input.createRunnerIfMissing));
-
-  if (!runner.ok) {
-    return runner;
-  }
-
-  const existingResult = await fetchMaybeRow(
-    supabase
-      .from("v_results_with_pace")
-      .select("*")
-      .eq("year", year)
-      .eq("leg_number", legNumber)
-      .maybeSingle()
-  );
-
-  if (existingResult && !input.overwriteExisting) {
-    return {
-      ok: false,
-      action: "confirm_overwrite_existing_result",
-      message:
-        "A result already exists for this year and leg. Ask the user whether to replace it before writing.",
-      requested: {
-        year,
-        legNumber,
-        legVersion,
-        runnerName: runner.runner.name,
-        lapTime,
-        notes: normalizeNotes(input.notes),
-      },
-      existingResult,
-    };
-  }
-
-  const payload: ResultInsert = {
-    year,
-    leg_number: legNumber,
-    leg_version: legVersion,
-    user_id: runner.runner.id,
-    lap_time: lapTime,
-    notes: normalizeNotes(input.notes),
-    source_type: "official",
-  };
-
-  await fetchRows(
-    supabase
-      .from("results")
-      .upsert(payload, { onConflict: "year,leg_number" })
-      .select("*")
-  );
-
-  const savedResult = await fetchMaybeRow(
-    supabase
-      .from("v_results_with_pace")
-      .select("*")
-      .eq("year", year)
-      .eq("leg_number", legNumber)
-      .maybeSingle()
-  );
-
-  return {
-    ok: true,
-    action: existingResult ? "replaced_leg_performance" : "added_leg_performance",
-    result: savedResult,
-  };
-}
-
-async function addRaceParticipation(supabase: DataClient, input: AddRaceParticipationInput) {
-  const year = normalizeInteger(input.year);
-  const runnerName = input.runnerName.trim();
-
-  const missingFields = [
-    !year && "race year",
-    !runnerName && "runner name",
-  ].filter(Boolean);
-
-  if (missingFields.length > 0) {
-    return {
-      ok: false,
-      action: "ask_for_missing_fields",
-      missingFields,
-    };
-  }
-
-  const placement = await fetchMaybeRow(
-    supabase
-      .from("placements")
-      .select("*")
-      .eq("year", year)
-      .maybeSingle()
-  );
-
-  if (!placement) {
-    return {
-      ok: false,
-      action: "ask_for_existing_race_year_or_placement",
-      message:
-        "This race year is not in placements yet. Ask for official placement details or choose an existing year before adding runner participation.",
-      year,
-    };
-  }
-
-  const runner = await resolveRunner(supabase, runnerName, Boolean(input.createRunnerIfMissing));
-
-  if (!runner.ok) {
-    return runner;
-  }
-
-  const existingParticipation = await fetchMaybeRow(
-    supabase
-      .from("v_runner_participations")
-      .select("*")
-      .eq("year", year)
-      .eq("runner_id", runner.runner.id)
-      .maybeSingle()
-  );
-  const notes = input.notes === undefined ? undefined : normalizeNotes(input.notes);
-  const payload: RaceParticipationInsert = {
-    year,
-    runner_id: runner.runner.id,
-    ...(notes !== undefined ? { notes } : {}),
-  };
-
-  await fetchRows(
-    supabase
-      .from("race_participations")
-      .upsert(payload, { onConflict: "year,runner_id" })
-      .select("*")
-  );
-
-  const savedParticipation = await fetchMaybeRow(
-    supabase
-      .from("v_runner_participations")
-      .select("*")
-      .eq("year", year)
-      .eq("runner_id", runner.runner.id)
-      .maybeSingle()
-  );
-
-  return {
-    ok: true,
-    action: existingParticipation ? "updated_race_participation" : "added_race_participation",
-    participation: savedParticipation,
-  };
-}
-
-async function setYearNotes(supabase: DataClient, input: SetYearNotesInput) {
-  const year = normalizeInteger(input.year);
-
-  if (!year) {
-    return {
-      ok: false,
-      action: "ask_for_missing_fields",
-      missingFields: ["race year"],
-    };
-  }
-
-  const placement = await fetchMaybeRow(
-    supabase
-      .from("placements")
-      .select("*")
-      .eq("year", year)
-      .maybeSingle()
-  );
-
-  if (!placement) {
-    return {
-      ok: false,
-      action: "ask_for_existing_race_year_or_placement",
-      message: "This race year is not in placements yet. Ask for official placement details before saving a year note.",
-      year,
-    };
-  }
-
-  const updatedRows = await fetchRows(
-    supabase
-      .from("placements")
-      .update({ notes: normalizeNotes(input.notes) })
-      .eq("year", year)
-      .select("*")
-  );
-
-  return {
-    ok: true,
-    action: "saved_year_notes",
-    placement: updatedRows[0],
-  };
-}
-
-async function setLegPerformanceNotes(
-  supabase: DataClient,
-  input: SetLegPerformanceNotesInput
-) {
-  const year = normalizeInteger(input.year);
-  const legNumber = normalizeInteger(input.legNumber);
-
-  const missingFields = [
-    !year && "race year",
-    !legNumber && "leg number",
-  ].filter(Boolean);
-
-  if (missingFields.length > 0) {
-    return {
-      ok: false,
-      action: "ask_for_missing_fields",
-      missingFields,
-    };
-  }
-
-  const existingResult = await fetchMaybeRow(
-    supabase
-      .from("results")
-      .select("*")
-      .eq("year", year)
-      .eq("leg_number", legNumber)
-      .maybeSingle()
-  );
-
-  if (!existingResult) {
-    return {
-      ok: false,
-      action: "ask_for_existing_leg_run",
-      message: "No leg result exists for that year and leg number yet. Ask for the full leg performance details first.",
-      year,
-      legNumber,
-    };
-  }
-
-  await fetchRows(
-    supabase
-      .from("results")
-      .update({ notes: normalizeNotes(input.notes) })
-      .eq("year", year)
-      .eq("leg_number", legNumber)
-      .select("*")
-  );
-
-  const savedResult = await fetchMaybeRow(
-    supabase
-      .from("v_results_with_pace")
-      .select("*")
-      .eq("year", year)
-      .eq("leg_number", legNumber)
-      .maybeSingle()
-  );
-
-  return {
-    ok: true,
-    action: "saved_leg_performance_notes",
-    result: savedResult,
-  };
-}
-
 async function resolveRunner(
   supabase: DataClient,
-  runnerName: string,
-  createRunnerIfMissing: boolean
+  runnerName: string
 ):
   | Promise<{ ok: true; runner: RunnerRow }>
   | Promise<{
       ok: false;
-      action: "ask_for_runner_name" | "ask_to_create_runner";
+      action: "ask_for_runner_name";
       message: string;
       runnerName: string;
       possibleMatches: RunnerRow[];
@@ -1873,25 +1517,14 @@ async function resolveRunner(
       .limit(8)
   );
 
-  if (!createRunnerIfMissing) {
-    return {
-      ok: false,
-      action: "ask_to_create_runner",
-      message:
-        "No exact runner matched. Ask the user to choose a possible match or confirm creating a new runner.",
-      runnerName,
-      possibleMatches,
-    };
-  }
-
-  const inserted = await fetchRows(
-    supabase
-      .from("runners")
-      .insert({ name: runnerName })
-      .select("id,name,email")
-  );
-
-  return { ok: true, runner: inserted[0] };
+  return {
+    ok: false,
+    action: "ask_for_runner_name",
+    message:
+      "No exact runner matched. Ask the user to choose an existing runner before saving provisional data.",
+    runnerName,
+    possibleMatches,
+  };
 }
 
 type DataQueryError = {
