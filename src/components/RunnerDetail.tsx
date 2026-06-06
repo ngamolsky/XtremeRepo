@@ -1,5 +1,5 @@
 import { Link, useParams } from "@tanstack/react-router";
-import { Award, BarChart, Calendar, LogOut, Map } from "lucide-react";
+import { Award, BarChart, Calendar, LogOut, Map as MapIcon } from "lucide-react";
 import React from "react";
 import {
   CartesianGrid,
@@ -99,6 +99,27 @@ const RunnerDetail: React.FC = () => {
         .filter((year): year is number => typeof year === "number")
     ).size;
   const knownLegRuns = runnerStat?.known_leg_runs ?? 0;
+  const legVersionGroups = Array.from(
+    runnerResults.reduce((groups, result) => {
+      const leg = result.leg_number;
+      const version = result.leg_version;
+
+      if (typeof leg !== "number" || typeof version !== "number") {
+        return groups;
+      }
+
+      const legs = groups.get(version) ?? new Set<number>();
+      legs.add(leg);
+      groups.set(version, legs);
+
+      return groups;
+    }, new Map<number, Set<number>>())
+  )
+    .map(([version, legs]) => ({
+      version,
+      legs: [...legs].sort((a, b) => a - b),
+    }))
+    .sort((a, b) => b.version - a.version);
 
   // Prepare data for the performance chart
   const performanceData = runnerResults
@@ -135,6 +156,45 @@ const RunnerDetail: React.FC = () => {
         )}
       </div>
 
+      <section className="mx-auto max-w-4xl rounded-lg border border-primary-100 bg-primary-50/60 px-5 py-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex items-center gap-2 text-primary-800">
+            <MapIcon className="h-5 w-5" />
+            <h2 className="text-sm font-semibold uppercase tracking-wider">
+              Legs Run
+            </h2>
+          </div>
+          <div className="flex flex-1 flex-col gap-2 sm:items-end">
+            {legVersionGroups.length > 0 ? (
+              legVersionGroups.map(({ version, legs }) => (
+                <div
+                  key={version}
+                  className="flex flex-wrap items-center gap-2 sm:justify-end"
+                >
+                  <span className="text-xs font-semibold uppercase text-gray-500">
+                    v{version}
+                  </span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {legs.map((leg) => (
+                      <LegPill
+                        key={`${version}-${leg}`}
+                        leg={leg}
+                        version={version}
+                        className="rounded-full bg-primary-100 px-2.5 py-1 text-xs font-medium text-primary-800 transition-colors hover:bg-primary-200"
+                      >
+                        Leg {leg}
+                      </LegPill>
+                    ))}
+                  </div>
+                </div>
+              ))
+            ) : (
+              <span className="text-sm text-gray-600">No known legs yet.</span>
+            )}
+          </div>
+        </div>
+      </section>
+
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard
@@ -148,7 +208,7 @@ const RunnerDetail: React.FC = () => {
           value={runnerStat?.average_pace ? formatPace(runnerStat.average_pace) : "N/A"}
         />
         <StatCard
-          icon={<Map className="w-6 h-6 text-green-600" />}
+          icon={<MapIcon className="w-6 h-6 text-green-600" />}
           label="Unique Legs"
           value={runnerStat?.unique_legs?.toString() || "0"}
         />
