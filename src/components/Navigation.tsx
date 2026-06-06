@@ -1,11 +1,13 @@
-import { Link, useRouter } from "@tanstack/react-router";
+import { Link, useRouterState } from "@tanstack/react-router";
 import { BarChart3, Camera, Flag, Trophy, User, Users } from "lucide-react";
 import React from "react";
+import { getActiveNavId } from "../lib/navigation";
 import ThemeToggle from "./ThemeToggle";
 
 const Navigation: React.FC = () => {
-  const router = useRouter();
-  const pathname = router.state.location.pathname;
+  const pathname = useRouterState({
+    select: (state) => state.location.pathname,
+  });
 
   const tabs = [
     { id: "dashboard", label: "Dashboard", icon: BarChart3, path: "/" },
@@ -15,15 +17,11 @@ const Navigation: React.FC = () => {
     { id: "photos", label: "Photos", icon: Camera, path: "/photos" },
   ];
 
-  const getActiveTabId = () => {
-    if (pathname === "/") {
-      return "dashboard";
-    }
-    const topLevelPath = pathname.substring(1).split("/")[0];
-    const matchingTab = tabs.find((tab) => tab.path === `/${topLevelPath}`);
-    return matchingTab ? matchingTab.id : "dashboard";
-  };
-  const activeTabId = getActiveTabId();
+  const activeTabId = getActiveNavId(pathname);
+  const mobileTabs = [
+    ...tabs,
+    { id: "profile", label: "Me", icon: User, path: "/profile" },
+  ];
 
   return (
     <nav className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50 dark:bg-slate-950/90 dark:border-slate-800 dark:shadow-none dark:backdrop-blur">
@@ -90,33 +88,34 @@ const Navigation: React.FC = () => {
           </div>
 
           {/* Mobile Navigation */}
-          <div className="md:hidden flex items-center space-x-2">
+          <div className="md:hidden flex min-w-0 items-center gap-2">
             <ThemeToggle />
-            <select
-              value={activeTabId}
-              onChange={(e) =>
-                router.navigate({
-                  to:
-                    e.target.value === "dashboard" ? "/" : `/${e.target.value}`,
-                })
-              }
-              className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:border-slate-700"
+            <div
+              role="list"
+              aria-label="Primary navigation"
+              className="flex min-w-0 flex-1 gap-1 overflow-x-auto rounded-xl border border-gray-200 bg-gray-50 p-1 dark:border-slate-800 dark:bg-slate-900"
             >
-              {tabs.map((tab) => (
-                <option key={tab.id} value={tab.id}>
-                  {tab.label}
-                </option>
-              ))}
-            </select>
-            <Link
-              to="/profile"
-              className="p-2 text-gray-600 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
-              activeProps={{
-                className: "text-primary-700 bg-primary-50",
-              }}
-            >
-              <User className="w-4 h-4" />
-            </Link>
+              {mobileTabs.map((tab) => {
+                const Icon = tab.icon;
+                const isActive = activeTabId === tab.id;
+
+                return (
+                  <Link
+                    key={tab.id}
+                    to={tab.path}
+                    aria-current={activeTabId === tab.id ? "page" : undefined}
+                    className={`inline-flex shrink-0 items-center gap-1 rounded-lg px-3 py-2 text-xs font-semibold transition-colors ${
+                      isActive
+                        ? "bg-primary-600 text-white shadow-sm"
+                        : "text-gray-600 hover:bg-white hover:text-gray-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
+                    }`}
+                  >
+                    <Icon className="h-4 w-4" />
+                    <span>{tab.label}</span>
+                  </Link>
+                );
+              })}
+            </div>
           </div>
         </div>
       </div>

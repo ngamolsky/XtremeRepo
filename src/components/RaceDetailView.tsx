@@ -1,6 +1,5 @@
 import { Link, useParams } from "@tanstack/react-router";
 import {
-  ArrowLeft,
   Camera,
   Calendar,
   Clock,
@@ -17,6 +16,7 @@ import type { RaceResultStatus } from "../lib/raceDisplay";
 import { formatFeet, formatMiles, formatPace, formatSourceType, parseTimeToMinutes } from "../lib/utils";
 import { supabase } from "../lib/supabase";
 import { Tables } from "../types/database.types";
+import Breadcrumbs from "./Breadcrumbs";
 import CommentsSection from "./CommentsSection";
 
 type AlbumSummary = Tables<"v_race_photo_album_summary">;
@@ -434,13 +434,10 @@ const RaceDetailView: React.FC = () => {
 };
 
 const BackLink: React.FC = () => (
-  <Link
-    to="/races"
-    className="inline-flex items-center gap-2 text-sm font-medium text-gray-600 transition-colors hover:text-primary-700"
-  >
-    <ArrowLeft className="h-4 w-4" />
-    <span>Back to races</span>
-  </Link>
+  <Breadcrumbs
+    current="Race details"
+    items={[{ label: "Races", to: "/races" }]}
+  />
 );
 
 const StatRow: React.FC<{ label: string; value: string }> = ({ label, value }) => (

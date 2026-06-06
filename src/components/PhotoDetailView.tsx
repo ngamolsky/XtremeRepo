@@ -1,7 +1,6 @@
-import { Link, useNavigate, useParams } from "@tanstack/react-router";
+import { useNavigate, useParams } from "@tanstack/react-router";
 import {
   AlertTriangle,
-  ArrowLeft,
   Calendar,
   Image,
   MessageSquare,
@@ -13,6 +12,7 @@ import {
 import React, { FormEvent, useEffect, useMemo, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { Tables } from "../types/database.types";
+import Breadcrumbs from "./Breadcrumbs";
 
 type RacePhoto = Tables<"race_photos">;
 type RacePhotoNote = Tables<"race_photo_notes">;
@@ -418,14 +418,10 @@ const PhotoDetailView: React.FC = () => {
 };
 
 const BackLink: React.FC = () => (
-  <Link
-    to="/photos"
-    search={{ race: undefined, year: undefined }}
-    className="inline-flex items-center gap-2 text-sm font-medium text-gray-600 transition-colors hover:text-primary-700"
-  >
-    <ArrowLeft className="h-4 w-4" />
-    <span>Back to photos</span>
-  </Link>
+  <Breadcrumbs
+    current="Photo details"
+    items={[{ label: "Photos", to: "/photos" }]}
+  />
 );
 
 function formatLabel(value: string) {

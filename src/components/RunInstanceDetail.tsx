@@ -15,6 +15,7 @@ import { useRelayData } from "../hooks/useRelayData";
 import { formatFeet, formatMiles, formatPace, formatSourceType } from "../lib/utils";
 import { supabase } from "../lib/supabase";
 import { Tables } from "../types/database.types";
+import Breadcrumbs from "./Breadcrumbs";
 import CommentsSection from "./CommentsSection";
 
 type ObservationRow = Tables<"v_leg_result_observations_with_pace">;
@@ -474,27 +475,26 @@ const RunInstanceDetail: React.FC = () => {
   return (
     <div className="animate-fade-in space-y-8">
       <div>
-        <div className="mb-4 flex flex-wrap items-center gap-2 text-sm text-gray-600">
-          <Link
-            to="/runners/$runnerName"
-            params={{ runnerName }}
-            className="font-medium text-primary-700 hover:text-primary-800"
-          >
-            {runnerName}
-          </Link>
-          <span>/</span>
-          <Link
-            to="/legs/$legNumber/$version"
-            params={{
-              legNumber: selectedLegNumber.toString(),
-              version: selectedVersion.toString(),
-            }}
-            className="font-medium text-primary-700 hover:text-primary-800"
-          >
-            Leg {selectedLegNumber} v{selectedVersion}
-          </Link>
-        </div>
-        <div className="flex flex-wrap items-start justify-between gap-4">
+        <Breadcrumbs
+          current={`${selectedYear} Leg ${selectedLegNumber}`}
+          items={[
+            { label: "Team", to: "/team" },
+            {
+              label: runnerName,
+              to: "/runners/$runnerName",
+              params: { runnerName },
+            },
+            {
+              label: `Leg ${selectedLegNumber} v${selectedVersion}`,
+              to: "/legs/$legNumber/$version",
+              params: {
+                legNumber: selectedLegNumber.toString(),
+                version: selectedVersion.toString(),
+              },
+            },
+          ]}
+        />
+        <div className="mt-4 flex flex-wrap items-start justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">
               {selectedYear} Leg {selectedLegNumber}

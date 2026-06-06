@@ -12,6 +12,7 @@ import {
 } from "recharts";
 import { useRelayData } from "../hooks/useRelayData";
 import { formatFeet, formatMiles, formatPace } from "../lib/utils";
+import Breadcrumbs from "./Breadcrumbs";
 import CommentsSection from "./CommentsSection";
 import { StatCard } from "./StatCard";
 
@@ -142,6 +143,10 @@ const LegDetail: React.FC = () => {
 
   return (
     <div className="space-y-8 animate-fade-in">
+      <Breadcrumbs
+        current={`Leg ${selectedLegNumber} v${selectedVersion}`}
+        items={[{ label: "Legs", to: "/legs" }]}
+      />
       <div className="text-center">
         <h1 className="text-4xl font-bold text-gray-900 mb-2">
           Leg {legNumber} Details

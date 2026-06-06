@@ -25,6 +25,7 @@ import {
   type RunnerRaceEntry,
 } from "../lib/runnerRaceBreakdown";
 import { formatPace, formatSourceType } from "../lib/utils";
+import Breadcrumbs from "./Breadcrumbs";
 import CommentsSection from "./CommentsSection";
 import { LegPill } from "./LegPill";
 import { StatCard } from "./StatCard";
@@ -203,6 +204,10 @@ const RunnerDetail: React.FC = () => {
 
   return (
     <div className="space-y-8 animate-fade-in">
+      <Breadcrumbs
+        current={runnerName}
+        items={[{ label: "Team", to: "/team" }]}
+      />
       <div className="text-center">
         <div className="w-20 h-20 bg-gradient-to-br from-primary-500 to-primary-700 rounded-full flex items-center justify-center text-white font-bold text-2xl mx-auto mb-4">
           {runnerName
