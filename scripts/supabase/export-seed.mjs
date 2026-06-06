@@ -23,7 +23,7 @@ const [
   racePhotoNotes,
 ] = await Promise.all([
   fetchAll("runners", "id,name,email", "name"),
-  fetchAll("leg_definitions", "number,version,distance,elevation_gain,official_course_url", "number"),
+  fetchAll("leg_definitions", "number,version,distance,elevation_gain,official_course_url,map_embed_url", "number"),
   fetchPlacements(),
   fetchOptionalAll(
     "leg_result_observations",
@@ -354,7 +354,7 @@ function renderSeedSql({
     "",
     renderValuesInsert(
       "public.leg_definitions",
-      ["number", "version", "distance", "elevation_gain", "official_course_url"],
+      ["number", "version", "distance", "elevation_gain", "official_course_url", "map_embed_url"],
       legDefinitions
         .slice()
         .sort((a, b) => a.number - b.number || a.version - b.version)
@@ -364,6 +364,7 @@ function renderSeedSql({
           leg.distance,
           leg.elevation_gain,
           leg.official_course_url,
+          leg.map_embed_url,
         ])
     ),
     "",

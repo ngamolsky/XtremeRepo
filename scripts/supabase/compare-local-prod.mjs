@@ -65,7 +65,7 @@ async function snapshot(target) {
     racePhotoNotes,
   ] = await Promise.all([
     fetchAll(client, "runners", "id,name,email,auth_user_id", "name"),
-    fetchAll(client, "leg_definitions", "number,version,distance,elevation_gain,official_course_url", "number"),
+    fetchAll(client, "leg_definitions", "number,version,distance,elevation_gain,official_course_url,map_embed_url", "number"),
     fetchPlacements(client),
     fetchAll(client, "results", "year,leg_number,leg_version,lap_time,user_id,source_type,canonical_observation_id", "year"),
     fetchAll(client, "race_participations", "year,runner_id,status,notes", "year"),

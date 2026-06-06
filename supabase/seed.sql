@@ -43,21 +43,21 @@ INSERT INTO public.runners (email, name) VALUES
   (NULL, 'Vasan'),
   (NULL, 'Will Thrill Hill');
 
-INSERT INTO public.leg_definitions (number, version, distance, elevation_gain, official_course_url) VALUES
-  (1, 1, 9.6, NULL, NULL),
-  (1, 2, 9.05, 528, 'https://laketahoerelay.com/leg1/'),
-  (2, 1, 8.2, NULL, NULL),
-  (2, 2, 13.1, 1234, 'https://laketahoerelay.com/leg2/'),
-  (3, 1, 10.3, NULL, NULL),
-  (3, 2, 9.6, 510, 'https://laketahoerelay.com/leg3/'),
-  (4, 1, 12.3, NULL, NULL),
-  (4, 2, 9.5, 552, 'https://laketahoerelay.com/leg4/'),
-  (5, 1, 10.6, NULL, NULL),
-  (5, 2, 10.7, 527, 'https://laketahoerelay.com/leg5/'),
-  (6, 1, 10.5, NULL, NULL),
-  (6, 2, 8.65, 1268, 'https://laketahoerelay.com/leg6/'),
-  (7, 1, 10.5, NULL, NULL),
-  (7, 2, 11.02, 244, 'https://laketahoerelay.com/leg7/');
+INSERT INTO public.leg_definitions (number, version, distance, elevation_gain, official_course_url, map_embed_url) VALUES
+  (1, 1, 9.6, NULL, NULL, NULL),
+  (1, 2, 9.05, 528, 'https://laketahoerelay.com/leg1/', 'https://snippets.mapmycdn.com/routes/view/embedded/1451785543?width=600&height=600&elevation=true&info=true&line_color=E60f0bdb&rgbhex=DB0B0E&distance_markers=1&unit_type=imperial&map_mode=ROADMAP&last_updated=2017-04-11T20:36:04-07:00'),
+  (2, 1, 8.2, NULL, NULL, NULL),
+  (2, 2, 13.1, 1234, 'https://laketahoerelay.com/leg2/', 'https://snippets.mapmycdn.com/routes/view/embedded/1435280143?width=600&height=600&elevation=true&info=true&line_color=E60f0bdb&rgbhex=DB0B0E&distance_markers=0&unit_type=imperial&map_mode=ROADMAP&last_updated=2017-04-11T21:02:08-07:00'),
+  (3, 1, 10.3, NULL, NULL, NULL),
+  (3, 2, 9.6, 510, 'https://laketahoerelay.com/leg3/', 'https://snippets.mapmycdn.com/routes/view/embedded/1435329766?width=600&height=500&elevation=true&info=true&line_color=E60f0bdb&rgbhex=DB0B0E&distance_markers=0&unit_type=imperial&map_mode=ROADMAP&last_updated=2017-04-11T21:07:24-07:00'),
+  (4, 1, 12.3, NULL, NULL, NULL),
+  (4, 2, 9.5, 552, 'https://laketahoerelay.com/leg4/', 'https://snippets.mapmycdn.com/routes/view/embedded/1435378663?width=600&height=400&elevation=true&info=true&line_color=E60f0bdb&rgbhex=DB0B0E&distance_markers=1&unit_type=imperial&map_mode=ROADMAP&last_updated=2017-04-12T18:12:09-07:00'),
+  (5, 1, 10.6, NULL, NULL, NULL),
+  (5, 2, 10.7, 527, 'https://laketahoerelay.com/leg5/', 'https://snippets.mapmycdn.com/routes/view/embedded/1435415431?width=600&height=500&elevation=true&info=true&line_color=E60f0bdb&rgbhex=DB0B0E&distance_markers=1&unit_type=imperial&map_mode=ROADMAP&last_updated=2017-04-12T18:14:57-07:00'),
+  (6, 1, 10.5, NULL, NULL, NULL),
+  (6, 2, 8.65, 1268, 'https://laketahoerelay.com/leg6/', 'https://snippets.mapmycdn.com/routes/view/embedded/1435421707?width=600&height=400&elevation=true&info=true&line_color=E60f0bdb&rgbhex=DB0B0E&distance_markers=1&unit_type=imperial&map_mode=ROADMAP&last_updated=2017-04-12T18:17:18-07:00'),
+  (7, 1, 10.5, NULL, NULL, NULL),
+  (7, 2, 11.02, 244, 'https://laketahoerelay.com/leg7/', 'https://snippets.mapmycdn.com/routes/view/embedded/1056520991?width=600&height=400&elevation=true&info=true&line_color=E60f0bdb&rgbhex=DB0B0E&distance_markers=1&unit_type=imperial&map_mode=ROADMAP&last_updated=2017-04-12T18:21:01-07:00');
 
 INSERT INTO public.placements (year, division, division_place, division_teams, overall_place, overall_teams, bib, race_start_time) VALUES
   (2008, 'Men''s Open', 21, 24, 79, 112, 52, '07:00:00'),

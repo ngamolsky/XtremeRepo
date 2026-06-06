@@ -1,5 +1,5 @@
 import { Link, useParams } from "@tanstack/react-router";
-import { Award, BarChart, ExternalLink, Map, Users } from "lucide-react";
+import { Award, BarChart, ChevronDown, ExternalLink, Map, Users } from "lucide-react";
 import React from "react";
 import {
   CartesianGrid,
@@ -25,10 +25,29 @@ const chartTooltipStyle = {
   boxShadow: "var(--chart-tooltip-shadow)",
 };
 
+const fallbackMapEmbedUrls: Record<number, string> = {
+  1: "https://snippets.mapmycdn.com/routes/view/embedded/1451785543?width=600&height=600&elevation=true&info=true&line_color=E60f0bdb&rgbhex=DB0B0E&distance_markers=1&unit_type=imperial&map_mode=ROADMAP&last_updated=2017-04-11T20:36:04-07:00",
+  2: "https://snippets.mapmycdn.com/routes/view/embedded/1435280143?width=600&height=600&elevation=true&info=true&line_color=E60f0bdb&rgbhex=DB0B0E&distance_markers=0&unit_type=imperial&map_mode=ROADMAP&last_updated=2017-04-11T21:02:08-07:00",
+  3: "https://snippets.mapmycdn.com/routes/view/embedded/1435329766?width=600&height=500&elevation=true&info=true&line_color=E60f0bdb&rgbhex=DB0B0E&distance_markers=0&unit_type=imperial&map_mode=ROADMAP&last_updated=2017-04-11T21:07:24-07:00",
+  4: "https://snippets.mapmycdn.com/routes/view/embedded/1435378663?width=600&height=400&elevation=true&info=true&line_color=E60f0bdb&rgbhex=DB0B0E&distance_markers=1&unit_type=imperial&map_mode=ROADMAP&last_updated=2017-04-12T18:12:09-07:00",
+  5: "https://snippets.mapmycdn.com/routes/view/embedded/1435415431?width=600&height=500&elevation=true&info=true&line_color=E60f0bdb&rgbhex=DB0B0E&distance_markers=1&unit_type=imperial&map_mode=ROADMAP&last_updated=2017-04-12T18:14:57-07:00",
+  6: "https://snippets.mapmycdn.com/routes/view/embedded/1435421707?width=600&height=400&elevation=true&info=true&line_color=E60f0bdb&rgbhex=DB0B0E&distance_markers=1&unit_type=imperial&map_mode=ROADMAP&last_updated=2017-04-12T18:17:18-07:00",
+  7: "https://snippets.mapmycdn.com/routes/view/embedded/1056520991?width=600&height=400&elevation=true&info=true&line_color=E60f0bdb&rgbhex=DB0B0E&distance_markers=1&unit_type=imperial&map_mode=ROADMAP&last_updated=2017-04-12T18:21:01-07:00",
+};
+
+const getFallbackCourseUrl = (legNumber: number, version: number) =>
+  version === 2 && legNumber >= 1 && legNumber <= 7
+    ? `https://laketahoerelay.com/leg${legNumber}/`
+    : undefined;
+
+const getFallbackMapEmbedUrl = (legNumber: number, version: number) =>
+  version === 2 ? fallbackMapEmbedUrls[legNumber] : undefined;
+
 const LegDetail: React.FC = () => {
   const { legNumber, version } = useParams({
     from: "/legs/$legNumber/$version",
   });
+  const [isLegDataOpen, setIsLegDataOpen] = React.useState(false);
   const {
     data: { legDefinitions, legVersionStats, results },
     loading,
@@ -114,6 +133,12 @@ const LegDetail: React.FC = () => {
           .map((r) => r.year)
           .join(", ")}`
       : undefined;
+  const officialCourseUrl =
+    legDefinition?.official_course_url ||
+    getFallbackCourseUrl(selectedLegNumber, selectedVersion);
+  const mapEmbedUrl =
+    legDefinition?.map_embed_url ||
+    getFallbackMapEmbedUrl(selectedLegNumber, selectedVersion);
 
   return (
     <div className="space-y-8 animate-fade-in">
@@ -125,18 +150,64 @@ const LegDetail: React.FC = () => {
           Version {version} • {formatMiles(displayDistance)} •{" "}
           {formattedElevation === "N/A" ? formattedElevation : `+${formattedElevation} elevation`}
         </p>
-        {legDefinition?.official_course_url && (
-          <a
-            href={legDefinition.official_course_url}
-            target="_blank"
-            rel="noreferrer"
-            className="mt-3 inline-flex items-center gap-2 text-sm font-medium text-primary-700 hover:text-primary-800"
-          >
-            Official course page
-            <ExternalLink className="h-4 w-4" aria-hidden="true" />
-          </a>
-        )}
       </div>
+
+      {(officialCourseUrl || mapEmbedUrl) && (
+        <section className="card overflow-hidden">
+          <div className="flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:justify-between">
+            <button
+              type="button"
+              onClick={() => setIsLegDataOpen((current) => !current)}
+              className="inline-flex items-center gap-2 text-left text-lg font-semibold text-gray-900 hover:text-primary-700"
+              aria-expanded={isLegDataOpen}
+            >
+              <ChevronDown
+                className={`h-5 w-5 transition-transform ${isLegDataOpen ? "" : "-rotate-90"}`}
+                aria-hidden="true"
+              />
+              <span>Leg Data</span>
+            </button>
+            <div className="flex flex-wrap items-center gap-3">
+              {officialCourseUrl && (
+                <a
+                  href={officialCourseUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-2 text-sm font-medium text-primary-700 hover:text-primary-800"
+                >
+                  Official course page
+                  <ExternalLink className="h-4 w-4" aria-hidden="true" />
+                </a>
+              )}
+              {mapEmbedUrl && (
+                <a
+                  href={mapEmbedUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-2 text-sm font-medium text-primary-700 hover:text-primary-800"
+                >
+                  Open map
+                  <ExternalLink className="h-4 w-4" aria-hidden="true" />
+                </a>
+              )}
+            </div>
+          </div>
+
+          {isLegDataOpen && mapEmbedUrl && (
+            <div className="mx-5 mb-5 overflow-hidden rounded-lg border border-gray-200 bg-gray-50 dark:border-slate-800 dark:bg-slate-950">
+              <iframe
+                title={`Leg ${selectedLegNumber} official route map`}
+                src={mapEmbedUrl}
+                loading="lazy"
+                referrerPolicy="strict-origin-when-cross-origin"
+                allow="fullscreen"
+                allowFullScreen
+                className="h-[600px] w-full border-0 sm:h-[700px] lg:h-[800px]"
+              />
+            </div>
+          )}
+        </section>
+      )}
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -166,7 +237,7 @@ const LegDetail: React.FC = () => {
       {/* Performance Chart */}
       <div className="card p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">
-          Canonical Performance
+          Official Performance
         </h3>
         {performanceData.length > 0 ? (
           <ResponsiveContainer width="100%" height={400}>
@@ -220,14 +291,14 @@ const LegDetail: React.FC = () => {
             </LineChart>
           </ResponsiveContainer>
         ) : (
-          <p className="text-sm text-gray-600">No canonical results yet.</p>
+          <p className="text-sm text-gray-600">No official results yet.</p>
         )}
       </div>
 
       {/* Results Table */}
       <div className="card p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">
-          Canonical Results
+          Official Results
         </h3>
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
@@ -303,7 +374,7 @@ const LegDetail: React.FC = () => {
               ) : (
                 <tr>
                   <td colSpan={5} className="px-6 py-4 text-sm text-gray-600">
-                    No canonical results yet.
+                    No official results yet.
                   </td>
                 </tr>
               )}

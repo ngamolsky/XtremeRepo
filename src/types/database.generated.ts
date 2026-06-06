@@ -106,6 +106,7 @@ export type Database = {
         Row: {
           distance: number | null
           elevation_gain: number | null
+          map_embed_url: string | null
           number: number
           official_course_url: string | null
           version: number
@@ -113,6 +114,7 @@ export type Database = {
         Insert: {
           distance?: number | null
           elevation_gain?: number | null
+          map_embed_url?: string | null
           number: number
           official_course_url?: string | null
           version: number
@@ -120,6 +122,7 @@ export type Database = {
         Update: {
           distance?: number | null
           elevation_gain?: number | null
+          map_embed_url?: string | null
           number?: number
           official_course_url?: string | null
           version?: number
@@ -1027,4 +1030,3 @@ export const Constants = {
     Enums: {},
   },
 } as const
-

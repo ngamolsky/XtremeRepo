@@ -153,7 +153,7 @@ const RunInstanceDetail: React.FC = () => {
     };
   }, []);
 
-  const canonicalResult = results.find(
+  const officialResult = results.find(
     (result) =>
       result.runner_name === runnerName &&
       result.year === selectedYear &&
@@ -188,7 +188,7 @@ const RunInstanceDetail: React.FC = () => {
   );
   const yearlyRace = yearlySummary.find((race) => race.year === selectedYear);
   const observedRunnerId =
-    canonicalResult?.runner_id ||
+    officialResult?.runner_id ||
     observations.find((observation) => observation.runner_id)?.runner_id ||
     null;
   const sourceTagOptions = useMemo(
@@ -239,14 +239,14 @@ const RunInstanceDetail: React.FC = () => {
     );
   }
 
-  if (!canonicalResult && observations.length === 0) {
+  if (!officialResult && observations.length === 0) {
     return (
       <div className="py-12 text-center">
         <h3 className="mb-2 text-lg font-medium text-gray-900">
           No run data found
         </h3>
         <p className="text-gray-600">
-          No canonical or provisional data matched {runnerName}, {selectedYear},
+          No official or self recorded data matched {runnerName}, {selectedYear},
           leg {selectedLegNumber} version {selectedVersion}.
         </p>
       </div>
@@ -428,10 +428,10 @@ const RunInstanceDetail: React.FC = () => {
       setCreatedObservations((current) => [savedObservation, ...current]);
       setObservationForm({ ...defaultObservationForm });
       setNewTagText("");
-      setSaveMessage("Saved provisional data.");
+      setSaveMessage("Saved self recorded data.");
     } catch (saveErr) {
       setSaveError(
-        saveErr instanceof Error ? saveErr.message : "Could not save provisional data."
+        saveErr instanceof Error ? saveErr.message : "Could not save self recorded data."
       );
     } finally {
       setSavingObservation(false);
@@ -439,7 +439,7 @@ const RunInstanceDetail: React.FC = () => {
   };
 
   const handleDeleteObservation = async (observation: ObservationRow) => {
-    if (!observation.id || !window.confirm("Delete this provisional observation?")) {
+    if (!observation.id || !window.confirm("Delete this self recorded observation?")) {
       return;
     }
 
@@ -461,10 +461,10 @@ const RunInstanceDetail: React.FC = () => {
       setCreatedObservations((current) =>
         current.filter((createdObservation) => createdObservation.id !== observation.id)
       );
-      setSaveMessage("Deleted provisional data.");
+      setSaveMessage("Deleted self recorded data.");
     } catch (deleteErr) {
       setSaveError(
-        deleteErr instanceof Error ? deleteErr.message : "Could not delete provisional data."
+        deleteErr instanceof Error ? deleteErr.message : "Could not delete self recorded data."
       );
     } finally {
       setDeletingObservationId(null);
@@ -498,8 +498,8 @@ const RunInstanceDetail: React.FC = () => {
           {selectedYear} Leg {selectedLegNumber}
         </h1>
         <p className="mt-2 text-gray-600">
-          {formatMiles(canonicalResult?.distance ?? legDefinition?.distance)} •{" "}
-          {formatFeet(canonicalResult?.elevation_gain ?? legDefinition?.elevation_gain)}
+          {formatMiles(officialResult?.distance ?? legDefinition?.distance)} •{" "}
+          {formatFeet(officialResult?.elevation_gain ?? legDefinition?.elevation_gain)}
           {yearlyRace?.race_start_time && ` • Race start ${yearlyRace.race_start_time}`}
         </p>
       </div>
@@ -508,23 +508,23 @@ const RunInstanceDetail: React.FC = () => {
         <div className="mb-5 flex items-center gap-2">
           <Activity className="h-5 w-5 text-primary-600" />
           <h2 className="text-lg font-semibold text-gray-900">
-            Canonical Result
+            Official Result
           </h2>
         </div>
-        {canonicalResult ? (
+        {officialResult ? (
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3 lg:grid-cols-4">
             <Metric label="Runner" value={runnerName} icon={<User className="h-4 w-4" />} />
-            <Metric label="Lap Time" value={canonicalResult.lap_time || "N/A"} icon={<Clock className="h-4 w-4" />} />
-            <Metric label="Pace" value={formatPace(canonicalResult.pace || 0)} icon={<Activity className="h-4 w-4" />} />
-            <Metric label="Distance" value={formatMiles(canonicalResult.distance)} icon={<MapIcon className="h-4 w-4" />} />
-            <Metric label="Start" value={formatValue(canonicalResult.leg_start_time)} />
-            <Metric label="Finish" value={formatValue(canonicalResult.leg_finish_time)} />
-            <Metric label="Elevation" value={formatFeet(canonicalResult.elevation_gain)} />
-            <Metric label="Source" value={formatSourceType(canonicalResult.source_type)} />
+            <Metric label="Lap Time" value={officialResult.lap_time || "N/A"} icon={<Clock className="h-4 w-4" />} />
+            <Metric label="Pace" value={formatPace(officialResult.pace || 0)} icon={<Activity className="h-4 w-4" />} />
+            <Metric label="Distance" value={formatMiles(officialResult.distance)} icon={<MapIcon className="h-4 w-4" />} />
+            <Metric label="Start" value={formatValue(officialResult.leg_start_time)} />
+            <Metric label="Finish" value={formatValue(officialResult.leg_finish_time)} />
+            <Metric label="Elevation" value={formatFeet(officialResult.elevation_gain)} />
+            <Metric label="Source" value={formatSourceType(officialResult.source_type)} />
           </div>
         ) : (
           <p className="text-sm text-gray-600">
-            No canonical result is recorded for this run instance.
+            No official result is recorded for this run instance.
           </p>
         )}
       </section>
@@ -533,7 +533,7 @@ const RunInstanceDetail: React.FC = () => {
         <div className="mb-5 flex items-center gap-2">
           <FileText className="h-5 w-5 text-amber-600" />
           <h2 className="text-lg font-semibold text-gray-900">
-            Provisional Evidence
+            Self Recorded Evidence
           </h2>
         </div>
         {observations.length > 0 ? (
@@ -555,8 +555,8 @@ const RunInstanceDetail: React.FC = () => {
               <tbody className="divide-y divide-gray-200 bg-white">
                 {observations.map((observation, index) => {
                   const status = observation.has_canonical_result
-                    ? "Canonical exists"
-                    : "Provisional";
+                    ? "Official exists"
+                    : "Self Recorded";
                   const statusClass = observation.has_canonical_result
                     ? "bg-gray-100 text-gray-700"
                     : "bg-amber-100 text-amber-800";
@@ -646,7 +646,7 @@ const RunInstanceDetail: React.FC = () => {
           </div>
         ) : (
           <p className="text-sm text-gray-600">
-            No provisional evidence has been saved for this run instance.
+            No self recorded evidence has been saved for this run instance.
           </p>
         )}
       </section>
@@ -655,7 +655,7 @@ const RunInstanceDetail: React.FC = () => {
         <div className="mb-5 flex items-center gap-2">
           <PlusCircle className="h-5 w-5 text-green-600" />
           <h2 className="text-lg font-semibold text-gray-900">
-            Add Provisional Data
+            Add Self Recorded Data
           </h2>
         </div>
         <form onSubmit={handleSaveObservation} className="space-y-5">
@@ -834,7 +834,7 @@ const RunInstanceDetail: React.FC = () => {
               className="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-700 disabled:cursor-not-allowed disabled:bg-gray-300"
             >
               <PlusCircle className="h-4 w-4" />
-              <span>{savingObservation ? "Saving..." : "Save Provisional Data"}</span>
+              <span>{savingObservation ? "Saving..." : "Save Self Recorded Data"}</span>
             </button>
             {saveMessage && <p className="text-sm text-green-700">{saveMessage}</p>}
             {saveError && <p className="text-sm text-red-700">{saveError}</p>}

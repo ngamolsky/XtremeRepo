@@ -100,7 +100,7 @@ const supportedImageAttachmentTypeSet = new Set<string>(
 );
 const maxImageAttachmentSizeBytes = 4 * 1024 * 1024;
 const defaultScreenshotPrompt =
-  "Read this screenshot as non-canonical runner/device data. Extract visible Strava, watch, phone, or app values, then ask me for anything required before saving a provisional observation.";
+  "Read this screenshot as self recorded runner/device data. Extract visible Strava, watch, phone, or app values, then ask me for anything required before saving a self recorded observation.";
 
 const chatModelOptions: ChatModelOption[] = [
   {
@@ -267,6 +267,18 @@ const FalconAgent: React.FC = () => {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ block: "end" });
   }, [messages, isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) {
+      return;
+    }
+
+    const frame = window.requestAnimationFrame(() => {
+      inputRef.current?.focus({ preventScroll: true });
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [isOpen]);
 
   useEffect(() => {
     const textarea = inputRef.current;

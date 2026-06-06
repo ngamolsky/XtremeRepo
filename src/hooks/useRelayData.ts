@@ -33,7 +33,7 @@ const readOptionalRows = <T>(
 
   if (isMissingOptionalRelation(response.error)) {
     console.warn(
-      `${relationName} is not available yet; run the latest Supabase migration to enable provisional leg data.`
+      `${relationName} is not available yet; run the latest Supabase migration to enable self recorded leg data.`
     );
     return [];
   }
