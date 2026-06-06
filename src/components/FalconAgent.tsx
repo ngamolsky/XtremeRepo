@@ -624,7 +624,7 @@ const FalconAgent: React.FC = () => {
                   id="falcon-agent-title"
                   className="truncate text-base font-semibold text-gray-900"
                 >
-                  Xtreme Falcons Crew Chief
+                  Falco
                 </h2>
                 <p className="truncate text-xs text-gray-500 sm:text-sm">
                   Context: {pageContext.title}
@@ -814,8 +814,8 @@ const FalconAgent: React.FC = () => {
                 onChange={(event) => setInput(event.target.value)}
                 disabled={isStreaming}
                 className="falcon-agent-input max-h-28 min-h-11 min-w-0 resize-none rounded-lg border border-gray-300 px-3 py-2 text-base leading-7 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:cursor-not-allowed disabled:opacity-70 dark:border-slate-700 sm:max-h-36 sm:text-sm sm:leading-6"
-                placeholder="Ask the Crew Chief to shred splits..."
-                aria-label="Ask the Xtreme Falcons Crew Chief a question, paste race context, or paste a screenshot"
+                placeholder="Ask Falco to shred splits..."
+                aria-label="Ask Falco, the Xtreme Falcons Crew Chief, a question, paste race context, or paste a screenshot"
                 rows={1}
                 enterKeyHint="send"
                 onPaste={handleTextareaPaste}
@@ -847,8 +847,8 @@ const FalconAgent: React.FC = () => {
             type="button"
             onClick={openAgent}
             className="flex h-14 w-14 items-center justify-center rounded-full bg-primary-600 text-2xl text-white shadow-xl ring-1 ring-primary-300 transition-transform hover:scale-105 hover:bg-primary-700 focus:outline-none focus:ring-4 focus:ring-primary-200"
-            aria-label="Show Xtreme Falcons agent"
-            title="Xtreme Falcons Crew Chief"
+            aria-label="Show Falco"
+            title="Falco"
           >
             🦅
           </button>
