@@ -38,8 +38,7 @@ const RunnerDetail: React.FC = () => {
   const runnerStat = runnerStats.find((r) => r.runner_name === runnerName);
   const runnerResults = results.filter((r) => r.runner_name === runnerName);
   const runnerObservations = legResultObservations.filter(
-    (observation) =>
-      observation.runner_name === runnerName && !observation.has_canonical_result
+    (observation) => observation.runner_name === runnerName
   );
   const runnerParticipations = participations.filter(
     (participation) => participation.runner_name === runnerName
@@ -335,6 +334,12 @@ const RunnerDetail: React.FC = () => {
                     Source
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Status
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Submitted By
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Time
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -362,6 +367,12 @@ const RunnerDetail: React.FC = () => {
                     const source = observation.source_label
                       ? `${formatSourceType(observation.source_type)} (${observation.source_label})`
                       : formatSourceType(observation.source_type);
+                    const status = observation.has_canonical_result
+                      ? "Canonical exists"
+                      : "Provisional";
+                    const statusClass = observation.has_canonical_result
+                      ? "bg-gray-100 text-gray-700"
+                      : "bg-amber-100 text-amber-800";
 
                     return (
                       <tr
@@ -382,6 +393,14 @@ const RunnerDetail: React.FC = () => {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                           {source}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          <span className={`rounded-full px-2 py-1 text-xs font-medium ${statusClass}`}>
+                            {status}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {observation.submitted_by_runner_name || "N/A"}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                           {observation.primary_time || "N/A"}

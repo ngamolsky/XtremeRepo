@@ -77,6 +77,10 @@ type ChatRequestBody = {
 
 type DataClient = ReturnType<typeof createClient<Database>>;
 type RunnerRow = Pick<Database["public"]["Tables"]["runners"]["Row"], "email" | "id" | "name">;
+type CurrentRunnerRow = Pick<
+  Database["public"]["Tables"]["runners"]["Row"],
+  "auth_user_id" | "email" | "id" | "name"
+>;
 type ResultWithPaceRow = Database["public"]["Views"]["v_results_with_pace"]["Row"];
 type RunnerParticipationRow = Database["public"]["Views"]["v_runner_participations"]["Row"];
 type LegObservationRow = Database["public"]["Tables"]["leg_result_observations"]["Row"];
@@ -111,6 +115,12 @@ type SaveLegObservationInput = {
   overwriteExisting?: boolean;
 };
 
+type CurrentUserContext = {
+  authUserId: string | null;
+  email: string | null;
+  runner: CurrentRunnerRow | null;
+};
+
 type RunnerIndexEntry = {
   id: string | null;
   name: string;
@@ -131,6 +141,7 @@ type RunnerIndexEntry = {
     legNumber: number;
     legVersion: number;
     sourceType: string;
+    hasCanonicalResult: boolean;
   }>;
 };
 
@@ -248,13 +259,16 @@ async function handleChat(request: Request, env: Env): Promise<Response> {
     return dataAccessError;
   }
 
-  const runnerIndex = await getRunnerIndex(supabase).catch(() => []);
+  const [runnerIndex, currentUser] = await Promise.all([
+    getRunnerIndex(supabase).catch(() => []),
+    getCurrentUserContext(supabase).catch(() => createAnonymousUserContext()),
+  ]);
   const limitToolExecution = createToolExecutionLimiter(5);
   const result = streamText({
     model,
     messages,
-    system: buildSystemPrompt(body.pageContext, runnerIndex),
-    tools: createRelayTools(supabase, limitToolExecution),
+    system: buildSystemPrompt(body.pageContext, runnerIndex, currentUser),
+    tools: createRelayTools(supabase, limitToolExecution, currentUser),
     stopWhen: stepCountIs(5),
   });
 
@@ -295,6 +309,39 @@ async function verifyRaceDataAccess(
   }
 
   return null;
+}
+
+function createAnonymousUserContext(): CurrentUserContext {
+  return {
+    authUserId: null,
+    email: null,
+    runner: null,
+  };
+}
+
+async function getCurrentUserContext(supabase: DataClient): Promise<CurrentUserContext> {
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
+
+  if (error || !user) {
+    return createAnonymousUserContext();
+  }
+
+  const runner = await fetchMaybeRow(
+    supabase
+      .from("runners")
+      .select("id,name,email,auth_user_id")
+      .eq("auth_user_id", user.id)
+      .maybeSingle()
+  ).catch(() => null);
+
+  return {
+    authUserId: user.id,
+    email: typeof user.email === "string" ? user.email : null,
+    runner,
+  };
 }
 
 type ToolExecutionLimiter = <Input, Output>(
@@ -600,7 +647,6 @@ async function getRunnerIndex(supabase: DataClient): Promise<RunnerIndexEntry[]>
       supabase
         .from("v_leg_result_observations_with_pace")
         .select("runner_id,year,leg_number,leg_version,source_type,has_canonical_result")
-        .eq("has_canonical_result", false)
         .order("year", { ascending: true })
     ),
     fetchRows(
@@ -668,7 +714,7 @@ function groupResultsByRunner(results: Pick<ResultWithPaceRow, "runner_id" | "ye
 function groupObservationsByRunner(
   observations: Pick<
     LegObservationWithPaceRow,
-    "runner_id" | "year" | "leg_number" | "leg_version" | "source_type"
+    "runner_id" | "year" | "leg_number" | "leg_version" | "source_type" | "has_canonical_result"
   >[]
 ) {
   const byRunnerId = new Map<string, RunnerIndexEntry["observations"]>();
@@ -690,6 +736,7 @@ function groupObservationsByRunner(
       legNumber: observation.leg_number,
       legVersion: observation.leg_version,
       sourceType: observation.source_type,
+      hasCanonicalResult: Boolean(observation.has_canonical_result),
     });
     byRunnerId.set(observation.runner_id, entries);
   }
@@ -731,6 +778,20 @@ function groupParticipationsByRunner(
   );
 }
 
+function formatCurrentUserContext(currentUser: CurrentUserContext): string {
+  const runner = currentUser.runner;
+
+  return [
+    currentUser.authUserId && `Auth user id: ${currentUser.authUserId}`,
+    currentUser.email && `Email: ${currentUser.email}`,
+    runner
+      ? `Linked runner: ${runner.name} (${runner.id})`
+      : "Linked runner: none",
+  ]
+    .filter(Boolean)
+    .join("\n");
+}
+
 function formatRunnerIndexForPrompt(runnerIndex: RunnerIndexEntry[]): string {
   if (runnerIndex.length === 0) {
     return "No runners found.";
@@ -745,7 +806,9 @@ function formatRunnerIndexForPrompt(runnerIndex: RunnerIndexEntry[]): string {
       const observations = runner.observations
         .map(
           (observation) =>
-            `${observation.year}:L${observation.legNumber}v${observation.legVersion}(${observation.sourceType})`
+            `${observation.year}:L${observation.legNumber}v${observation.legVersion}(${observation.sourceType}${
+              observation.hasCanonicalResult ? ", canonical exists" : ""
+            })`
         )
         .join(" ");
       const unknownLegYears = runner.unknownLegYears.join(", ");
@@ -950,7 +1013,11 @@ function getErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : "The agent stream failed.";
 }
 
-function buildSystemPrompt(pageContext: PageContext | undefined, runnerIndex: RunnerIndexEntry[]): string {
+function buildSystemPrompt(
+  pageContext: PageContext | undefined,
+  runnerIndex: RunnerIndexEntry[],
+  currentUser: CurrentUserContext
+): string {
   const page = [
     pageContext?.title && `Page title: ${pageContext.title}`,
     pageContext?.pathname && `Route: ${pageContext.pathname}`,
@@ -959,6 +1026,7 @@ function buildSystemPrompt(pageContext: PageContext | undefined, runnerIndex: Ru
   ]
     .filter(Boolean)
     .join("\n");
+  const currentUserContext = formatCurrentUserContext(currentUser);
   const runnerContext = formatRunnerIndexForPrompt(runnerIndex);
 
   return `You are the Xtreme Falcons race data agent.
@@ -971,9 +1039,11 @@ Use data terms precisely. A "leg run", "ran leg", "result", or "performance" mea
 
 Resolve names softly. First names, partial names, lowercase names, and common short forms are acceptable when the runner index makes the match clear. Do not ask for full names just because the user supplied only a first name. If a partial name matches multiple runners and the answer would differ, call findRunner for the likely matches, explain the ambiguity briefly, and ask one short clarifying question.
 
+Use the current signed-in user context to resolve first-person references like "me", "my", "my profile", or "my runs". If the signed-in user is not linked to a runner, say that there is no linked runner instead of guessing. The signed-in user is the submitter, not necessarily the runner being discussed; a user may submit provisional data for another existing runner.
+
 Canonical data is read-only. You can read official/canonical results, placements, participation, runner records, race notes, and leg notes, but you cannot write, replace, edit, or delete them. If the user asks you to edit official/canonical data, refuse briefly and offer to save the supplied values only as a provisional non-canonical observation when they include runner/device/app source data. Do not claim that provisional data is official, verified, canonical, or a replacement for official results.
 
-Your only write capability is adding or updating provisional leg observations with saveLegObservation. For any ad hoc leg data write, use saveLegObservation and label it non-canonical. For a provisional observation, collect race year, leg number, leg version, an existing runner name, and at least one observed field such as lap time, moving time, elapsed time, distance, elevation gain, notes, or metadata. Source type defaults to manual_runner; use apple_watch, garmin, phone, strava, manual_runner, manual_admin, or other when the user gives the source. Ask short follow-up questions until every required field is known. Do not invent missing fields. If the runner is missing or ambiguous, ask the user to choose an existing runner; do not create new runners.
+Your only write capability is adding or updating provisional leg observations with saveLegObservation. For any ad hoc leg data write, use saveLegObservation and label it non-canonical. For a provisional observation, collect race year, leg number, leg version, the existing runner name the observation is about, and at least one observed field such as lap time, moving time, elapsed time, distance, elevation gain, notes, or metadata. Source type defaults to manual_runner; use apple_watch, garmin, phone, strava, manual_runner, manual_admin, or other when the user gives the source. Ask short follow-up questions until every required field is known. Do not invent missing fields. If the runner is missing or ambiguous, ask the user to choose an existing runner; do not create new runners.
 
 When the user attaches a screenshot or image from Strava, Garmin, Apple Watch, phone fitness apps, or similar sources, treat visible values as provisional non-canonical source evidence. Extract only values visible in the image or supplied by the user. Prefer source_type strava for Strava screenshots, and include useful provenance in sourceLabel, notes, or metadata such as the app name, screenshot filename, visible activity title, and any uncertainty. If required fields like year, leg number, leg version, runner, or the intended source are not visible or supplied, ask for them before saving. Once a write succeeds, summarize the saved row and label it provisional/non-canonical.
 
@@ -982,11 +1052,18 @@ If the user asks a question that depends on the current screen, use the page con
 Current page context:
 ${page || "No page context provided."}
 
+Current signed-in user:
+${currentUserContext || "No signed-in user context found."}
+
 Runner index:
 ${runnerContext}`;
 }
 
-function createRelayTools(supabase: DataClient, limitToolExecution: ToolExecutionLimiter) {
+function createRelayTools(
+  supabase: DataClient,
+  limitToolExecution: ToolExecutionLimiter,
+  currentUser: CurrentUserContext
+) {
   return {
     getRaceOverview: tool({
       description:
@@ -1207,12 +1284,16 @@ function createRelayTools(supabase: DataClient, limitToolExecution: ToolExecutio
         required: ["year", "legNumber", "legVersion", "runnerName"],
         additionalProperties: false,
       }),
-      execute: limitToolExecution(async (input) => saveLegObservation(supabase, input)),
+      execute: limitToolExecution(async (input) => saveLegObservation(supabase, input, currentUser)),
     }),
   };
 }
 
-async function saveLegObservation(supabase: DataClient, input: SaveLegObservationInput) {
+async function saveLegObservation(
+  supabase: DataClient,
+  input: SaveLegObservationInput,
+  currentUser: CurrentUserContext
+) {
   const year = normalizeInteger(input.year);
   const legNumber = normalizeInteger(input.legNumber);
   const legVersion = normalizeInteger(input.legVersion);
@@ -1345,6 +1426,8 @@ async function saveLegObservation(supabase: DataClient, input: SaveLegObservatio
     return runner;
   }
 
+  const submittedByRunnerId = currentUser.runner?.id ?? null;
+
   let existingObservation: LegObservationRow | null;
 
   if (input.observationId) {
@@ -1441,7 +1524,7 @@ async function saveLegObservation(supabase: DataClient, input: SaveLegObservatio
       runner_id: runner.runner.id,
       source_type: sourceType,
       source_label: sourceLabel ?? null,
-      submitted_by_runner_id: runner.runner.id,
+      submitted_by_runner_id: submittedByRunnerId,
       ...(lapTime !== undefined ? { lap_time: lapTime } : {}),
       ...(movingTime !== undefined ? { moving_time: movingTime } : {}),
       ...(elapsedTime !== undefined ? { elapsed_time: elapsedTime } : {}),
@@ -1788,7 +1871,6 @@ function buildLegObservationPayload({
     leg_version: legVersion,
     runner_id: runnerId,
     source_type: sourceType,
-    submitted_by_runner_id: runnerId,
   };
 
   if (input.sourceLabel !== undefined) {

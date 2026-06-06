@@ -76,8 +76,7 @@ const LegDetail: React.FC = () => {
   const provisionalLegData = legResultObservations.filter(
     (observation) =>
       observation.leg_number === selectedLegNumber &&
-      observation.leg_version === selectedVersion &&
-      !observation.has_canonical_result
+      observation.leg_version === selectedVersion
   );
 
   if (!legStat && !legDefinition && provisionalLegData.length === 0) {
@@ -319,6 +318,12 @@ const LegDetail: React.FC = () => {
                     Source
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Status
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Submitted By
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Time
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -342,6 +347,12 @@ const LegDetail: React.FC = () => {
                     const source = observation.source_label
                       ? `${formatSourceType(observation.source_type)} (${observation.source_label})`
                       : formatSourceType(observation.source_type);
+                    const status = observation.has_canonical_result
+                      ? "Canonical exists"
+                      : "Provisional";
+                    const statusClass = observation.has_canonical_result
+                      ? "bg-gray-100 text-gray-700"
+                      : "bg-amber-100 text-amber-800";
 
                     return (
                       <tr
@@ -365,6 +376,14 @@ const LegDetail: React.FC = () => {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                           {source}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          <span className={`rounded-full px-2 py-1 text-xs font-medium ${statusClass}`}>
+                            {status}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {observation.submitted_by_runner_name || "N/A"}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                           {observation.primary_time || "N/A"}
