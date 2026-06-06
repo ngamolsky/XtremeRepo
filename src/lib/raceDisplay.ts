@@ -1,3 +1,4 @@
+import { getGradeAdjustedPace } from "./gradeAdjustedPace";
 import type { Tables } from "../types/database.types";
 
 type OfficialResult = Tables<"v_results_with_pace">;
@@ -15,6 +16,7 @@ export type DisplayLegResult = {
   runner_id: string | null;
   lap_time: string | null;
   pace: number | null;
+  gradeAdjustedPace: number | null;
   distance: number | null;
   elevation_gain: number | null;
   assumed_metrics: {
@@ -234,6 +236,11 @@ function toOfficialDisplayLeg(result: OfficialResult): DisplayLegResult {
     runner_id: result.runner_id,
     lap_time: result.lap_time,
     pace: result.pace,
+    gradeAdjustedPace: getGradeAdjustedPace({
+      pace: result.pace,
+      distanceMiles: result.distance,
+      elevationGainFeet: result.elevation_gain,
+    }),
     distance: result.distance,
     elevation_gain: result.elevation_gain,
     assumed_metrics: {
@@ -271,6 +278,11 @@ function toSelfRecordedDisplayLeg(observation: SelfRecordedObservation): Display
       observation.elapsed_time ??
       observation.moving_time,
     pace,
+    gradeAdjustedPace: getGradeAdjustedPace({
+      pace,
+      distanceMiles: distance,
+      elevationGainFeet: elevationGain,
+    }),
     distance,
     elevation_gain: elevationGain,
     assumed_metrics: {

@@ -14,6 +14,10 @@ import {
   getRaceDisplaySummary,
 } from "../lib/raceDisplay";
 import type { RaceResultStatus } from "../lib/raceDisplay";
+import {
+  formatGradeAdjustedPace,
+  getGradeAdjustedPace,
+} from "../lib/gradeAdjustedPace";
 import { formatFeet, formatMiles, formatPace, formatSourceType, parseTimeToMinutes } from "../lib/utils";
 import { supabase } from "../lib/supabase";
 import { Tables } from "../types/database.types";
@@ -41,6 +45,7 @@ type RaceLegEntry = {
   legNumber: number;
   legVersion: number;
   pace: number | null;
+  gradeAdjustedPace: number | null;
   runnerName: string | null;
   sourceLabel: string | null;
   sourceTags: string[];
@@ -650,9 +655,10 @@ const RaceLegEntryRow: React.FC<{ entry: RaceLegEntry; raceYear: number }> = ({
       ) : null}
     </div>
 
-    <dl className="mt-4 grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
+    <dl className="mt-4 grid grid-cols-2 gap-3 text-sm sm:grid-cols-5">
       <EntryMetric label={entry.timeLabel} value={entry.time ?? "N/A"} />
       <EntryMetric label="Pace" value={formatPace(entry.pace || 0)} assumed={entry.assumedMetrics.pace} />
+      <EntryMetric label="GAP" value={formatGradeAdjustedPace(entry.gradeAdjustedPace)} />
       <EntryMetric label="Distance" value={formatMiles(entry.distance)} assumed={entry.assumedMetrics.distance} />
       <EntryMetric label="Gain" value={formatFeet(entry.elevationGain)} assumed={entry.assumedMetrics.elevationGain} />
     </dl>
@@ -811,6 +817,11 @@ function toOfficialEntry(result: OfficialResult): RaceLegEntry {
     legNumber: result.leg_number ?? 0,
     legVersion: result.leg_version ?? 0,
     pace: result.pace,
+    gradeAdjustedPace: getGradeAdjustedPace({
+      pace: result.pace,
+      distanceMiles: result.distance,
+      elevationGainFeet: result.elevation_gain,
+    }),
     runnerName: result.runner_name,
     sourceLabel: null,
     sourceTags: [],
@@ -850,6 +861,11 @@ function toSelfRecordedEntry(observation: SelfRecordedObservation): RaceLegEntry
     legNumber: observation.leg_number ?? 0,
     legVersion: observation.leg_version ?? 0,
     pace,
+    gradeAdjustedPace: getGradeAdjustedPace({
+      pace,
+      distanceMiles: distance,
+      elevationGainFeet: elevationGain,
+    }),
     runnerName: observation.runner_name,
     sourceLabel: observation.source_label,
     sourceTags: observation.source_tags ?? [],

@@ -12,6 +12,10 @@ import {
 } from "lucide-react";
 import React, { useEffect, useMemo, useState } from "react";
 import { useRelayData } from "../hooks/useRelayData";
+import {
+  formatGradeAdjustedPace,
+  getGradeAdjustedPace,
+} from "../lib/gradeAdjustedPace";
 import { formatFeet, formatMiles, formatPace, formatSourceType } from "../lib/utils";
 import { supabase } from "../lib/supabase";
 import { Tables } from "../types/database.types";
@@ -536,6 +540,17 @@ const RunInstanceDetail: React.FC = () => {
             <Metric label="Runner" value={runnerName} icon={<User className="h-4 w-4" />} />
             <Metric label="Lap Time" value={officialResult.lap_time || "N/A"} icon={<Clock className="h-4 w-4" />} />
             <Metric label="Pace" value={formatPace(officialResult.pace || 0)} icon={<Activity className="h-4 w-4" />} />
+            <Metric
+              label="Grade Adjusted Pace"
+              value={formatGradeAdjustedPace(
+                getGradeAdjustedPace({
+                  pace: officialResult.pace,
+                  distanceMiles: officialResult.distance,
+                  elevationGainFeet: officialResult.elevation_gain,
+                })
+              )}
+              icon={<Activity className="h-4 w-4" />}
+            />
             <Metric label="Distance" value={formatMiles(officialResult.distance)} icon={<MapIcon className="h-4 w-4" />} />
             <Metric label="Start" value={formatValue(officialResult.leg_start_time)} />
             <Metric label="Finish" value={formatValue(officialResult.leg_finish_time)} />
@@ -565,6 +580,7 @@ const RunInstanceDetail: React.FC = () => {
                   <EvidenceHeader label="Status" />
                   <EvidenceHeader label="Time" />
                   <EvidenceHeader label="Pace" />
+                  <EvidenceHeader label="GAP" />
                   <EvidenceHeader label="Distance" />
                   <EvidenceHeader label="Elevation" />
                   <EvidenceHeader label="Submitted By" />
@@ -625,6 +641,9 @@ const RunInstanceDetail: React.FC = () => {
                           value={formatPace(observation.pace || 0)}
                           assumed={assumedMetrics.pace}
                         />
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-900">
+                        {formatGradeAdjustedPace(getObservationGradeAdjustedPace(observation))}
                       </td>
                       <td className="px-4 py-3 text-sm text-gray-900">
                         <AssumedObservationValue
@@ -963,6 +982,14 @@ function getObservationAssumedMetrics(observation: ObservationRow) {
       observation.observed_elevation_gain === null &&
       observation.display_elevation_gain !== null,
   };
+}
+
+function getObservationGradeAdjustedPace(observation: ObservationRow) {
+  return getGradeAdjustedPace({
+    pace: observation.pace,
+    distanceMiles: observation.display_distance,
+    elevationGainFeet: observation.display_elevation_gain,
+  });
 }
 
 export default RunInstanceDetail;

@@ -13,10 +13,28 @@ const compiled = ts.transpileModule(raceDisplaySource, {
   },
 }).outputText;
 
+const gradeAdjustedPaceSource = readFileSync(new URL("../src/lib/gradeAdjustedPace.ts", import.meta.url), "utf8");
+const gradeAdjustedPaceCompiled = ts.transpileModule(gradeAdjustedPaceSource, {
+  compilerOptions: {
+    module: ts.ModuleKind.CommonJS,
+    target: ts.ScriptTarget.ES2022,
+    esModuleInterop: true,
+  },
+}).outputText;
+const gradeAdjustedPaceModule = { exports: {} };
+vm.runInNewContext(
+  gradeAdjustedPaceCompiled,
+  { exports: gradeAdjustedPaceModule.exports, module: gradeAdjustedPaceModule },
+  { filename: "gradeAdjustedPace.cjs" }
+);
+
 const sandbox = {
   exports: {},
   module: { exports: {} },
   require(specifier) {
+    if (specifier === "./gradeAdjustedPace") {
+      return gradeAdjustedPaceModule.exports;
+    }
     throw new Error(`Unexpected runtime require: ${specifier}`);
   },
 };
