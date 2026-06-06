@@ -1,16 +1,11 @@
 import { Link } from "@tanstack/react-router";
 import React, { useEffect, useMemo, useState } from "react";
 import {
-  ArrowLeft,
   Calendar,
-  Camera,
-  Filter,
   Folder,
-  FolderOpen,
   Image,
   Search,
   Star,
-  Tag,
 } from "lucide-react";
 import { supabase } from "../lib/supabase";
 import { Tables } from "../types/database.types";
@@ -26,7 +21,6 @@ type PhotoFolder = {
 };
 
 const PhotosView: React.FC = () => {
-  const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [photos, setPhotos] = useState<PhotoWithUrl[]>([]);
@@ -104,20 +98,15 @@ const PhotosView: React.FC = () => {
     return photos.filter((photo) => photo.year === selectedYear);
   }, [photos, selectedYear]);
 
-  const categories = useMemo(
-    () => [
-      "all",
-      ...Array.from(new Set(photosForSelectedYear.map((photo) => photo.category))).sort(),
-    ],
-    [photosForSelectedYear]
+  const years = useMemo(
+    () => Array.from(new Set(photos.map((photo) => photo.year))).sort((a, b) => b - a),
+    [photos]
   );
 
   const filteredPhotos = useMemo(() => {
     const normalizedSearch = searchTerm.trim().toLowerCase();
 
     return photosForSelectedYear.filter((photo) => {
-      const matchesCategory =
-        selectedCategory === "all" || photo.category === selectedCategory;
       const searchableText = [
         photo.year,
         photo.caption,
@@ -135,17 +124,14 @@ const PhotosView: React.FC = () => {
       const matchesSearch =
         normalizedSearch === "" || searchableText.includes(normalizedSearch);
 
-      return matchesCategory && matchesSearch;
+      return matchesSearch;
     });
-  }, [photosForSelectedYear, searchTerm, selectedCategory]);
+  }, [photosForSelectedYear, searchTerm]);
 
   const filteredFolders = useMemo(() => {
     const normalizedSearch = searchTerm.trim().toLowerCase();
 
     return folders.filter((folder) => {
-      const matchesCategory =
-        selectedCategory === "all" ||
-        folder.photos.some((photo) => photo.category === selectedCategory);
       const searchableText = [
         folder.year,
         ...folder.races,
@@ -165,25 +151,17 @@ const PhotosView: React.FC = () => {
       const matchesSearch =
         normalizedSearch === "" || searchableText.includes(normalizedSearch);
 
-      return matchesCategory && matchesSearch;
+      return matchesSearch;
     });
-  }, [folders, searchTerm, selectedCategory]);
-
-  const summaryPhotos = selectedYear === null
-    ? filteredFolders.flatMap((folder) => folder.photos)
-    : filteredPhotos;
+  }, [folders, searchTerm]);
 
   function handleOpenFolder(year: number) {
     setSelectedYear(year);
-    setSelectedCategory("all");
-    setSearchTerm("");
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
-  function handleBackToFolders() {
-    setSelectedYear(null);
-    setSelectedCategory("all");
-    setSearchTerm("");
+  function handleYearChange(value: string) {
+    setSelectedYear(value === "all" ? null : Number(value));
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
@@ -200,16 +178,6 @@ const PhotosView: React.FC = () => {
               : `${photosForSelectedYear.length} photos from ${selectedYear}`}
           </p>
         </div>
-        {selectedYear !== null && (
-          <button
-            type="button"
-            onClick={handleBackToFolders}
-            className="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:border-primary-300 hover:text-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            <span>Years</span>
-          </button>
-        )}
       </div>
 
       <div className="card p-6">
@@ -219,7 +187,8 @@ const PhotosView: React.FC = () => {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
               <input
                 type="text"
-                placeholder="Search photos..."
+                placeholder="Search captions, races, tags..."
+                aria-label="Search captions, races, event names, categories, sources, filenames, tags, and years"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
@@ -228,59 +197,21 @@ const PhotosView: React.FC = () => {
           </div>
 
           <div className="flex items-center space-x-2">
-            <Tag className="w-5 h-5 text-gray-400" />
+            <Calendar className="w-5 h-5 text-gray-400" />
             <select
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
+              value={selectedYear ?? "all"}
+              onChange={(event) => handleYearChange(event.target.value)}
+              aria-label="Filter photos by year"
               className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
             >
-              {categories.map((category) => (
-                <option key={category} value={category}>
-                  {category === "all" ? "All Categories" : formatLabel(category)}
+              <option value="all">All Years</option>
+              {years.map((year) => (
+                <option key={year} value={year}>
+                  {year}
                 </option>
               ))}
             </select>
           </div>
-
-          <div className="flex items-center space-x-2">
-            <Calendar className="w-5 h-5 text-gray-400" />
-            <div className="rounded-lg border border-gray-200 px-3 py-2 text-sm font-medium text-gray-700 dark:border-slate-700 dark:text-slate-200">
-              {selectedYear === null ? "All Years" : selectedYear}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="card p-6 text-center">
-          <Camera className="w-8 h-8 text-primary-600 mx-auto mb-3" />
-          <h3 className="text-2xl font-bold text-gray-900">{summaryPhotos.length}</h3>
-          <p className="text-gray-600">Photos</p>
-        </div>
-        <div className="card p-6 text-center">
-          {selectedYear === null ? (
-            <FolderOpen className="w-8 h-8 text-green-600 mx-auto mb-3" />
-          ) : (
-            <Calendar className="w-8 h-8 text-green-600 mx-auto mb-3" />
-          )}
-          <h3 className="text-2xl font-bold text-gray-900">
-            {selectedYear === null ? filteredFolders.length : selectedYear}
-          </h3>
-          <p className="text-gray-600">{selectedYear === null ? "Years" : "Year"}</p>
-        </div>
-        <div className="card p-6 text-center">
-          <Tag className="w-8 h-8 text-purple-600 mx-auto mb-3" />
-          <h3 className="text-2xl font-bold text-gray-900">
-            {new Set(summaryPhotos.map((photo) => photo.category)).size}
-          </h3>
-          <p className="text-gray-600">Categories</p>
-        </div>
-        <div className="card p-6 text-center">
-          <Filter className="w-8 h-8 text-orange-600 mx-auto mb-3" />
-          <h3 className="text-2xl font-bold text-gray-900">
-            {new Set(summaryPhotos.map((photo) => photo.race)).size}
-          </h3>
-          <p className="text-gray-600">Races</p>
         </div>
       </div>
 
@@ -306,7 +237,7 @@ const PhotosView: React.FC = () => {
         <div className="text-center py-12">
           <Image className="w-16 h-16 text-gray-300 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">No photos found</h3>
-          <p className="text-gray-600">Try adjusting your filters or search terms</p>
+          <p className="text-gray-600">Try adjusting your search or year filter</p>
         </div>
       ) : selectedYear === null ? (
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -361,7 +292,7 @@ const PhotosView: React.FC = () => {
         <div className="text-center py-12">
           <Image className="w-16 h-16 text-gray-300 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">No photos found</h3>
-          <p className="text-gray-600">Try adjusting your filters or search terms</p>
+          <p className="text-gray-600">Try adjusting your search or year filter</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
