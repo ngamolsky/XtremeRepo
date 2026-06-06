@@ -14,6 +14,7 @@ import { useIsMyProfile } from "../hooks/useIsMyProfile";
 import { useRelayData } from "../hooks/useRelayData";
 import { supabase } from "../lib/supabase";
 import { formatPace } from "../lib/utils";
+import CommentsSection from "./CommentsSection";
 import { LegPill } from "./LegPill";
 import { StatCard } from "./StatCard";
 
@@ -50,6 +51,11 @@ const RunnerDetail: React.FC = () => {
     runnerResults[0]?.auth_user_id ??
     runnerParticipations[0]?.auth_user_id;
   const { isMyProfile } = useIsMyProfile(runnerAuthId);
+  const runnerId =
+    runnerStat?.runner_id ??
+    runnerResults[0]?.runner_id ??
+    runnerParticipations[0]?.runner_id ??
+    null;
 
   if (loading) {
     return (
@@ -335,6 +341,14 @@ const RunnerDetail: React.FC = () => {
             ))}
           </div>
         </section>
+      )}
+
+      {runnerId && (
+        <CommentsSection
+          targetType="runner"
+          runnerId={runnerId}
+          title="Runner Comments"
+        />
       )}
     </div>
   );

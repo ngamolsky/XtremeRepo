@@ -18,11 +18,12 @@ const [
   legResultObservations,
   results,
   raceParticipations,
+  comments,
   racePhotos,
   racePhotoNotes,
 ] = await Promise.all([
   fetchAll("runners", "id,name,email", "name"),
-  fetchAll("leg_definitions", "number,version,distance,elevation_gain", "number"),
+  fetchAll("leg_definitions", "number,version,distance,elevation_gain,official_course_url", "number"),
   fetchPlacements(),
   fetchOptionalAll(
     "leg_result_observations",
@@ -34,19 +35,37 @@ const [
       "runner_id",
       "source_type",
       "source_label",
+      "source_tags",
       "submitted_by_runner_id",
       "lap_time",
       "moving_time",
       "elapsed_time",
       "distance",
       "elevation_gain",
-      "notes",
       "raw_metadata",
+      "created_at",
+      "updated_at",
     ].join(","),
     "year"
   ),
   fetchResults(),
   fetchAll("race_participations", "year,runner_id,status,notes", "year"),
+  fetchOptionalAll(
+    "comments",
+    [
+      "id",
+      "target_type",
+      "year",
+      "leg_number",
+      "leg_version",
+      "runner_id",
+      "body",
+      "author_id",
+      "created_at",
+      "updated_at",
+    ].join(","),
+    "created_at"
+  ),
   fetchOptionalAll(
     "race_photos",
     [
@@ -97,6 +116,9 @@ if (legResultObservations) {
     "leg_result_observations"
   );
 }
+if (comments) {
+  assertKnownRunnerReferences(comments, "runner_id", runnerById, "comments");
+}
 
 const seedSql = renderSeedSql({
   generatedAt: new Date().toISOString(),
@@ -107,6 +129,7 @@ const seedSql = renderSeedSql({
   legResultObservations,
   results,
   raceParticipations,
+  comments,
   racePhotos,
   racePhotoNotes,
   runnerById,
@@ -131,6 +154,7 @@ if (args.backup) {
       legResultObservations,
       results,
       raceParticipations,
+      comments,
       racePhotos,
       racePhotoNotes,
     },
@@ -190,7 +214,7 @@ async function fetchResults() {
   try {
     return await fetchAll(
       "results",
-      "year,leg_number,leg_version,lap_time,user_id,notes,source_type,canonical_observation_id",
+      "year,leg_number,leg_version,lap_time,user_id,source_type,canonical_observation_id",
       "year"
     );
   } catch (error) {
@@ -201,7 +225,7 @@ async function fetchResults() {
     ) {
       const rows = await fetchAll(
         "results",
-        "year,leg_number,leg_version,lap_time,user_id,notes",
+        "year,leg_number,leg_version,lap_time,user_id",
         "year"
       );
 
@@ -220,7 +244,7 @@ async function fetchPlacements() {
   try {
     return await fetchAll(
       "placements",
-      "year,division,division_place,division_teams,overall_place,overall_teams,bib,notes,race_start_time",
+      "year,division,division_place,division_teams,overall_place,overall_teams,bib,race_start_time",
       "year"
     );
   } catch (error) {
@@ -230,7 +254,7 @@ async function fetchPlacements() {
     ) {
       const rows = await fetchAll(
         "placements",
-        "year,division,division_place,division_teams,overall_place,overall_teams,bib,notes",
+        "year,division,division_place,division_teams,overall_place,overall_teams,bib",
         "year"
       );
 
@@ -297,6 +321,7 @@ function renderSeedSql({
   legResultObservations,
   results,
   raceParticipations,
+  comments,
   racePhotos,
   runnerById,
   racePhotoNotes,
@@ -310,6 +335,7 @@ function renderSeedSql({
     "BEGIN;",
     "",
     "TRUNCATE TABLE",
+    ...(comments ? ["  public.comments,"] : []),
     ...(racePhotoNotes ? ["  public.race_photo_notes,"] : []),
     ...(racePhotos ? ["  public.race_photos,"] : []),
     ...(legResultObservations ? ["  public.leg_result_observations,"] : []),
@@ -328,11 +354,17 @@ function renderSeedSql({
     "",
     renderValuesInsert(
       "public.leg_definitions",
-      ["number", "version", "distance", "elevation_gain"],
+      ["number", "version", "distance", "elevation_gain", "official_course_url"],
       legDefinitions
         .slice()
         .sort((a, b) => a.number - b.number || a.version - b.version)
-        .map((leg) => [leg.number, leg.version, leg.distance, leg.elevation_gain])
+        .map((leg) => [
+          leg.number,
+          leg.version,
+          leg.distance,
+          leg.elevation_gain,
+          leg.official_course_url,
+        ])
     ),
     "",
     renderValuesInsert(
@@ -345,7 +377,6 @@ function renderSeedSql({
         "overall_place",
         "overall_teams",
         "bib",
-        "notes",
         "race_start_time",
       ],
       placements
@@ -359,11 +390,11 @@ function renderSeedSql({
           placement.overall_place,
           placement.overall_teams,
           placement.bib,
-          placement.notes,
           placement.race_start_time || (placement.year === 2024 ? "06:00:00" : "07:00:00"),
         ])
     ),
     "",
+    ...(comments ? [renderCommentsInsert(comments, runnerById), ""] : []),
     ...(legResultObservations ? [renderLegResultObservationsInsert(legResultObservations, runnerById), ""] : []),
     renderResultsInsert(results, runnerById),
     "",
@@ -376,6 +407,47 @@ function renderSeedSql({
   ];
 
   return lines.join("\n");
+}
+
+function renderCommentsInsert(comments, runnerById) {
+  if (comments.length === 0) {
+    return "-- No rows for public.comments.";
+  }
+
+  const rows = comments
+    .slice()
+    .sort(
+      (a, b) =>
+        String(a.target_type).localeCompare(String(b.target_type)) ||
+        (a.year || 0) - (b.year || 0) ||
+        (a.leg_number || 0) - (b.leg_number || 0) ||
+        (a.leg_version || 0) - (b.leg_version || 0) ||
+        String(a.created_at).localeCompare(String(b.created_at))
+    )
+    .map((comment) => {
+      const runner = comment.runner_id ? runnerById.get(comment.runner_id) : null;
+
+      return [
+        comment.id,
+        comment.target_type,
+        comment.year,
+        comment.leg_number,
+        comment.leg_version,
+        runner?.name ?? null,
+        comment.body,
+        comment.created_at,
+        comment.updated_at,
+      ];
+    });
+
+  return [
+    "INSERT INTO public.comments (id, target_type, year, leg_number, leg_version, runner_id, body, created_at, updated_at)",
+    "SELECT seed.id::uuid, seed.target_type, seed.year, seed.leg_number, seed.leg_version, runners.id, seed.body, seed.created_at::timestamptz, seed.updated_at::timestamptz",
+    "FROM (VALUES",
+    rows.map((row) => `  (${row.map(sqlValue).join(", ")})`).join(",\n"),
+    ") AS seed(id, target_type, year, leg_number, leg_version, runner_name, body, created_at, updated_at)",
+    "LEFT JOIN public.runners ON public.runners.name = seed.runner_name;",
+  ].join("\n");
 }
 
 function renderRacePhotoNotesInsert(racePhotoNotes, racePhotoById) {
@@ -532,27 +604,29 @@ function renderLegResultObservationsInsert(legResultObservations, runnerById) {
         runner?.name ?? null,
         observation.source_type,
         observation.source_label,
+        sqlTextArray(observation.source_tags || []),
         submittedBy?.name ?? null,
         sqlInterval(observation.lap_time),
         sqlInterval(observation.moving_time),
         sqlInterval(observation.elapsed_time),
         observation.distance,
         observation.elevation_gain,
-        observation.notes,
         sqlJsonb(observation.raw_metadata),
+        observation.created_at,
+        observation.updated_at,
       ];
     });
 
   return [
     "INSERT INTO public.leg_result_observations (",
-    "  id, year, leg_number, leg_version, runner_id, source_type, source_label,",
+    "  id, year, leg_number, leg_version, runner_id, source_type, source_label, source_tags,",
     "  submitted_by_runner_id, lap_time, moving_time, elapsed_time, distance,",
-    "  elevation_gain, notes, raw_metadata",
+    "  elevation_gain, raw_metadata, created_at, updated_at",
     ")",
     "SELECT seed.id::uuid, seed.year, seed.leg_number, seed.leg_version, runners.id,",
-    "  seed.source_type, seed.source_label, submitted_by.id, seed.lap_time,",
-    "  seed.moving_time, seed.elapsed_time, seed.distance, seed.elevation_gain,",
-    "  seed.notes, seed.raw_metadata",
+    "  seed.source_type, seed.source_label, seed.source_tags, submitted_by.id, seed.lap_time::interval,",
+    "  seed.moving_time::interval, seed.elapsed_time::interval, seed.distance, seed.elevation_gain,",
+    "  seed.raw_metadata, seed.created_at::timestamptz, seed.updated_at::timestamptz",
     "FROM (VALUES",
     rows
       .map((row) => {
@@ -564,14 +638,16 @@ function renderLegResultObservationsInsert(legResultObservations, runnerById) {
           runnerName,
           sourceType,
           sourceLabel,
+          sourceTags,
           submittedByName,
           lapTime,
           movingTime,
           elapsedTime,
           distance,
           elevationGain,
-          notes,
           rawMetadata,
+          createdAt,
+          updatedAt,
         ] = row;
 
         return `  (${[
@@ -582,21 +658,23 @@ function renderLegResultObservationsInsert(legResultObservations, runnerById) {
           sqlValue(runnerName),
           sqlValue(sourceType),
           sqlValue(sourceLabel),
+          sourceTags,
           sqlValue(submittedByName),
           lapTime,
           movingTime,
           elapsedTime,
           sqlValue(distance),
           sqlValue(elevationGain),
-          sqlValue(notes),
           rawMetadata,
+          sqlValue(createdAt),
+          sqlValue(updatedAt),
         ].join(", ")})`;
       })
       .join(",\n"),
     ") AS seed(",
-    "  id, year, leg_number, leg_version, runner_name, source_type, source_label,",
+    "  id, year, leg_number, leg_version, runner_name, source_type, source_label, source_tags,",
     "  submitted_by_runner_name, lap_time, moving_time, elapsed_time, distance,",
-    "  elevation_gain, notes, raw_metadata",
+    "  elevation_gain, raw_metadata, created_at, updated_at",
     ")",
     "LEFT JOIN public.runners ON public.runners.name = seed.runner_name",
     "LEFT JOIN public.runners submitted_by ON submitted_by.name = seed.submitted_by_runner_name;",
@@ -623,17 +701,16 @@ function renderResultsInsert(results, runnerById) {
         result.leg_version,
         runnerRef,
         sqlInterval(result.lap_time),
-        sqlValue(result.notes),
         sqlValue(result.source_type || "official"),
         sqlValue(result.canonical_observation_id),
       ];
     });
 
   return [
-    "INSERT INTO public.results (year, leg_number, leg_version, user_id, lap_time, notes, source_type, canonical_observation_id) VALUES",
+    "INSERT INTO public.results (year, leg_number, leg_version, user_id, lap_time, source_type, canonical_observation_id) VALUES",
     rows
-      .map(([year, legNumber, legVersion, runnerRef, lapTime, notes, sourceType, canonicalObservationId]) =>
-        `  (${year}, ${legNumber}, ${legVersion}, ${runnerRef}, ${lapTime}, ${notes}, ${sourceType}, ${canonicalObservationId})`
+      .map(([year, legNumber, legVersion, runnerRef, lapTime, sourceType, canonicalObservationId]) =>
+        `  (${year}, ${legNumber}, ${legVersion}, ${runnerRef}, ${lapTime}, ${sourceType}, ${canonicalObservationId})`
       )
       .join(",\n") + ";",
   ].join("\n");

@@ -9,7 +9,6 @@ CREATE TABLE IF NOT EXISTS "public"."placements" (
     "overall_place" smallint,
     "overall_teams" smallint,
     "bib" smallint,
-    "notes" "text",
     "race_start_time" time without time zone DEFAULT '07:00:00'::time NOT NULL
 );
 

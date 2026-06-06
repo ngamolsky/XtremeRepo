@@ -1,5 +1,5 @@
 import { Link, useParams } from "@tanstack/react-router";
-import { Award, BarChart, Map, Users } from "lucide-react";
+import { Award, BarChart, ExternalLink, Map, Users } from "lucide-react";
 import React from "react";
 import {
   CartesianGrid,
@@ -12,6 +12,7 @@ import {
 } from "recharts";
 import { useRelayData } from "../hooks/useRelayData";
 import { formatFeet, formatMiles, formatPace } from "../lib/utils";
+import CommentsSection from "./CommentsSection";
 import { StatCard } from "./StatCard";
 
 const chartAxisColor = "var(--chart-axis)";
@@ -118,6 +119,17 @@ const LegDetail: React.FC = () => {
           Version {version} • {formatMiles(displayDistance)} •{" "}
           {formattedElevation === "N/A" ? formattedElevation : `+${formattedElevation} elevation`}
         </p>
+        {legDefinition?.official_course_url && (
+          <a
+            href={legDefinition.official_course_url}
+            target="_blank"
+            rel="noreferrer"
+            className="mt-3 inline-flex items-center gap-2 text-sm font-medium text-primary-700 hover:text-primary-800"
+          >
+            Official course page
+            <ExternalLink className="h-4 w-4" aria-hidden="true" />
+          </a>
+        )}
       </div>
 
       {/* Stats Grid */}
@@ -300,6 +312,13 @@ const LegDetail: React.FC = () => {
           </table>
         </div>
       </div>
+
+      <CommentsSection
+        targetType="leg"
+        legNumber={selectedLegNumber}
+        legVersion={selectedVersion}
+        title="Leg Comments"
+      />
     </div>
   );
 };

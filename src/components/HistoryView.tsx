@@ -1,5 +1,6 @@
 import {
   Calendar,
+  ExternalLink,
   ChevronDown,
   ChevronUp,
   Clock,
@@ -99,7 +100,7 @@ const HistoryView: React.FC = () => {
     <div className="space-y-8 animate-fade-in">
       {/* Header */}
       <div className="text-center">
-        <h1 className="text-4xl font-bold text-gray-900 mb-2">Race History</h1>
+        <h1 className="text-4xl font-bold text-gray-900 mb-2">Races</h1>
         <p className="text-lg text-gray-600">
           A complete timeline of our relay race journey
         </p>
@@ -155,7 +156,7 @@ const HistoryView: React.FC = () => {
                     </div>
                     <div>
                       <h3 className="text-xl font-semibold text-gray-900">
-                        {race.year} Relay Race
+                        {race.year} Tahoe Relay
                       </h3>
                       <p className="text-gray-600">
                         Division: {race.division}{" "}
@@ -163,11 +164,6 @@ const HistoryView: React.FC = () => {
                         {race.participantCount > 0 &&
                           ` • ${race.participantCount} runners`}
                       </p>
-                      {race.notes && (
-                        <p className="text-sm text-gray-500 mt-1">
-                          {race.notes}
-                        </p>
-                      )}
                     </div>
                   </div>
 
@@ -202,11 +198,30 @@ const HistoryView: React.FC = () => {
                         <p className="text-sm text-gray-600 mt-1">Division</p>
                       </div>
                     )}
-                    {expandedYear === race.year ? (
-                      <ChevronUp className="w-6 h-6 text-gray-500" />
-                    ) : (
-                      <ChevronDown className="w-6 h-6 text-gray-500" />
-                    )}
+                    <Link
+                      to="/races/$year"
+                      params={{ year: String(race.year) }}
+                      className="inline-flex items-center gap-2 rounded-lg border border-primary-200 bg-primary-50 px-3 py-2 text-sm font-medium text-primary-700 transition-colors hover:border-primary-300 hover:bg-primary-100"
+                      onClick={(event) => event.stopPropagation()}
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                      <span>Details</span>
+                    </Link>
+                    <button
+                      type="button"
+                      aria-label={
+                        expandedYear === race.year
+                          ? `Collapse ${race.year} race results`
+                          : `Expand ${race.year} race results`
+                      }
+                      className="rounded-lg p-1 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700"
+                    >
+                      {expandedYear === race.year ? (
+                        <ChevronUp className="w-6 h-6" />
+                      ) : (
+                        <ChevronDown className="w-6 h-6" />
+                      )}
+                    </button>
                   </div>
                 </div>
               </div>
@@ -319,7 +334,7 @@ const HistoryView: React.FC = () => {
         <div className="text-center py-12">
           <Calendar className="w-16 h-16 text-gray-300 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">
-            No race history found
+            No races found
           </h3>
           <p className="text-gray-600">
             Race data will appear here once it's available

@@ -34,23 +34,94 @@ export type Database = {
   }
   public: {
     Tables: {
+      comments: {
+        Row: {
+          author_id: string | null
+          body: string
+          created_at: string
+          id: string
+          leg_number: number | null
+          leg_version: number | null
+          runner_id: string | null
+          target_type: string
+          updated_at: string
+          year: number | null
+        }
+        Insert: {
+          author_id?: string | null
+          body: string
+          created_at?: string
+          id?: string
+          leg_number?: number | null
+          leg_version?: number | null
+          runner_id?: string | null
+          target_type: string
+          updated_at?: string
+          year?: number | null
+        }
+        Update: {
+          author_id?: string | null
+          body?: string
+          created_at?: string
+          id?: string
+          leg_number?: number | null
+          leg_version?: number | null
+          runner_id?: string | null
+          target_type?: string
+          updated_at?: string
+          year?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comments_leg_definitions_fkey"
+            columns: ["leg_number", "leg_version"]
+            isOneToOne: false
+            referencedRelation: "leg_definitions"
+            referencedColumns: ["number", "version"]
+          },
+          {
+            foreignKeyName: "comments_runner_id_fkey"
+            columns: ["runner_id"]
+            isOneToOne: false
+            referencedRelation: "runners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comments_runner_id_fkey"
+            columns: ["runner_id"]
+            isOneToOne: false
+            referencedRelation: "v_comments_with_author"
+            referencedColumns: ["author_runner_id"]
+          },
+          {
+            foreignKeyName: "comments_year_fkey"
+            columns: ["year"]
+            isOneToOne: false
+            referencedRelation: "placements"
+            referencedColumns: ["year"]
+          },
+        ]
+      }
       leg_definitions: {
         Row: {
           distance: number | null
           elevation_gain: number | null
           number: number
+          official_course_url: string | null
           version: number
         }
         Insert: {
           distance?: number | null
           elevation_gain?: number | null
           number: number
+          official_course_url?: string | null
           version: number
         }
         Update: {
           distance?: number | null
           elevation_gain?: number | null
           number?: number
+          official_course_url?: string | null
           version?: number
         }
         Relationships: []
@@ -66,10 +137,10 @@ export type Database = {
           leg_number: number
           leg_version: number
           moving_time: string | null
-          notes: string | null
           raw_metadata: Json
           runner_id: string | null
           source_label: string | null
+          source_tags: string[]
           source_type: string
           submitted_by_runner_id: string | null
           updated_at: string
@@ -85,10 +156,10 @@ export type Database = {
           leg_number: number
           leg_version: number
           moving_time?: string | null
-          notes?: string | null
           raw_metadata?: Json
           runner_id?: string | null
           source_label?: string | null
+          source_tags?: string[]
           source_type?: string
           submitted_by_runner_id?: string | null
           updated_at?: string
@@ -104,10 +175,10 @@ export type Database = {
           leg_number?: number
           leg_version?: number
           moving_time?: string | null
-          notes?: string | null
           raw_metadata?: Json
           runner_id?: string | null
           source_label?: string | null
+          source_tags?: string[]
           source_type?: string
           submitted_by_runner_id?: string | null
           updated_at?: string
@@ -129,11 +200,25 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "leg_result_observations_runner_id_fkey"
+            columns: ["runner_id"]
+            isOneToOne: false
+            referencedRelation: "v_comments_with_author"
+            referencedColumns: ["author_runner_id"]
+          },
+          {
             foreignKeyName: "leg_result_observations_submitted_by_runner_id_fkey"
             columns: ["submitted_by_runner_id"]
             isOneToOne: false
             referencedRelation: "runners"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leg_result_observations_submitted_by_runner_id_fkey"
+            columns: ["submitted_by_runner_id"]
+            isOneToOne: false
+            referencedRelation: "v_comments_with_author"
+            referencedColumns: ["author_runner_id"]
           },
           {
             foreignKeyName: "leg_result_observations_year_fkey"
@@ -150,7 +235,6 @@ export type Database = {
           division: string | null
           division_place: number | null
           division_teams: number | null
-          notes: string | null
           overall_place: number | null
           overall_teams: number | null
           race_start_time: string
@@ -161,7 +245,6 @@ export type Database = {
           division?: string | null
           division_place?: number | null
           division_teams?: number | null
-          notes?: string | null
           overall_place?: number | null
           overall_teams?: number | null
           race_start_time?: string
@@ -172,7 +255,6 @@ export type Database = {
           division?: string | null
           division_place?: number | null
           division_teams?: number | null
-          notes?: string | null
           overall_place?: number | null
           overall_teams?: number | null
           race_start_time?: string
@@ -212,6 +294,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "runners"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "race_participations_runner_id_fkey"
+            columns: ["runner_id"]
+            isOneToOne: false
+            referencedRelation: "v_comments_with_author"
+            referencedColumns: ["author_runner_id"]
           },
           {
             foreignKeyName: "race_participations_year_fkey"
@@ -338,7 +427,6 @@ export type Database = {
           lap_time: string | null
           leg_number: number
           leg_version: number
-          notes: string | null
           source_type: string
           user_id: string | null
           year: number
@@ -348,7 +436,6 @@ export type Database = {
           lap_time?: string | null
           leg_number: number
           leg_version: number
-          notes?: string | null
           source_type?: string
           user_id?: string | null
           year: number
@@ -358,7 +445,6 @@ export type Database = {
           lap_time?: string | null
           leg_number?: number
           leg_version?: number
-          notes?: string | null
           source_type?: string
           user_id?: string | null
           year?: number
@@ -391,6 +477,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "runners"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "results_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "v_comments_with_author"
+            referencedColumns: ["author_runner_id"]
           },
           {
             foreignKeyName: "results_year_fkey"
@@ -452,6 +545,53 @@ export type Database = {
           },
         ]
       }
+      v_comments_with_author: {
+        Row: {
+          author_id: string | null
+          author_runner_id: string | null
+          author_runner_name: string | null
+          body: string | null
+          created_at: string | null
+          id: string | null
+          leg_number: number | null
+          leg_version: number | null
+          runner_id: string | null
+          runner_name: string | null
+          target_type: string | null
+          updated_at: string | null
+          year: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comments_leg_definitions_fkey"
+            columns: ["leg_number", "leg_version"]
+            isOneToOne: false
+            referencedRelation: "leg_definitions"
+            referencedColumns: ["number", "version"]
+          },
+          {
+            foreignKeyName: "comments_runner_id_fkey"
+            columns: ["runner_id"]
+            isOneToOne: false
+            referencedRelation: "runners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comments_runner_id_fkey"
+            columns: ["runner_id"]
+            isOneToOne: false
+            referencedRelation: "v_comments_with_author"
+            referencedColumns: ["author_runner_id"]
+          },
+          {
+            foreignKeyName: "comments_year_fkey"
+            columns: ["year"]
+            isOneToOne: false
+            referencedRelation: "placements"
+            referencedColumns: ["year"]
+          },
+        ]
+      }
       v_leg_result_observations_with_pace: {
         Row: {
           auth_user_id: string | null
@@ -470,7 +610,6 @@ export type Database = {
           leg_number: number | null
           leg_version: number | null
           moving_time: string | null
-          notes: string | null
           observed_distance: number | null
           observed_elevation_gain: number | null
           pace: number | null
@@ -481,6 +620,7 @@ export type Database = {
           runner_id: string | null
           runner_name: string | null
           source_label: string | null
+          source_tags: string[] | null
           source_type: string | null
           submitted_by_runner_id: string | null
           submitted_by_runner_name: string | null
@@ -504,11 +644,25 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "leg_result_observations_runner_id_fkey"
+            columns: ["runner_id"]
+            isOneToOne: false
+            referencedRelation: "v_comments_with_author"
+            referencedColumns: ["author_runner_id"]
+          },
+          {
             foreignKeyName: "leg_result_observations_submitted_by_runner_id_fkey"
             columns: ["submitted_by_runner_id"]
             isOneToOne: false
             referencedRelation: "runners"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leg_result_observations_submitted_by_runner_id_fkey"
+            columns: ["submitted_by_runner_id"]
+            isOneToOne: false
+            referencedRelation: "v_comments_with_author"
+            referencedColumns: ["author_runner_id"]
           },
           {
             foreignKeyName: "leg_result_observations_year_fkey"
@@ -523,6 +677,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "runners"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "results_user_id_fkey"
+            columns: ["canonical_runner_id"]
+            isOneToOne: false
+            referencedRelation: "v_comments_with_author"
+            referencedColumns: ["author_runner_id"]
           },
         ]
       }
@@ -550,6 +711,19 @@ export type Database = {
           },
         ]
       }
+      v_race_photo_album_summary: {
+        Row: {
+          cover_storage_bucket: string | null
+          cover_storage_path: string | null
+          event_name: string | null
+          first_photo_created_at: string | null
+          last_photo_created_at: string | null
+          photo_count: number | null
+          race: string | null
+          year: number | null
+        }
+        Relationships: []
+      }
       v_results_with_pace: {
         Row: {
           auth_user_id: string | null
@@ -561,7 +735,6 @@ export type Database = {
           leg_number: number | null
           leg_start_time: string | null
           leg_version: number | null
-          notes: string | null
           pace: number | null
           race_start_time: string | null
           runner_id: string | null
@@ -600,6 +773,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "results_user_id_fkey"
+            columns: ["runner_id"]
+            isOneToOne: false
+            referencedRelation: "v_comments_with_author"
+            referencedColumns: ["author_runner_id"]
+          },
+          {
             foreignKeyName: "results_year_fkey"
             columns: ["year"]
             isOneToOne: false
@@ -626,6 +806,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "runners"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "race_participations_runner_id_fkey"
+            columns: ["runner_id"]
+            isOneToOne: false
+            referencedRelation: "v_comments_with_author"
+            referencedColumns: ["author_runner_id"]
           },
           {
             foreignKeyName: "race_participations_year_fkey"
@@ -663,6 +850,13 @@ export type Database = {
             referencedRelation: "runners"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "race_participations_runner_id_fkey"
+            columns: ["runner_id"]
+            isOneToOne: false
+            referencedRelation: "v_comments_with_author"
+            referencedColumns: ["author_runner_id"]
+          },
         ]
       }
       v_yearly_summary: {
@@ -674,7 +868,6 @@ export type Database = {
           division_place: number | null
           division_teams: number | null
           improvement: number | null
-          notes: string | null
           overall_percentile: number | null
           overall_place: number | null
           overall_teams: number | null
@@ -834,3 +1027,4 @@ export const Constants = {
     Enums: {},
   },
 } as const
+

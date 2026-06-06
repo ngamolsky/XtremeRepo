@@ -105,14 +105,25 @@ type SaveLegObservationInput = {
   runnerName: string;
   sourceType?: LegObservationSourceType;
   sourceLabel?: string;
+  sourceTags?: string[];
   lapTime?: string;
   movingTime?: string;
   elapsedTime?: string;
   distance?: number;
   elevationGain?: number;
-  notes?: string;
   metadata?: Record<string, unknown>;
   overwriteExisting?: boolean;
+};
+
+type DeleteLegObservationInput = {
+  observationId?: string;
+  year?: number;
+  legNumber?: number;
+  legVersion?: number;
+  runnerName?: string;
+  sourceType?: LegObservationSourceType;
+  sourceLabel?: string;
+  confirm?: boolean;
 };
 
 type CurrentUserContext = {
@@ -141,6 +152,7 @@ type RunnerIndexEntry = {
     legNumber: number;
     legVersion: number;
     sourceType: string;
+    sourceTags: string[];
     hasCanonicalResult: boolean;
   }>;
 };
@@ -294,6 +306,7 @@ async function verifyRaceDataAccess(
     await Promise.all([
       fetchRows(supabase.from("v_results_with_pace").select("year").limit(1)),
       fetchRowsOrEmptyWhenMissing(supabase.from("v_leg_result_observations_with_pace").select("year").limit(1)),
+      fetchRowsOrEmptyWhenMissing(supabase.from("v_comments_with_author").select("id").limit(1)),
       fetchRows(supabase.from("v_runner_participations").select("year").limit(1)),
       fetchRows(supabase.from("runners").select("id").limit(1)),
     ]);
@@ -646,7 +659,7 @@ async function getRunnerIndex(supabase: DataClient): Promise<RunnerIndexEntry[]>
     fetchRowsOrEmptyWhenMissing(
       supabase
         .from("v_leg_result_observations_with_pace")
-        .select("runner_id,year,leg_number,leg_version,source_type,has_canonical_result")
+        .select("runner_id,year,leg_number,leg_version,source_type,source_tags,has_canonical_result")
         .order("year", { ascending: true })
     ),
     fetchRows(
@@ -714,7 +727,7 @@ function groupResultsByRunner(results: Pick<ResultWithPaceRow, "runner_id" | "ye
 function groupObservationsByRunner(
   observations: Pick<
     LegObservationWithPaceRow,
-    "runner_id" | "year" | "leg_number" | "leg_version" | "source_type" | "has_canonical_result"
+    "runner_id" | "year" | "leg_number" | "leg_version" | "source_type" | "source_tags" | "has_canonical_result"
   >[]
 ) {
   const byRunnerId = new Map<string, RunnerIndexEntry["observations"]>();
@@ -736,6 +749,7 @@ function groupObservationsByRunner(
       legNumber: observation.leg_number,
       legVersion: observation.leg_version,
       sourceType: observation.source_type,
+      sourceTags: observation.source_tags || [],
       hasCanonicalResult: Boolean(observation.has_canonical_result),
     });
     byRunnerId.set(observation.runner_id, entries);
@@ -806,9 +820,13 @@ function formatRunnerIndexForPrompt(runnerIndex: RunnerIndexEntry[]): string {
       const observations = runner.observations
         .map(
           (observation) =>
-            `${observation.year}:L${observation.legNumber}v${observation.legVersion}(${observation.sourceType}${
-              observation.hasCanonicalResult ? ", canonical exists" : ""
-            })`
+            `${observation.year}:L${observation.legNumber}v${observation.legVersion}(${[
+              observation.sourceType,
+              observation.sourceTags.length > 0 && `tags:${observation.sourceTags.join("|")}`,
+              observation.hasCanonicalResult && "canonical exists",
+            ]
+              .filter(Boolean)
+              .join(", ")})`
         )
         .join(" ");
       const unknownLegYears = runner.unknownLegYears.join(", ");
@@ -853,11 +871,12 @@ async function findRunnerData(supabase: DataClient, runnerName: string) {
       results: [],
       observations: [],
       participations: [],
+      comments: [],
       message: "No runner matched that name. Ask for another spelling or a more specific name.",
     };
   }
 
-  const [stats, results, observations, participations] = await Promise.all([
+  const [stats, results, observations, participations, comments] = await Promise.all([
     fetchRows(
       supabase
         .from("v_runner_stats")
@@ -888,6 +907,14 @@ async function findRunnerData(supabase: DataClient, runnerName: string) {
         .in("runner_id", runnerIds)
         .order("year", { ascending: false })
     ),
+    fetchRowsOrEmptyWhenMissing(
+      supabase
+        .from("v_comments_with_author")
+        .select("*")
+        .in("runner_id", runnerIds)
+        .order("created_at", { ascending: false })
+        .limit(100)
+    ),
   ]);
 
   return {
@@ -899,11 +926,13 @@ async function findRunnerData(supabase: DataClient, runnerName: string) {
       results: results.filter((result) => result.runner_id === match.runner.id),
       observations: observations.filter((observation) => observation.runner_id === match.runner.id),
       participations: participations.filter((participation) => participation.runner_id === match.runner.id),
+      comments: comments.filter((comment) => comment.runner_id === match.runner.id),
     })),
     stats,
     results,
     observations,
     participations,
+    comments,
   };
 }
 
@@ -974,6 +1003,8 @@ function describeToolUse(toolName: string, input: unknown): string {
       return `Reading ${stringValue(params.year) || "year"} results`;
     case "saveLegObservation":
       return "Saving provisional leg data";
+    case "deleteLegObservation":
+      return "Deleting provisional leg data";
     default:
       return `Using ${formatToolName(toolName)}`;
   }
@@ -1035,17 +1066,17 @@ Answer questions about relay race results, team members, legs, years, paces, and
 
 When a question spans many years, prefer getRaceOverview or another aggregate tool over calling getYearResults once for every year. Only call getYearResults for specific years whose full leg-by-leg details are needed.
 
-Use data terms precisely. A "leg run", "ran leg", "result", or "performance" means a known canonical row from v_results_with_pace/results with a leg number and lap time. A "provisional observation", "watch data", "Garmin data", "phone data", "Strava data", or "runner-submitted data" means a non-canonical row from v_leg_result_observations_with_pace/leg_result_observations. Provisional observations can be shown until canonical data exists for the same year and leg, but they never count as known leg runs, paces, records, aggregate stats, or team totals. A "race-year participation", "race", or "roster year" can include a runner whose leg assignment is unknown. Do not count unknown-leg participation years or provisional observations as leg runs unless the user explicitly asks about non-canonical data. When comparing runners' leg-run counts, use knownLegRuns/results and cite the specific result years and legs that explain the difference. When asked which year one runner ran and another did not, compare known leg years unless the user says roster, participation, or provisional observation.
+Use data terms precisely. A "leg run", "ran leg", "result", or "performance" means a known canonical row from v_results_with_pace/results with a leg number and lap time. A "provisional observation", "watch data", "Garmin data", "phone data", "Strava data", or "runner-submitted data" means a non-canonical row from v_leg_result_observations_with_pace/leg_result_observations. Provisional observations can include times, distances, elevation, source labels, source tags, and raw source metadata. User comments live separately in v_comments_with_author/comments and are read-only to you. Provisional observations can be shown until canonical data exists for the same year and leg, but they never count as known leg runs, paces, records, aggregate stats, or team totals. A "race-year participation", "race", or "roster year" can include a runner whose leg assignment is unknown. Do not count unknown-leg participation years or provisional observations as leg runs unless the user explicitly asks about non-canonical data. When comparing runners' leg-run counts, use knownLegRuns/results and cite the specific result years and legs that explain the difference. When asked which year one runner ran and another did not, compare known leg years unless the user says roster, participation, or provisional observation.
 
 Resolve names softly. First names, partial names, lowercase names, and common short forms are acceptable when the runner index makes the match clear. Do not ask for full names just because the user supplied only a first name. If a partial name matches multiple runners and the answer would differ, call findRunner for the likely matches, explain the ambiguity briefly, and ask one short clarifying question.
 
 Use the current signed-in user context to resolve first-person references like "me", "my", "my profile", or "my runs". If the signed-in user is not linked to a runner, say that there is no linked runner instead of guessing. The signed-in user is the submitter, not necessarily the runner being discussed; a user may submit provisional data for another existing runner.
 
-Canonical data is read-only. You can read official/canonical results, placements, participation, runner records, race notes, and leg notes, but you cannot write, replace, edit, or delete them. If the user asks you to edit official/canonical data, refuse briefly and offer to save the supplied values only as a provisional non-canonical observation when they include runner/device/app source data. Do not claim that provisional data is official, verified, canonical, or a replacement for official results.
+Canonical data and comments are read-only. You can read official/canonical results, placements, participation, runner records, comments, and provisional observations, but you cannot write, replace, edit, or delete canonical data or comments. If the user asks you to edit official/canonical data, refuse briefly and offer to save the supplied values only as a provisional non-canonical observation when they include runner/device/app source data. If the user asks you to add/edit/delete comments, explain that the UI supports comments but you cannot write comments. Do not claim that provisional data is official, verified, canonical, or a replacement for official results.
 
-Your only write capability is adding or updating provisional leg observations with saveLegObservation. For any ad hoc leg data write, use saveLegObservation and label it non-canonical. For a provisional observation, collect race year, leg number, leg version, the existing runner name the observation is about, and at least one observed field such as lap time, moving time, elapsed time, distance, elevation gain, notes, or metadata. Source type defaults to manual_runner; use apple_watch, garmin, phone, strava, manual_runner, manual_admin, or other when the user gives the source. Ask short follow-up questions until every required field is known. Do not invent missing fields. If the runner is missing or ambiguous, ask the user to choose an existing runner; do not create new runners.
+Your only write capability is adding, updating, or deleting provisional leg observations with saveLegObservation and deleteLegObservation. For any ad hoc leg data write, use saveLegObservation and label it non-canonical. For a provisional observation, collect race year, leg number, leg version, the existing runner name the observation is about, and at least one observed field such as lap time, moving time, elapsed time, distance, elevation gain, source label, source tags, or metadata. Source type defaults to manual_runner; use apple_watch, garmin, phone, strava, manual_runner, manual_admin, or other when the user gives the source. Source tags are reusable labels such as app names, device names, screenshots, files, or activity titles. Ask short follow-up questions until every required field is known. Do not invent missing fields. If the runner is missing or ambiguous, ask the user to choose an existing runner; do not create new runners. Delete provisional observations only after the user clearly asks to delete provisional data and you have a specific observationId or an unambiguous match.
 
-When the user attaches a screenshot or image from Strava, Garmin, Apple Watch, phone fitness apps, or similar sources, treat visible values as provisional non-canonical source evidence. Extract only values visible in the image or supplied by the user. Prefer source_type strava for Strava screenshots, and include useful provenance in sourceLabel, notes, or metadata such as the app name, screenshot filename, visible activity title, and any uncertainty. If required fields like year, leg number, leg version, runner, or the intended source are not visible or supplied, ask for them before saving. Once a write succeeds, summarize the saved row and label it provisional/non-canonical.
+When the user attaches a screenshot or image from Strava, Garmin, Apple Watch, phone fitness apps, or similar sources, treat visible values as provisional non-canonical source evidence. Extract only values visible in the image or supplied by the user. Prefer source_type strava for Strava screenshots, and include useful provenance in sourceLabel, sourceTags, or metadata such as the app name, screenshot filename, visible activity title, and any uncertainty. If required fields like year, leg number, leg version, runner, or the intended source are not visible or supplied, ask for them before saving. Once a write succeeds, summarize the saved row and label it provisional/non-canonical.
 
 If the user asks a question that depends on the current screen, use the page context below to scope the answer first. Keep answers concise and practical, cite the years/runners/legs you used, and say when the data does not contain enough information.
 
@@ -1074,13 +1105,20 @@ function createRelayTools(
         additionalProperties: false,
       }),
       execute: limitToolExecution(async () => {
-        const [yearlySummary, runnerStats, legVersionStats, results, observations, participations] = await Promise.all([
+        const [yearlySummary, runnerStats, legVersionStats, results, observations, participations, comments] = await Promise.all([
           fetchRows(supabase.from("v_yearly_summary").select("*").order("year", { ascending: false })),
           fetchRows(supabase.from("v_runner_stats").select("*").order("total_races", { ascending: false })),
           fetchRows(supabase.from("v_leg_version_stats").select("*")),
           fetchRows(supabase.from("v_results_with_pace").select("*")),
           fetchRowsOrEmptyWhenMissing(supabase.from("v_leg_result_observations_with_pace").select("*")),
           fetchRows(supabase.from("v_runner_participations").select("*")),
+          fetchRowsOrEmptyWhenMissing(
+            supabase
+              .from("v_comments_with_author")
+              .select("*")
+              .order("created_at", { ascending: false })
+              .limit(200)
+          ),
         ]);
 
         return {
@@ -1090,6 +1128,7 @@ function createRelayTools(
             legResults: results.length,
             provisionalObservations: observations.length,
             runnerYearParticipations: participations.length,
+            comments: comments.length,
             runners: runnerStats.filter((runner) => runner.runner_name).length,
             legVersions: legVersionStats.length,
           },
@@ -1098,6 +1137,7 @@ function createRelayTools(
             .filter((leg) => leg.best_pace !== null)
             .sort((a, b) => (a.best_pace || Number.POSITIVE_INFINITY) - (b.best_pace || Number.POSITIVE_INFINITY))
             .slice(0, 8),
+          recentComments: comments.slice(0, 25),
         };
       }),
     }),
@@ -1152,20 +1192,46 @@ function createRelayTools(
           .select("*")
           .eq("leg_number", legNumber)
           .order("year", { ascending: false });
+        let legCommentQuery = supabase
+          .from("v_comments_with_author")
+          .select("*")
+          .eq("target_type", "leg")
+          .eq("leg_number", legNumber)
+          .order("created_at", { ascending: false });
+        let runCommentQuery = supabase
+          .from("v_comments_with_author")
+          .select("*")
+          .eq("target_type", "leg_instance")
+          .eq("leg_number", legNumber)
+          .order("created_at", { ascending: false });
 
         if (typeof version === "number") {
           statQuery = statQuery.eq("leg_version", version);
           resultQuery = resultQuery.eq("leg_version", version);
           observationQuery = observationQuery.eq("leg_version", version);
+          legCommentQuery = legCommentQuery.eq("leg_version", version);
+          runCommentQuery = runCommentQuery.eq("leg_version", version);
         }
 
-        const [stats, results, observations] = await Promise.all([
+        const [stats, results, observations, legComments, runComments] = await Promise.all([
           fetchRows(statQuery),
           fetchRows(resultQuery.limit(80)),
           fetchRowsOrEmptyWhenMissing(observationQuery.limit(80)),
+          fetchRowsOrEmptyWhenMissing(legCommentQuery.limit(80)),
+          fetchRowsOrEmptyWhenMissing(runCommentQuery.limit(80)),
         ]);
 
-        return { legNumber, version: version ?? null, stats, results, observations };
+        return {
+          legNumber,
+          version: version ?? null,
+          stats,
+          results,
+          observations,
+          comments: {
+            leg: legComments,
+            runInstances: runComments,
+          },
+        };
       }),
     }),
     getYearResults: tool({
@@ -1183,7 +1249,7 @@ function createRelayTools(
         additionalProperties: false,
       }),
       execute: limitToolExecution(async ({ year }) => {
-        const [summary, results, observations, participations] = await Promise.all([
+        const [summary, results, observations, participations, raceComments, runComments] = await Promise.all([
           fetchRows(supabase.from("v_yearly_summary").select("*").eq("year", year).limit(1)),
           fetchRows(
             supabase
@@ -1206,9 +1272,35 @@ function createRelayTools(
               .eq("year", year)
               .order("runner_name", { ascending: true })
           ),
+          fetchRowsOrEmptyWhenMissing(
+            supabase
+              .from("v_comments_with_author")
+              .select("*")
+              .eq("target_type", "race")
+              .eq("year", year)
+              .order("created_at", { ascending: false })
+          ),
+          fetchRowsOrEmptyWhenMissing(
+            supabase
+              .from("v_comments_with_author")
+              .select("*")
+              .eq("target_type", "leg_instance")
+              .eq("year", year)
+              .order("created_at", { ascending: false })
+          ),
         ]);
 
-        return { year, summary: summary[0] ?? null, results, observations, participations };
+        return {
+          year,
+          summary: summary[0] ?? null,
+          results,
+          observations,
+          participations,
+          comments: {
+            race: raceComments,
+            runInstances: runComments,
+          },
+        };
       }),
     }),
     saveLegObservation: tool({
@@ -1246,6 +1338,13 @@ function createRelayTools(
             type: "string",
             description: "Optional source detail, such as device model, app name, or file name.",
           },
+          sourceTags: {
+            type: "array",
+            description: "Reusable source tags, such as Strava, Apple Watch, screenshot, file name, or activity title.",
+            items: {
+              type: "string",
+            },
+          },
           lapTime: {
             type: "string",
             description: "Observed lap time as HH:MM:SS, H:MM:SS, or a clear hours/minutes/seconds phrase.",
@@ -1266,10 +1365,6 @@ function createRelayTools(
             type: "number",
             description: "Observed elevation gain in feet.",
           },
-          notes: {
-            type: "string",
-            description: "Optional note about uncertainty, source, or context.",
-          },
           metadata: {
             type: "object",
             description: "Optional extra source metadata as key-value pairs.",
@@ -1286,6 +1381,50 @@ function createRelayTools(
       }),
       execute: limitToolExecution(async (input) => saveLegObservation(supabase, input, currentUser)),
     }),
+    deleteLegObservation: tool({
+      description:
+        "Delete non-canonical provisional runner/device data for a leg. Use only after the user clearly asks to delete provisional data and the target observation is unambiguous.",
+      inputSchema: jsonSchema<DeleteLegObservationInput>({
+        type: "object",
+        properties: {
+          observationId: {
+            type: "string",
+            description: "Existing provisional observation UUID to delete.",
+          },
+          year: {
+            type: "number",
+            description: "Race year, such as 2025.",
+          },
+          legNumber: {
+            type: "number",
+            description: "Relay leg number.",
+          },
+          legVersion: {
+            type: "number",
+            description: "Route version for that leg.",
+          },
+          runnerName: {
+            type: "string",
+            description: "Exact runner name for matching a provisional observation.",
+          },
+          sourceType: {
+            type: "string",
+            enum: ["apple_watch", "garmin", "phone", "strava", "manual_runner", "manual_admin", "other"],
+            description: "Optional source type filter.",
+          },
+          sourceLabel: {
+            type: "string",
+            description: "Optional source label filter.",
+          },
+          confirm: {
+            type: "boolean",
+            description: "Set true only when the user explicitly confirmed deletion.",
+          },
+        },
+        additionalProperties: false,
+      }),
+      execute: limitToolExecution(async (input) => deleteLegObservation(supabase, input)),
+    }),
   };
 }
 
@@ -1300,12 +1439,12 @@ async function saveLegObservation(
   const runnerName = input.runnerName.trim();
   const sourceType = normalizeObservationSourceType(input.sourceType);
   const sourceLabel = input.sourceLabel === undefined ? undefined : normalizeNotes(input.sourceLabel);
+  const sourceTags = input.sourceTags === undefined ? undefined : normalizeSourceTags(input.sourceTags);
   const lapTime = normalizeOptionalLapTime(input.lapTime);
   const movingTime = normalizeOptionalLapTime(input.movingTime);
   const elapsedTime = normalizeOptionalLapTime(input.elapsedTime);
   const distance = normalizeOptionalPositiveNumber(input.distance);
   const elevationGain = normalizeOptionalElevationGain(input.elevationGain);
-  const notes = input.notes === undefined ? undefined : normalizeNotes(input.notes);
   const metadata = normalizeObservationMetadata(input.metadata);
 
   const invalidFields = [
@@ -1324,14 +1463,14 @@ async function saveLegObservation(
     };
   }
 
-  const missingFields = [
-    !year && "race year",
-    !legNumber && "leg number",
-    !legVersion && "leg version",
-    !runnerName && "runner name",
-  ].filter(Boolean);
+  if (year === null || legNumber === null || legVersion === null || !runnerName) {
+    const missingFields = [
+      year === null && "race year",
+      legNumber === null && "leg number",
+      legVersion === null && "leg version",
+      !runnerName && "runner name",
+    ].filter(Boolean);
 
-  if (missingFields.length > 0) {
     return {
       ok: false,
       action: "ask_for_missing_fields",
@@ -1355,11 +1494,12 @@ async function saveLegObservation(
     input.elapsedTime !== undefined ||
     input.distance !== undefined ||
     input.elevationGain !== undefined ||
-    input.notes !== undefined ||
+    input.sourceTags !== undefined ||
     input.metadata !== undefined ||
     input.sourceLabel !== undefined;
   const hasMaterialData =
-    Boolean(lapTime || movingTime || elapsedTime || notes) ||
+    Boolean(lapTime || movingTime || elapsedTime || sourceLabel) ||
+    (sourceTags !== undefined && sourceTags.length > 0) ||
     distance !== undefined ||
     elevationGain !== undefined ||
     (metadata !== undefined && Object.keys(metadata).length > 0);
@@ -1369,7 +1509,7 @@ async function saveLegObservation(
       ok: false,
       action: "ask_for_observation_data",
       message:
-        "Ask for at least one non-canonical observation field: lap time, moving time, elapsed time, distance, elevation gain, notes, or metadata.",
+        "Ask for at least one non-canonical observation field: lap time, moving time, elapsed time, distance, elevation gain, source label, source tags, or metadata.",
     };
   }
 
@@ -1458,10 +1598,11 @@ async function saveLegObservation(
       .eq("source_type", sourceType);
 
     if (input.sourceLabel !== undefined) {
+      const matchingSourceLabel = sourceLabel ?? null;
       matchingObservationQuery =
-        sourceLabel === null
+        matchingSourceLabel === null
           ? matchingObservationQuery.is("source_label", null)
-          : matchingObservationQuery.eq("source_label", sourceLabel);
+          : matchingObservationQuery.eq("source_label", matchingSourceLabel);
     }
 
     const matchingObservations = await fetchRows(matchingObservationQuery.limit(5));
@@ -1495,12 +1636,12 @@ async function saveLegObservation(
     runnerId: runner.runner.id,
     sourceType,
     sourceLabel,
+    sourceTags,
     lapTime,
     movingTime,
     elapsedTime,
     distance,
     elevationGain,
-    notes,
     metadata,
     input,
   });
@@ -1524,13 +1665,13 @@ async function saveLegObservation(
       runner_id: runner.runner.id,
       source_type: sourceType,
       source_label: sourceLabel ?? null,
+      source_tags: sourceTags ?? [],
       submitted_by_runner_id: submittedByRunnerId,
       ...(lapTime !== undefined ? { lap_time: lapTime } : {}),
       ...(movingTime !== undefined ? { moving_time: movingTime } : {}),
       ...(elapsedTime !== undefined ? { elapsed_time: elapsedTime } : {}),
       ...(distance !== undefined ? { distance } : {}),
       ...(elevationGain !== undefined ? { elevation_gain: elevationGain } : {}),
-      ...(notes !== undefined ? { notes } : {}),
       ...(metadata !== undefined ? { raw_metadata: metadata as LegObservationInsert["raw_metadata"] } : {}),
     };
     const inserted = await fetchRows(
@@ -1542,7 +1683,7 @@ async function saveLegObservation(
     savedBaseObservation = inserted[0];
   }
 
-  const savedObservation = await fetchMaybeRow(
+  const savedObservation = await fetchMaybeRow<LegObservationWithPaceRow>(
     supabase
       .from("v_leg_result_observations_with_pace")
       .select("*")
@@ -1558,18 +1699,147 @@ async function saveLegObservation(
   };
 }
 
+async function deleteLegObservation(
+  supabase: DataClient,
+  input: DeleteLegObservationInput
+) {
+  if (!(await isLegObservationSchemaReady(supabase))) {
+    return {
+      ok: false,
+      action: "schema_migration_required",
+      message:
+        "The provisional leg data table/view is not in Supabase yet. Run the latest migration before deleting runner/device observations.",
+      migration: "supabase/migrations/20260606080000_add_leg_result_observations.sql",
+    };
+  }
+
+  let matches: LegObservationWithPaceRow[];
+
+  if (input.observationId) {
+    const observation = await fetchMaybeRow<LegObservationWithPaceRow>(
+      supabase
+        .from("v_leg_result_observations_with_pace")
+        .select("*")
+        .eq("id", input.observationId)
+        .maybeSingle()
+    );
+
+    matches = observation ? [observation] : [];
+  } else {
+    const year = input.year === undefined ? null : normalizeInteger(input.year);
+    const legNumber = input.legNumber === undefined ? null : normalizeInteger(input.legNumber);
+    const legVersion = input.legVersion === undefined ? null : normalizeInteger(input.legVersion);
+    const runnerName = input.runnerName?.trim() ?? "";
+
+    if (year === null || legNumber === null || legVersion === null || !runnerName) {
+      const missingFields = [
+        year === null && "race year",
+        legNumber === null && "leg number",
+        legVersion === null && "leg version",
+        !runnerName && "runner name or observationId",
+      ].filter(Boolean);
+
+      return {
+        ok: false,
+        action: "ask_for_missing_delete_fields",
+        missingFields,
+      };
+    }
+
+    const runner = await resolveRunner(supabase, runnerName);
+
+    if (!runner.ok) {
+      return runner;
+    }
+
+    let query = supabase
+      .from("v_leg_result_observations_with_pace")
+      .select("*")
+      .eq("year", year)
+      .eq("leg_number", legNumber)
+      .eq("leg_version", legVersion)
+      .eq("runner_id", runner.runner.id)
+      .order("created_at", { ascending: false });
+
+    if (input.sourceType) {
+      query = query.eq("source_type", normalizeObservationSourceType(input.sourceType));
+    }
+
+    if (input.sourceLabel !== undefined) {
+      const sourceLabel = normalizeNotes(input.sourceLabel);
+      query = sourceLabel === null ? query.is("source_label", null) : query.eq("source_label", sourceLabel);
+    }
+
+    matches = await fetchRowsOrEmptyWhenMissing(query.limit(10));
+  }
+
+  if (matches.length === 0) {
+    return {
+      ok: false,
+      action: "ask_for_existing_observation",
+      message: "No provisional observation matched that delete request.",
+      input,
+    };
+  }
+
+  if (matches.length > 1) {
+    return {
+      ok: false,
+      action: "ask_for_observation_to_delete",
+      message: "More than one provisional observation matched. Ask which observationId to delete.",
+      matches,
+    };
+  }
+
+  const observation = matches[0];
+
+  if (!observation.id) {
+    return {
+      ok: false,
+      action: "ask_for_existing_observation",
+      message: "The matched provisional observation is missing an observationId.",
+      observation,
+    };
+  }
+
+  if (!input.confirm) {
+    return {
+      ok: false,
+      action: "ask_for_delete_confirmation",
+      message: "Ask the user to confirm deleting this provisional observation.",
+      observation,
+    };
+  }
+
+  const { error } = await supabase
+    .from("leg_result_observations")
+    .delete()
+    .eq("id", observation.id);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return {
+    ok: true,
+    action: "deleted_leg_observation",
+    observation,
+  };
+}
+
 async function resolveRunner(
   supabase: DataClient,
   runnerName: string
-):
-  | Promise<{ ok: true; runner: RunnerRow }>
-  | Promise<{
+): Promise<
+  | { ok: true; runner: RunnerRow }
+  | {
       ok: false;
       action: "ask_for_runner_name";
       message: string;
       runnerName: string;
       possibleMatches: RunnerRow[];
-    }> {
+    }
+> {
   const exactMatches = await fetchRows(
     supabase
       .from("runners")
@@ -1795,6 +2065,14 @@ function normalizeNotes(value: string | undefined): string | null {
   return trimmed ? trimmed : null;
 }
 
+function normalizeSourceTags(values: string[]): string[] {
+  return uniqueStrings(
+    values
+      .map((value) => value.trim().replace(/\s+/g, " "))
+      .filter(Boolean)
+  );
+}
+
 function normalizeObservationMetadata(
   metadata: Record<string, unknown> | undefined
 ): Record<string, unknown> | undefined {
@@ -1841,12 +2119,12 @@ function buildLegObservationPayload({
   runnerId,
   sourceType,
   sourceLabel,
+  sourceTags,
   lapTime,
   movingTime,
   elapsedTime,
   distance,
   elevationGain,
-  notes,
   metadata,
   input,
 }: {
@@ -1856,12 +2134,12 @@ function buildLegObservationPayload({
   runnerId: string;
   sourceType: LegObservationSourceType;
   sourceLabel: string | null | undefined;
+  sourceTags: string[] | undefined;
   lapTime: string | null | undefined;
   movingTime: string | null | undefined;
   elapsedTime: string | null | undefined;
   distance: number | null | undefined;
   elevationGain: number | null | undefined;
-  notes: string | null | undefined;
   metadata: Record<string, unknown> | undefined;
   input: SaveLegObservationInput;
 }): LegObservationUpdate {
@@ -1875,6 +2153,9 @@ function buildLegObservationPayload({
 
   if (input.sourceLabel !== undefined) {
     payload.source_label = sourceLabel ?? null;
+  }
+  if (input.sourceTags !== undefined) {
+    payload.source_tags = sourceTags ?? [];
   }
   if (input.lapTime !== undefined) {
     payload.lap_time = lapTime;
@@ -1890,9 +2171,6 @@ function buildLegObservationPayload({
   }
   if (input.elevationGain !== undefined) {
     payload.elevation_gain = elevationGain;
-  }
-  if (input.notes !== undefined) {
-    payload.notes = notes;
   }
   if (metadata !== undefined) {
     payload.raw_metadata = metadata as LegObservationUpdate["raw_metadata"];

@@ -20,7 +20,6 @@ CREATE TABLE IF NOT EXISTS "public"."results" (
     "leg_version" smallint NOT NULL,
     "lap_time" interval,
     "user_id" "uuid",
-    "notes" "text",
     "source_type" "text" DEFAULT 'official'::"text" NOT NULL,
     "canonical_observation_id" "uuid"
 );
@@ -34,13 +33,13 @@ CREATE TABLE IF NOT EXISTS "public"."leg_result_observations" (
     "runner_id" "uuid",
     "source_type" "text" DEFAULT 'manual_runner'::"text" NOT NULL,
     "source_label" "text",
+    "source_tags" "text"[] DEFAULT '{}'::"text"[] NOT NULL,
     "submitted_by_runner_id" "uuid",
     "lap_time" interval,
     "moving_time" interval,
     "elapsed_time" interval,
     "distance" double precision,
     "elevation_gain" smallint,
-    "notes" "text",
     "raw_metadata" "jsonb" DEFAULT '{}'::"jsonb" NOT NULL,
     "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
     "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL
@@ -155,3 +154,6 @@ CREATE POLICY "Allow authenticated users to insert leg_result_observations"
 
 CREATE POLICY "Allow authenticated users to update leg_result_observations"
     ON "public"."leg_result_observations" FOR UPDATE TO "authenticated" USING (true) WITH CHECK (true);
+
+CREATE POLICY "Allow authenticated users to delete leg_result_observations"
+    ON "public"."leg_result_observations" FOR DELETE TO "authenticated" USING (true);

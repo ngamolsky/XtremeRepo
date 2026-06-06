@@ -1,5 +1,5 @@
 import { Link, useRouter } from "@tanstack/react-router";
-import { BarChart3, Camera, History, Trophy, User, Users } from "lucide-react";
+import { BarChart3, Camera, Flag, Trophy, User, Users } from "lucide-react";
 import React from "react";
 import ThemeToggle from "./ThemeToggle";
 
@@ -11,7 +11,7 @@ const Navigation: React.FC = () => {
     { id: "dashboard", label: "Dashboard", icon: BarChart3, path: "/" },
     { id: "team", label: "Team", icon: Users, path: "/team" },
     { id: "legs", label: "Legs", icon: BarChart3, path: "/legs" },
-    { id: "history", label: "History", icon: History, path: "/history" },
+    { id: "races", label: "Races", icon: Flag, path: "/races" },
     { id: "photos", label: "Photos", icon: Camera, path: "/photos" },
   ];
 

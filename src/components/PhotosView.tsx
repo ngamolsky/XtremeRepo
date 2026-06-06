@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate, useSearch } from "@tanstack/react-router";
 import React, { useEffect, useMemo, useState } from "react";
 import {
   Calendar,
@@ -6,6 +6,7 @@ import {
   Image,
   Search,
   Star,
+  X,
 } from "lucide-react";
 import { supabase } from "../lib/supabase";
 import { Tables } from "../types/database.types";
@@ -21,11 +22,14 @@ type PhotoFolder = {
 };
 
 const PhotosView: React.FC = () => {
-  const [selectedYear, setSelectedYear] = useState<number | null>(null);
+  const search = useSearch({ from: "/photos/" });
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [photos, setPhotos] = useState<PhotoWithUrl[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const selectedYear = search.year ?? null;
+  const selectedRace = search.race ?? "";
 
   useEffect(() => {
     let cancelled = false;
@@ -98,6 +102,14 @@ const PhotosView: React.FC = () => {
     return photos.filter((photo) => photo.year === selectedYear);
   }, [photos, selectedYear]);
 
+  const photosForSelectedAlbum = useMemo(() => {
+    if (!selectedRace) {
+      return photosForSelectedYear;
+    }
+
+    return photosForSelectedYear.filter((photo) => photo.race === selectedRace);
+  }, [photosForSelectedYear, selectedRace]);
+
   const years = useMemo(
     () => Array.from(new Set(photos.map((photo) => photo.year))).sort((a, b) => b - a),
     [photos]
@@ -106,7 +118,7 @@ const PhotosView: React.FC = () => {
   const filteredPhotos = useMemo(() => {
     const normalizedSearch = searchTerm.trim().toLowerCase();
 
-    return photosForSelectedYear.filter((photo) => {
+    return photosForSelectedAlbum.filter((photo) => {
       const searchableText = [
         photo.year,
         photo.caption,
@@ -126,7 +138,7 @@ const PhotosView: React.FC = () => {
 
       return matchesSearch;
     });
-  }, [photosForSelectedYear, searchTerm]);
+  }, [photosForSelectedAlbum, searchTerm]);
 
   const filteredFolders = useMemo(() => {
     const normalizedSearch = searchTerm.trim().toLowerCase();
@@ -156,13 +168,27 @@ const PhotosView: React.FC = () => {
   }, [folders, searchTerm]);
 
   function handleOpenFolder(year: number) {
-    setSelectedYear(year);
+    updatePhotoSearch(year, "");
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   function handleYearChange(value: string) {
-    setSelectedYear(value === "all" ? null : Number(value));
+    updatePhotoSearch(value === "all" ? null : Number(value), "");
     window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function handleClearRaceFilter() {
+    updatePhotoSearch(selectedYear, "");
+  }
+
+  function updatePhotoSearch(year: number | null, race: string) {
+    void navigate({
+      to: "/photos",
+      search: {
+        race: race || undefined,
+        year: year ?? undefined,
+      },
+    });
   }
 
   return (
@@ -170,12 +196,18 @@ const PhotosView: React.FC = () => {
       <div className="flex flex-col gap-4 text-center sm:text-left md:flex-row md:items-end md:justify-between">
         <div>
           <h1 className="text-4xl font-bold text-gray-900 mb-2">
-            {selectedYear === null ? "Race Photos" : `${selectedYear} Race Photos`}
+            {selectedYear === null
+              ? "Race Photos"
+              : selectedRace
+                ? `${selectedYear} ${selectedRace} Photos`
+                : `${selectedYear} Race Photos`}
           </h1>
           <p className="text-lg text-gray-600">
             {selectedYear === null
               ? "Captured memories from our relay race adventures"
-              : `${photosForSelectedYear.length} photos from ${selectedYear}`}
+              : selectedRace
+                ? `${photosForSelectedAlbum.length} photos linked to ${selectedRace}`
+                : `${photosForSelectedYear.length} photos from ${selectedYear}`}
           </p>
         </div>
       </div>
@@ -213,6 +245,21 @@ const PhotosView: React.FC = () => {
             </select>
           </div>
         </div>
+        {selectedRace && (
+          <div className="mt-4 flex flex-wrap items-center gap-3">
+            <span className="rounded-full bg-primary-50 px-3 py-1 text-sm font-medium text-primary-700">
+              {selectedRace}
+            </span>
+            <button
+              type="button"
+              onClick={handleClearRaceFilter}
+              className="inline-flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-1.5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-50 hover:text-gray-900"
+            >
+              <X className="h-4 w-4" />
+              <span>Clear race filter</span>
+            </button>
+          </div>
+        )}
       </div>
 
       {loading ? (

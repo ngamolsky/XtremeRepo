@@ -12,18 +12,35 @@ const AuthWrapper: React.FC<AuthWrapperProps> = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Get initial session
     const getSession = async () => {
       const {
         data: { session },
       } = await supabase.auth.getSession();
-      setUser(session?.user ?? null);
+
+      if (!session) {
+        setUser(null);
+        setLoading(false);
+        return;
+      }
+
+      const {
+        data: { user: verifiedUser },
+        error,
+      } = await supabase.auth.getUser();
+
+      if (error || !verifiedUser) {
+        await supabase.auth.signOut({ scope: "local" });
+        setUser(null);
+        setLoading(false);
+        return;
+      }
+
+      setUser(verifiedUser);
       setLoading(false);
     };
 
     getSession();
 
-    // Listen for auth changes
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (_event, session) => {

@@ -17,7 +17,6 @@ CREATE OR REPLACE VIEW "public"."v_results_with_pace" AS
                     WHEN ("ld"."distance" > (0)::double precision) THEN ("public"."parse_time_to_minutes"("r"."lap_time") / "ld"."distance")
                     ELSE NULL::double precision
                 END AS "pace",
-            "r"."notes",
             "r"."source_type",
             "r"."canonical_observation_id",
             "p"."race_start_time",
@@ -39,7 +38,6 @@ CREATE OR REPLACE VIEW "public"."v_results_with_pace" AS
     "auth_user_id",
     "time_in_minutes",
     "pace",
-    "notes",
     "source_type",
     "canonical_observation_id",
     "race_start_time",
@@ -56,6 +54,7 @@ CREATE OR REPLACE VIEW "public"."v_leg_result_observations_with_pace" AS
     "o"."leg_version",
     "o"."source_type",
     "o"."source_label",
+    "o"."source_tags",
     "o"."submitted_by_runner_id",
     "submitted_by"."name" AS "submitted_by_runner_name",
     "o"."lap_time",
@@ -87,7 +86,6 @@ CREATE OR REPLACE VIEW "public"."v_leg_result_observations_with_pace" AS
     "canonical_result"."user_id" AS "canonical_runner_id",
     "canonical_runner"."name" AS "canonical_runner_name",
     "canonical_result"."lap_time" AS "canonical_lap_time",
-    "o"."notes",
     "o"."raw_metadata",
     "o"."created_at",
     "o"."updated_at",
@@ -199,10 +197,10 @@ CREATE OR REPLACE VIEW "public"."v_runner_stats" AS
             "min"("v_results_with_pace"."time_in_minutes") AS "best_time",
             "avg"("v_results_with_pace"."time_in_minutes") AS "average_time",
             "count"(DISTINCT "v_results_with_pace"."leg_number") AS "unique_legs"
-	           FROM "public"."v_results_with_pace"
-	          WHERE ("v_results_with_pace"."runner_id" IS NOT NULL)
-	          GROUP BY "v_results_with_pace"."runner_id", "v_results_with_pace"."runner_name"
-	        ), "runner_participation" AS (
+           FROM "public"."v_results_with_pace"
+          WHERE ("v_results_with_pace"."runner_id" IS NOT NULL)
+          GROUP BY "v_results_with_pace"."runner_id", "v_results_with_pace"."runner_name"
+        ), "runner_participation" AS (
          SELECT "rp"."runner_id",
             "rn"."name" AS "runner_name",
             "count"(*) AS "total_races",
@@ -217,7 +215,7 @@ CREATE OR REPLACE VIEW "public"."v_runner_stats" AS
             "v_results_with_pace"."pace"
            FROM "public"."v_results_with_pace"
           WHERE (("v_results_with_pace"."pace" IS NOT NULL) AND ("v_results_with_pace"."runner_id" IS NOT NULL))
-	        )
+        )
  SELECT "p"."runner_id",
     "p"."runner_name",
     "p"."total_races",
@@ -230,18 +228,18 @@ CREATE OR REPLACE VIEW "public"."v_runner_stats" AS
     COALESCE("rs"."unique_legs", (0)::bigint) AS "unique_legs",
     "p"."unique_years",
     ( SELECT "json_agg"("json_build_object"('leg', "best_pace_legs"."leg_number", 'version', "best_pace_legs"."leg_version")) AS "json_agg"
-	           FROM ( SELECT DISTINCT "v_results_with_pace"."leg_number",
-	                    "v_results_with_pace"."leg_version"
-	                   FROM "public"."v_results_with_pace"
-	                  WHERE (("v_results_with_pace"."runner_id" = "p"."runner_id") AND ("v_results_with_pace"."pace" = ( SELECT "min"("runner_paces"."pace") AS "min"
-	                           FROM "runner_paces"
-	                          WHERE ("runner_paces"."runner_id" = "p"."runner_id"))))) "best_pace_legs") AS "best_pace_legs_with_versions",
+           FROM ( SELECT DISTINCT "v_results_with_pace"."leg_number",
+                    "v_results_with_pace"."leg_version"
+                   FROM "public"."v_results_with_pace"
+                  WHERE (("v_results_with_pace"."runner_id" = "p"."runner_id") AND ("v_results_with_pace"."pace" = ( SELECT "min"("runner_paces"."pace") AS "min"
+                           FROM "runner_paces"
+                          WHERE ("runner_paces"."runner_id" = "p"."runner_id"))))) "best_pace_legs") AS "best_pace_legs_with_versions",
     ( SELECT "json_agg"("json_build_object"('leg', "legs_run"."leg_number", 'latestVersion', "legs_run"."max_version")) AS "json_agg"
            FROM ( SELECT "v_results_with_pace"."leg_number",
                     "max"("v_results_with_pace"."leg_version") AS "max_version"
                    FROM "public"."v_results_with_pace"
-	                  WHERE ("v_results_with_pace"."runner_id" = "p"."runner_id")
-	                  GROUP BY "v_results_with_pace"."leg_number") "legs_run") AS "legs_run",
+                  WHERE ("v_results_with_pace"."runner_id" = "p"."runner_id")
+                  GROUP BY "v_results_with_pace"."leg_number") "legs_run") AS "legs_run",
     "p"."participation_years",
     COALESCE("rs"."known_leg_runs", (0)::bigint) AS "known_leg_runs",
     COALESCE(( SELECT "json_agg"("rp"."year" ORDER BY "rp"."year") AS "json_agg"
@@ -272,12 +270,11 @@ CREATE OR REPLACE VIEW "public"."v_yearly_summary" AS
             WHEN ("tps"."division_teams" > 0) THEN ((("tps"."division_place")::double precision / ("tps"."division_teams")::double precision) * (100)::double precision)
             ELSE NULL::double precision
         END AS "division_percentile",
-    "p"."notes",
     COALESCE("yp"."participant_count", (0)::bigint) AS "participant_count",
     "tps"."race_start_time"
-	   FROM ("public"."team_performance_summary" "tps"
-	     LEFT JOIN "public"."placements" "p" ON (("tps"."year" = "p"."year")))
-	     LEFT JOIN ( SELECT "race_participations"."year",
+   FROM ("public"."team_performance_summary" "tps"
+     LEFT JOIN "public"."placements" "p" ON (("tps"."year" = "p"."year")))
+     LEFT JOIN ( SELECT "race_participations"."year",
             "count"(*) AS "participant_count"
            FROM "public"."race_participations"
           GROUP BY "race_participations"."year") "yp" ON (("tps"."year" = "yp"."year"));

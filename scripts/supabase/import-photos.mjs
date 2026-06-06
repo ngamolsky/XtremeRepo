@@ -7,6 +7,8 @@ import { resolveSupabaseTarget } from "./target.mjs";
 const IMAGE_EXTENSIONS = new Set([".jpg", ".jpeg", ".png", ".webp"]);
 const DEFAULT_BUCKET = "race-photos";
 const DEFAULT_EVENT = "Tahoe Relay";
+const MAX_ATTEMPTS = 4;
+const RETRY_BASE_MS = 1_000;
 
 const args = parseArgs(process.argv.slice(2));
 
@@ -113,20 +115,23 @@ if (args.dryRun) {
 }
 
 for (const [index, item] of rows.entries()) {
-  const { error: uploadError } = await client.storage
-    .from(item.row.storage_bucket)
-    .upload(item.row.storage_path, item.buffer, {
-      contentType: item.contentType,
-      upsert: true,
-    });
+  const { error: uploadError } = await withRetry(
+    () =>
+      client.storage.from(item.row.storage_bucket).upload(item.row.storage_path, item.buffer, {
+        contentType: item.contentType,
+        upsert: true,
+      }),
+    `uploading ${item.relativePath}`
+  );
 
   if (uploadError) {
     throw new Error(`Failed uploading ${item.relativePath}: ${uploadError.message}`);
   }
 
-  const { error: metadataError } = await client
-    .from("race_photos")
-    .upsert(item.row, { onConflict: "storage_bucket,storage_path" });
+  const { error: metadataError } = await withRetry(
+    () => client.from("race_photos").upsert(item.row, { onConflict: "storage_bucket,storage_path" }),
+    `upserting metadata for ${item.relativePath}`
+  );
 
   if (metadataError) {
     throw new Error(`Failed upserting metadata for ${item.relativePath}: ${metadataError.message}`);
@@ -208,6 +213,32 @@ async function ensureBucket(client, bucket) {
   if (createError) {
     throw new Error(`Could not create storage bucket ${bucket}: ${createError.message}`);
   }
+}
+
+async function withRetry(operation, label) {
+  let result = null;
+
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt += 1) {
+    result = await operation();
+
+    if (!result.error || attempt === MAX_ATTEMPTS) {
+      return result;
+    }
+
+    const delayMs = RETRY_BASE_MS * 2 ** (attempt - 1);
+    console.warn(
+      `Retrying ${label} after ${result.error.message} (${attempt}/${MAX_ATTEMPTS - 1})`
+    );
+    await sleep(delayMs);
+  }
+
+  return result;
+}
+
+function sleep(ms) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
 }
 
 function walk(dir) {

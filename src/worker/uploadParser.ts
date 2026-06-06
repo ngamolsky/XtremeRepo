@@ -6,7 +6,6 @@ export type Placement = {
   overall_place: number;
   overall_teams: number;
   bib: number;
-  notes?: string;
 };
 
 export type Result = {
@@ -15,7 +14,6 @@ export type Result = {
   leg_version: number;
   runner: string;
   lap_time: string; // ISO 8601 duration or HH:MM:SS string
-  notes?: string;
 };
 
 type JwtPayload = {
@@ -182,7 +180,6 @@ function splitRaceData(data: Record<string, string>[]): { placements: Placement[
         overall_place: Number(row.overall_place),
         overall_teams: Number(row.overall_teams),
         bib: Number(row.bib),
-        notes: row.notes || '',
       });
     } else if ('leg_number' in row) {
       results.push({
@@ -191,7 +188,6 @@ function splitRaceData(data: Record<string, string>[]): { placements: Placement[
         leg_version: Number(row.leg_version),
         runner: row.runner,
         lap_time: row.lap_time,
-        notes: row.notes || '',
       });
     }
   }

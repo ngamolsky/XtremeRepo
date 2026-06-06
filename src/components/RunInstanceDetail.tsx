@@ -1,12 +1,57 @@
 import { Link, useParams } from "@tanstack/react-router";
-import { Activity, Clock, FileText, Map as MapIcon, PlusCircle, User } from "lucide-react";
+import {
+  Activity,
+  Clock,
+  FileText,
+  Map as MapIcon,
+  PlusCircle,
+  Tag,
+  Trash2,
+  User,
+  X,
+} from "lucide-react";
 import React, { useEffect, useMemo, useState } from "react";
 import { useRelayData } from "../hooks/useRelayData";
 import { formatFeet, formatMiles, formatPace, formatSourceType } from "../lib/utils";
 import { supabase } from "../lib/supabase";
 import { Tables } from "../types/database.types";
+import CommentsSection from "./CommentsSection";
 
 type ObservationRow = Tables<"v_leg_result_observations_with_pace">;
+
+type ObservationFormState = {
+  distance: string;
+  elapsedTime: string;
+  elevationGain: string;
+  lapTime: string;
+  metadata: string;
+  movingTime: string;
+  sourceLabel: string;
+  sourceTags: string[];
+  sourceType: string;
+};
+
+const defaultObservationForm: ObservationFormState = {
+  distance: "",
+  elapsedTime: "",
+  elevationGain: "",
+  lapTime: "",
+  metadata: "",
+  movingTime: "",
+  sourceLabel: "",
+  sourceTags: [],
+  sourceType: "manual_runner",
+};
+
+const sourceTypeOptions = [
+  "manual_runner",
+  "apple_watch",
+  "garmin",
+  "phone",
+  "strava",
+  "manual_admin",
+  "other",
+];
 
 const formatValue = (value: string | number | null | undefined) =>
   value === null || value === undefined || value === "" ? "N/A" : String(value);
@@ -33,6 +78,13 @@ const isEmptyMetadata = (value: ObservationRow["raw_metadata"]) => {
   return typeof value === "object" && Object.keys(value).length === 0;
 };
 
+const normalizeTag = (value: string) => value.trim().replace(/\s+/g, " ");
+
+const uniqueTags = (tags: string[]) =>
+  [...new Set(tags.map(normalizeTag).filter(Boolean))].sort((a, b) =>
+    a.localeCompare(b)
+  );
+
 const RunInstanceDetail: React.FC = () => {
   const { runnerName, year, legNumber, version } = useParams({
     from: "/runs/$runnerName/$year/$legNumber/$version",
@@ -44,8 +96,13 @@ const RunInstanceDetail: React.FC = () => {
   } = useRelayData();
   const [currentRunnerId, setCurrentRunnerId] = useState<string | null>(null);
   const [createdObservations, setCreatedObservations] = useState<ObservationRow[]>([]);
-  const [noteText, setNoteText] = useState("");
-  const [savingNote, setSavingNote] = useState(false);
+  const [deletedObservationIds, setDeletedObservationIds] = useState<Set<string>>(new Set());
+  const [deletingObservationId, setDeletingObservationId] = useState<string | null>(null);
+  const [observationForm, setObservationForm] = useState<ObservationFormState>({
+    ...defaultObservationForm,
+  });
+  const [newTagText, setNewTagText] = useState("");
+  const [savingObservation, setSavingObservation] = useState(false);
   const [saveMessage, setSaveMessage] = useState("");
   const [saveError, setSaveError] = useState("");
 
@@ -101,7 +158,7 @@ const RunInstanceDetail: React.FC = () => {
     const byId = new Map<string, ObservationRow>();
 
     [...routeObservations, ...createdObservations].forEach((observation) => {
-      if (observation.id) {
+      if (observation.id && !deletedObservationIds.has(observation.id)) {
         byId.set(observation.id, observation);
       }
     });
@@ -112,7 +169,7 @@ const RunInstanceDetail: React.FC = () => {
 
       return createdCompare || (a.source_type || "").localeCompare(b.source_type || "");
     });
-  }, [createdObservations, routeObservations]);
+  }, [createdObservations, deletedObservationIds, routeObservations]);
   const legDefinition = legDefinitions.find(
     (leg) => leg.number === selectedLegNumber && leg.version === selectedVersion
   );
@@ -121,6 +178,15 @@ const RunInstanceDetail: React.FC = () => {
     canonicalResult?.runner_id ||
     observations.find((observation) => observation.runner_id)?.runner_id ||
     null;
+  const sourceTagOptions = useMemo(
+    () =>
+      uniqueTags([
+        ...legResultObservations.flatMap((observation) => observation.source_tags || []),
+        ...legResultObservations.map((observation) => observation.source_label || ""),
+        ...sourceTypeOptions.map(formatSourceType),
+      ]),
+    [legResultObservations]
+  );
 
   if (loading) {
     return (
@@ -155,24 +221,106 @@ const RunInstanceDetail: React.FC = () => {
     );
   }
 
-  const handleSaveNote = async (event: React.FormEvent) => {
+  const handleObservationFieldChange =
+    (field: keyof ObservationFormState) =>
+    (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+      setObservationForm((current) => ({
+        ...current,
+        [field]: event.target.value,
+      }));
+    };
+
+  const handleAddSourceTag = (tag: string) => {
+    const normalizedTag = normalizeTag(tag);
+
+    if (!normalizedTag) {
+      return;
+    }
+
+    setObservationForm((current) => ({
+      ...current,
+      sourceTags: uniqueTags([...current.sourceTags, normalizedTag]),
+    }));
+    setNewTagText("");
+  };
+
+  const handleRemoveSourceTag = (tag: string) => {
+    setObservationForm((current) => ({
+      ...current,
+      sourceTags: current.sourceTags.filter((sourceTag) => sourceTag !== tag),
+    }));
+  };
+
+  const handleSaveObservation = async (event: React.FormEvent) => {
     event.preventDefault();
     setSaveError("");
     setSaveMessage("");
-
-    const trimmedNote = noteText.trim();
-
-    if (!trimmedNote) {
-      setSaveError("Add a note before saving.");
-      return;
-    }
 
     if (!observedRunnerId) {
       setSaveError("This run is not linked to a runner record.");
       return;
     }
 
-    setSavingNote(true);
+    const parsedDistance = parseOptionalNumber(observationForm.distance);
+    const parsedElevation = parseOptionalInteger(observationForm.elevationGain);
+
+    if (parsedDistance !== null && Number.isNaN(parsedDistance)) {
+      setSaveError("Distance must be a number.");
+      return;
+    }
+
+    if (parsedDistance !== null && parsedDistance <= 0) {
+      setSaveError("Distance must be greater than zero.");
+      return;
+    }
+
+    if (parsedElevation !== null && Number.isNaN(parsedElevation)) {
+      setSaveError("Elevation gain must be a number.");
+      return;
+    }
+
+    if (parsedElevation !== null && parsedElevation < 0) {
+      setSaveError("Elevation gain cannot be negative.");
+      return;
+    }
+
+    let parsedMetadata: Record<string, unknown> = {};
+
+    if (observationForm.metadata.trim()) {
+      try {
+        const metadataValue = JSON.parse(observationForm.metadata) as unknown;
+
+        if (!metadataValue || Array.isArray(metadataValue) || typeof metadataValue !== "object") {
+          setSaveError("Metadata must be a JSON object.");
+          return;
+        }
+
+        parsedMetadata = metadataValue as Record<string, unknown>;
+      } catch {
+        setSaveError("Metadata must be valid JSON.");
+        return;
+      }
+    }
+
+    const sourceTags = uniqueTags(observationForm.sourceTags);
+    const hasObservedValue =
+      Boolean(
+        observationForm.lapTime.trim() ||
+          observationForm.movingTime.trim() ||
+          observationForm.elapsedTime.trim() ||
+          observationForm.sourceLabel.trim() ||
+          sourceTags.length > 0
+      ) ||
+      parsedDistance !== null ||
+      parsedElevation !== null ||
+      Object.keys(parsedMetadata).length > 0;
+
+    if (!hasObservedValue) {
+      setSaveError("Add a time, distance, elevation, source tag, or metadata before saving.");
+      return;
+    }
+
+    setSavingObservation(true);
 
     try {
       const { data: inserted, error: insertError } = await supabase
@@ -183,10 +331,20 @@ const RunInstanceDetail: React.FC = () => {
           leg_version: selectedVersion,
           runner_id: observedRunnerId,
           submitted_by_runner_id: currentRunnerId,
-          source_type: "manual_runner",
-          source_label: "Run detail note",
-          notes: trimmedNote,
+          source_type: observationForm.sourceType,
+          source_label: observationForm.sourceLabel.trim() || null,
+          source_tags: sourceTags,
+          ...(observationForm.lapTime.trim() ? { lap_time: observationForm.lapTime.trim() } : {}),
+          ...(observationForm.movingTime.trim()
+            ? { moving_time: observationForm.movingTime.trim() }
+            : {}),
+          ...(observationForm.elapsedTime.trim()
+            ? { elapsed_time: observationForm.elapsedTime.trim() }
+            : {}),
+          ...(parsedDistance !== null ? { distance: parsedDistance } : {}),
+          ...(parsedElevation !== null ? { elevation_gain: parsedElevation } : {}),
           raw_metadata: {
+            ...parsedMetadata,
             origin: "run_instance_detail",
             runner_name: runnerName,
           },
@@ -209,14 +367,48 @@ const RunInstanceDetail: React.FC = () => {
       }
 
       setCreatedObservations((current) => [savedObservation, ...current]);
-      setNoteText("");
-      setSaveMessage("Saved provisional note.");
+      setObservationForm({ ...defaultObservationForm });
+      setNewTagText("");
+      setSaveMessage("Saved provisional data.");
     } catch (saveErr) {
       setSaveError(
-        saveErr instanceof Error ? saveErr.message : "Could not save note."
+        saveErr instanceof Error ? saveErr.message : "Could not save provisional data."
       );
     } finally {
-      setSavingNote(false);
+      setSavingObservation(false);
+    }
+  };
+
+  const handleDeleteObservation = async (observation: ObservationRow) => {
+    if (!observation.id || !window.confirm("Delete this provisional observation?")) {
+      return;
+    }
+
+    setDeletingObservationId(observation.id);
+    setSaveError("");
+    setSaveMessage("");
+
+    try {
+      const { error: deleteError } = await supabase
+        .from("leg_result_observations")
+        .delete()
+        .eq("id", observation.id);
+
+      if (deleteError) {
+        throw deleteError;
+      }
+
+      setDeletedObservationIds((current) => new Set([...current, observation.id as string]));
+      setCreatedObservations((current) =>
+        current.filter((createdObservation) => createdObservation.id !== observation.id)
+      );
+      setSaveMessage("Deleted provisional data.");
+    } catch (deleteErr) {
+      setSaveError(
+        deleteErr instanceof Error ? deleteErr.message : "Could not delete provisional data."
+      );
+    } finally {
+      setDeletingObservationId(null);
     }
   };
 
@@ -270,14 +462,6 @@ const RunInstanceDetail: React.FC = () => {
             <Metric label="Finish" value={formatValue(canonicalResult.leg_finish_time)} />
             <Metric label="Elevation" value={formatFeet(canonicalResult.elevation_gain)} />
             <Metric label="Source" value={formatSourceType(canonicalResult.source_type)} />
-            <div className="md:col-span-3 lg:col-span-4">
-              <p className="mb-1 text-xs font-medium uppercase tracking-wider text-gray-500">
-                Official Notes
-              </p>
-              <p className="rounded-lg bg-gray-50 p-3 text-sm text-gray-800">
-                {canonicalResult.notes || "None"}
-              </p>
-            </div>
           </div>
         ) : (
           <p className="text-sm text-gray-600">
@@ -305,15 +489,12 @@ const RunInstanceDetail: React.FC = () => {
                   <EvidenceHeader label="Distance" />
                   <EvidenceHeader label="Elevation" />
                   <EvidenceHeader label="Submitted By" />
-                  <EvidenceHeader label="Notes" />
                   <EvidenceHeader label="Metadata" />
+                  <EvidenceHeader label="Actions" />
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 bg-white">
                 {observations.map((observation, index) => {
-                  const source = observation.source_label
-                    ? `${formatSourceType(observation.source_type)} (${observation.source_label})`
-                    : formatSourceType(observation.source_type);
                   const status = observation.has_canonical_result
                     ? "Canonical exists"
                     : "Provisional";
@@ -332,7 +513,19 @@ const RunInstanceDetail: React.FC = () => {
                       className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}
                     >
                       <td className="px-4 py-3 text-sm text-gray-900">
-                        {source}
+                        <div>{formatObservationSource(observation)}</div>
+                        {observation.source_tags && observation.source_tags.length > 0 && (
+                          <div className="mt-2 flex flex-wrap gap-1">
+                            {observation.source_tags.map((sourceTag) => (
+                              <span
+                                key={sourceTag}
+                                className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-700"
+                              >
+                                {sourceTag}
+                              </span>
+                            ))}
+                          </div>
+                        )}
                       </td>
                       <td className="px-4 py-3 text-sm text-gray-900">
                         <span className={`rounded-full px-2 py-1 text-xs font-medium ${statusClass}`}>
@@ -359,9 +552,6 @@ const RunInstanceDetail: React.FC = () => {
                       <td className="px-4 py-3 text-sm text-gray-900">
                         {observation.submitted_by_runner_name || "N/A"}
                       </td>
-                      <td className="max-w-xs px-4 py-3 text-sm text-gray-900">
-                        {observation.notes || ""}
-                      </td>
                       <td className="px-4 py-3 text-sm text-gray-900">
                         {isEmptyMetadata(observation.raw_metadata) ? (
                           "None"
@@ -375,6 +565,19 @@ const RunInstanceDetail: React.FC = () => {
                             </pre>
                           </details>
                         )}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-900">
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteObservation(observation)}
+                          disabled={deletingObservationId === observation.id}
+                          className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-red-700 transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:text-gray-400"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                          <span>
+                            {deletingObservationId === observation.id ? "Deleting..." : "Delete"}
+                          </span>
+                        </button>
                       </td>
                     </tr>
                   );
@@ -393,36 +596,169 @@ const RunInstanceDetail: React.FC = () => {
         <div className="mb-5 flex items-center gap-2">
           <PlusCircle className="h-5 w-5 text-green-600" />
           <h2 className="text-lg font-semibold text-gray-900">
-            Add Provisional Note
+            Add Provisional Data
           </h2>
         </div>
-        <form onSubmit={handleSaveNote} className="space-y-4">
-          <label
-            htmlFor="run-instance-note"
-            className="block text-sm font-medium text-gray-700"
-          >
-            Note
-          </label>
-          <textarea
-            id="run-instance-note"
-            value={noteText}
-            onChange={(event) => setNoteText(event.target.value)}
-            rows={4}
-            className="w-full rounded-lg border border-gray-300 p-3 text-sm text-gray-900 focus:border-primary-500 focus:ring-2 focus:ring-primary-500"
-          />
+        <form onSubmit={handleSaveObservation} className="space-y-5">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            <Field label="Lap Time">
+              <input
+                type="text"
+                value={observationForm.lapTime}
+                onChange={handleObservationFieldChange("lapTime")}
+                placeholder="01:23:45"
+                className="field-input"
+              />
+            </Field>
+            <Field label="Moving Time">
+              <input
+                type="text"
+                value={observationForm.movingTime}
+                onChange={handleObservationFieldChange("movingTime")}
+                placeholder="01:23:45"
+                className="field-input"
+              />
+            </Field>
+            <Field label="Elapsed Time">
+              <input
+                type="text"
+                value={observationForm.elapsedTime}
+                onChange={handleObservationFieldChange("elapsedTime")}
+                placeholder="01:23:45"
+                className="field-input"
+              />
+            </Field>
+            <Field label="Distance">
+              <input
+                type="number"
+                step="0.001"
+                min="0"
+                value={observationForm.distance}
+                onChange={handleObservationFieldChange("distance")}
+                className="field-input"
+              />
+            </Field>
+            <Field label="Elevation">
+              <input
+                type="number"
+                step="1"
+                min="0"
+                value={observationForm.elevationGain}
+                onChange={handleObservationFieldChange("elevationGain")}
+                className="field-input"
+              />
+            </Field>
+            <Field label="Source Type">
+              <select
+                value={observationForm.sourceType}
+                onChange={handleObservationFieldChange("sourceType")}
+                className="field-input"
+              >
+                {sourceTypeOptions.map((sourceType) => (
+                  <option key={sourceType} value={sourceType}>
+                    {formatSourceType(sourceType)}
+                  </option>
+                ))}
+              </select>
+            </Field>
+          </div>
+
+          <Field label="Source Label">
+            <input
+              type="text"
+              value={observationForm.sourceLabel}
+              onChange={handleObservationFieldChange("sourceLabel")}
+              placeholder="Watch file, screenshot, activity title"
+              className="field-input"
+            />
+          </Field>
+
+          <div>
+            <div className="mb-2 flex items-center gap-2 text-sm font-medium text-gray-700">
+              <Tag className="h-4 w-4 text-gray-500" />
+              <span>Source Tags</span>
+            </div>
+            {observationForm.sourceTags.length > 0 && (
+              <div className="mb-3 flex flex-wrap gap-2">
+                {observationForm.sourceTags.map((sourceTag) => (
+                  <button
+                    key={sourceTag}
+                    type="button"
+                    onClick={() => handleRemoveSourceTag(sourceTag)}
+                    className="inline-flex items-center gap-1 rounded-full bg-primary-100 px-3 py-1 text-sm text-primary-800 transition-colors hover:bg-primary-200"
+                  >
+                    <span>{sourceTag}</span>
+                    <X className="h-3 w-3" />
+                  </button>
+                ))}
+              </div>
+            )}
+            <div className="mb-3 flex flex-wrap gap-2">
+              {sourceTagOptions.map((sourceTag) => (
+                <button
+                  key={sourceTag}
+                  type="button"
+                  onClick={() => handleAddSourceTag(sourceTag)}
+                  disabled={observationForm.sourceTags.includes(sourceTag)}
+                  className="rounded-full border border-gray-300 px-3 py-1 text-sm text-gray-700 transition-colors hover:border-primary-300 hover:bg-primary-50 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400"
+                >
+                  {sourceTag}
+                </button>
+              ))}
+            </div>
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <input
+                type="text"
+                value={newTagText}
+                onChange={(event) => setNewTagText(event.target.value)}
+                className="field-input"
+                placeholder="Create source tag"
+              />
+              <button
+                type="button"
+                onClick={() => handleAddSourceTag(newTagText)}
+                className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:border-primary-300 hover:bg-primary-50"
+              >
+                Add Tag
+              </button>
+            </div>
+          </div>
+
+          <Field label="Metadata">
+            <textarea
+              value={observationForm.metadata}
+              onChange={handleObservationFieldChange("metadata")}
+              rows={4}
+              placeholder='{"activity_id":"..."}'
+              className="field-input font-mono"
+            />
+          </Field>
+
           <div className="flex flex-wrap items-center gap-3">
             <button
               type="submit"
-              disabled={savingNote}
-              className="rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-700 disabled:cursor-not-allowed disabled:bg-gray-300"
+              disabled={savingObservation}
+              className="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-700 disabled:cursor-not-allowed disabled:bg-gray-300"
             >
-              {savingNote ? "Saving..." : "Save Note"}
+              <PlusCircle className="h-4 w-4" />
+              <span>{savingObservation ? "Saving..." : "Save Provisional Data"}</span>
             </button>
             {saveMessage && <p className="text-sm text-green-700">{saveMessage}</p>}
             {saveError && <p className="text-sm text-red-700">{saveError}</p>}
           </div>
         </form>
       </section>
+
+      {observedRunnerId && (
+        <CommentsSection
+          targetType="leg_instance"
+          year={selectedYear}
+          legNumber={selectedLegNumber}
+          legVersion={selectedVersion}
+          runnerId={observedRunnerId}
+          title="Run Comments"
+        />
+      )}
     </div>
   );
 };
@@ -448,5 +784,39 @@ const EvidenceHeader: React.FC<{ label: string }> = ({ label }) => (
     {label}
   </th>
 );
+
+const Field: React.FC<{ children: React.ReactNode; label: string }> = ({
+  children,
+  label,
+}) => (
+  <label className="block">
+    <span className="mb-1 block text-sm font-medium text-gray-700">{label}</span>
+    {children}
+  </label>
+);
+
+function parseOptionalNumber(value: string) {
+  if (!value.trim()) {
+    return null;
+  }
+
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : Number.NaN;
+}
+
+function parseOptionalInteger(value: string) {
+  if (!value.trim()) {
+    return null;
+  }
+
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? Math.round(parsed) : Number.NaN;
+}
+
+function formatObservationSource(observation: ObservationRow) {
+  const source = formatSourceType(observation.source_type);
+
+  return observation.source_label ? `${source} (${observation.source_label})` : source;
+}
 
 export default RunInstanceDetail;

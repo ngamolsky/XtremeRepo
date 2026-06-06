@@ -1,5 +1,15 @@
-import { Link, useParams } from "@tanstack/react-router";
-import { ArrowLeft, Calendar, Image, MessageSquare, Save, Star, Tag } from "lucide-react";
+import { Link, useNavigate, useParams } from "@tanstack/react-router";
+import {
+  AlertTriangle,
+  ArrowLeft,
+  Calendar,
+  Image,
+  MessageSquare,
+  Save,
+  Star,
+  Tag,
+  Trash2,
+} from "lucide-react";
 import React, { FormEvent, useEffect, useMemo, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { Tables } from "../types/database.types";
@@ -14,16 +24,20 @@ type NoteAuthor = {
 
 const PhotoDetailView: React.FC = () => {
   const { photoId } = useParams({ from: "/photos/$photoId" });
+  const navigate = useNavigate();
   const [photo, setPhoto] = useState<PhotoWithUrl | null>(null);
   const [notes, setNotes] = useState<RacePhotoNote[]>([]);
   const [noteAuthors, setNoteAuthors] = useState<Record<string, NoteAuthor>>({});
   const [noteText, setNoteText] = useState("");
+  const [deleteConfirmation, setDeleteConfirmation] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [settingCover, setSettingCover] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [coverError, setCoverError] = useState<string | null>(null);
   const [noteError, setNoteError] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -33,6 +47,8 @@ const PhotoDetailView: React.FC = () => {
       setLoadError(null);
       setCoverError(null);
       setNoteError(null);
+      setDeleteError(null);
+      setDeleteConfirmation("");
 
       const [photoResult, notesResult] = await Promise.all([
         supabase.from("race_photos").select("*").eq("id", photoId).maybeSingle(),
@@ -99,6 +115,7 @@ const PhotoDetailView: React.FC = () => {
 
     return photo.caption || `${photo.year} ${photo.race}`;
   }, [photo]);
+  const canDelete = deleteConfirmation.trim().toLowerCase() === "delete";
 
   async function handleAddNote(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -179,6 +196,41 @@ const PhotoDetailView: React.FC = () => {
     }
 
     setSettingCover(false);
+  }
+
+  async function handleDeletePhoto() {
+    if (!photo || !canDelete) {
+      return;
+    }
+
+    setDeleting(true);
+    setDeleteError(null);
+
+    const storageResult = await supabase.storage
+      .from(photo.storage_bucket)
+      .remove([photo.storage_path]);
+
+    if (storageResult.error) {
+      setDeleteError(storageResult.error.message);
+      setDeleting(false);
+      return;
+    }
+
+    const metadataResult = await supabase
+      .from("race_photos")
+      .delete()
+      .eq("id", photo.id);
+
+    if (metadataResult.error) {
+      setDeleteError(metadataResult.error.message);
+      setDeleting(false);
+      return;
+    }
+
+    await navigate({
+      to: "/photos",
+      search: { race: undefined, year: undefined },
+    });
   }
 
   if (loading) {
@@ -280,6 +332,45 @@ const PhotoDetailView: React.FC = () => {
             </button>
           </section>
 
+          <section className="card border-red-200 p-6 dark:border-red-900/60">
+            <div className="mb-4 flex items-center gap-2">
+              <Trash2 className="h-5 w-5 text-red-600" />
+              <h2 className="text-lg font-semibold text-gray-900">Delete Photo</h2>
+            </div>
+
+            <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-200">
+              <div className="flex gap-2">
+                <AlertTriangle className="mt-0.5 h-4 w-4 flex-none" />
+                <p>
+                  This removes the image from the gallery and Supabase Storage.
+                  Attached notes are deleted too.
+                </p>
+              </div>
+            </div>
+
+            <label className="block text-sm font-medium text-gray-700" htmlFor="delete-photo">
+              Type delete to confirm
+            </label>
+            <input
+              id="delete-photo"
+              type="text"
+              value={deleteConfirmation}
+              onChange={(event) => setDeleteConfirmation(event.target.value)}
+              disabled={deleting}
+              className="mt-2 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm transition-colors focus:border-transparent focus:ring-2 focus:ring-red-500 disabled:cursor-not-allowed disabled:bg-gray-100"
+            />
+            {deleteError && <p className="mt-3 text-sm text-red-600">{deleteError}</p>}
+            <button
+              type="button"
+              onClick={handleDeletePhoto}
+              disabled={!canDelete || deleting}
+              className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-500 dark:bg-red-500 dark:hover:bg-red-400 dark:disabled:bg-slate-800 dark:disabled:text-slate-400"
+            >
+              <Trash2 className="h-4 w-4" />
+              <span>{deleting ? "Deleting..." : "Delete photo"}</span>
+            </button>
+          </section>
+
           <section className="card p-6">
             <div className="mb-4 flex items-center gap-2">
               <MessageSquare className="h-5 w-5 text-primary-600" />
@@ -329,6 +420,7 @@ const PhotoDetailView: React.FC = () => {
 const BackLink: React.FC = () => (
   <Link
     to="/photos"
+    search={{ race: undefined, year: undefined }}
     className="inline-flex items-center gap-2 text-sm font-medium text-gray-600 transition-colors hover:text-primary-700"
   >
     <ArrowLeft className="h-4 w-4" />

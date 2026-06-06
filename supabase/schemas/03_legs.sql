@@ -5,7 +5,8 @@ CREATE TABLE IF NOT EXISTS "public"."leg_definitions" (
     "number" smallint NOT NULL,
     "version" smallint NOT NULL,
     "distance" double precision,
-    "elevation_gain" smallint
+    "elevation_gain" smallint,
+    "official_course_url" text
 );
 
 -- Primary key constraint

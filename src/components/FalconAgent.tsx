@@ -803,7 +803,7 @@ const FalconAgent: React.FC = () => {
                 disabled={isStreaming}
                 className="falcon-agent-input max-h-28 min-h-11 min-w-0 resize-none rounded-lg border border-gray-300 px-3 py-2 text-base leading-7 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:cursor-not-allowed disabled:opacity-70 dark:border-slate-700 sm:max-h-36 sm:text-sm sm:leading-6"
                 placeholder="Ask Falcon or paste a screenshot..."
-                aria-label="Ask a question, paste race notes, or paste a screenshot"
+                aria-label="Ask a question, paste race context, or paste a screenshot"
                 rows={1}
                 enterKeyHint="send"
                 onPaste={handleTextareaPaste}
@@ -931,8 +931,12 @@ function getRouteTitle(pathname: string): string {
     const pathParts = pathname.split("/");
     return `${decodeURIComponent(pathParts[pathParts.length - 1] || "")} runner profile`;
   }
-  if (pathname === "/history") {
-    return "Race history";
+  if (pathname === "/history" || pathname === "/races") {
+    return "Races";
+  }
+  if (pathname.startsWith("/races/")) {
+    const [, , year] = pathname.split("/");
+    return `${year} race details`;
   }
   if (pathname === "/profile") {
     return "My profile";

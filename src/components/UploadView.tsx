@@ -9,7 +9,6 @@ const defaultPlacement = {
   overall_place: "",
   overall_teams: "",
   bib: "",
-  notes: "",
 };
 const defaultResult = {
   year: "",
@@ -17,7 +16,6 @@ const defaultResult = {
   leg_version: "",
   runner: "",
   lap_time: "",
-  notes: "",
 };
 
 type PlacementForm = typeof defaultPlacement;
@@ -40,7 +38,6 @@ const toPlacementForm = (parsed: ParsedPlacement): PlacementForm => ({
   overall_place: String(parsed.overall_place ?? defaultPlacement.overall_place),
   overall_teams: String(parsed.overall_teams ?? defaultPlacement.overall_teams),
   bib: String(parsed.bib ?? defaultPlacement.bib),
-  notes: String(parsed.notes ?? defaultPlacement.notes),
 });
 
 const toResultForm = (parsed: ParsedResult): ResultForm => ({
@@ -49,7 +46,6 @@ const toResultForm = (parsed: ParsedResult): ResultForm => ({
   leg_version: String(parsed.leg_version ?? defaultResult.leg_version),
   runner: String(parsed.runner ?? defaultResult.runner),
   lap_time: String(parsed.lap_time ?? defaultResult.lap_time),
-  notes: String(parsed.notes ?? defaultResult.notes),
 });
 
 const UploadView: React.FC = () => {
@@ -112,9 +108,6 @@ const UploadView: React.FC = () => {
     
     // Validate placement
     for (const key of Object.keys(defaultPlacement)) {
-      if (key === "notes") {
-        continue;
-      }
       if (!placement[key as keyof typeof defaultPlacement]) {
         setError("All placement fields are required.");
         setLoading(false);
@@ -125,9 +118,6 @@ const UploadView: React.FC = () => {
     // Validate results
     for (let i = 0; i < 7; ++i) {
       for (const key of Object.keys(defaultResult)) {
-        if (key === "notes") {
-          continue;
-        }
         if (!results[i][key as keyof typeof defaultResult]) {
           setError(`All fields required for result row ${i + 1}.`);
           setLoading(false);
@@ -147,7 +137,6 @@ const UploadView: React.FC = () => {
           overall_place: Number(placement.overall_place),
           overall_teams: Number(placement.overall_teams),
           bib: Number(placement.bib),
-          notes: placement.notes.trim() || null,
         },
       ]);
       
@@ -176,7 +165,6 @@ const UploadView: React.FC = () => {
             leg_version: Number(result.leg_version),
             user_id: runnerId, // Use the runner ID instead of runner name
             lap_time: result.lap_time,
-            notes: result.notes.trim() || null,
           });
         }
       }
@@ -290,12 +278,12 @@ const UploadView: React.FC = () => {
           <div key={key}>
             <label className="block text-sm font-medium text-gray-700 capitalize">{key.replace(/_/g, ' ')}</label>
             <input
-              type={key === 'division' || key === 'notes' ? 'text' : 'number'}
+              type={key === 'division' ? 'text' : 'number'}
               name={key}
               value={placement[key as keyof typeof defaultPlacement]}
               onChange={handlePlacementChange}
               className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
-              required={key !== "notes"}
+              required
             />
           </div>
         ))}
@@ -307,12 +295,12 @@ const UploadView: React.FC = () => {
               <div key={key}>
                 <label className="block text-xs font-medium text-gray-700 capitalize">{key.replace(/_/g, ' ')}</label>
                 <input
-                  type={key === 'runner' || key === 'lap_time' || key === 'notes' ? 'text' : 'number'}
+                  type={key === 'runner' || key === 'lap_time' ? 'text' : 'number'}
                   name={key}
                   value={result[key as keyof typeof defaultResult]}
                   onChange={e => handleResultChange(idx, e)}
                   className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-1 text-xs"
-                  required={key !== "notes"}
+                  required
                 />
               </div>
             ))}

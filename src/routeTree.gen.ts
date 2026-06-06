@@ -11,15 +11,18 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as UploadRouteImport } from './routes/upload'
 import { Route as TeamRouteImport } from './routes/team'
+import { Route as RacesRouteImport } from './routes/races'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as PhotosRouteImport } from './routes/photos'
 import { Route as LegsRouteImport } from './routes/legs'
 import { Route as HistoryRouteImport } from './routes/history'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as RacesIndexRouteImport } from './routes/races.index'
 import { Route as PhotosIndexRouteImport } from './routes/photos.index'
 import { Route as LegsIndexRouteImport } from './routes/legs.index'
 import { Route as RunnersRunnerNameRouteImport } from './routes/runners.$runnerName'
+import { Route as RacesYearRouteImport } from './routes/races.$year'
 import { Route as PhotosPhotoIdRouteImport } from './routes/photos.$photoId'
 import { Route as LegsLegNumberVersionRouteImport } from './routes/legs.$legNumber.$version'
 import { Route as RunsRunnerNameYearLegNumberVersionRouteImport } from './routes/runs.$runnerName.$year.$legNumber.$version'
@@ -32,6 +35,11 @@ const UploadRoute = UploadRouteImport.update({
 const TeamRoute = TeamRouteImport.update({
   id: '/team',
   path: '/team',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RacesRoute = RacesRouteImport.update({
+  id: '/races',
+  path: '/races',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProfileRoute = ProfileRouteImport.update({
@@ -64,6 +72,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RacesIndexRoute = RacesIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => RacesRoute,
+} as any)
 const PhotosIndexRoute = PhotosIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -78,6 +91,11 @@ const RunnersRunnerNameRoute = RunnersRunnerNameRouteImport.update({
   id: '/runners/$runnerName',
   path: '/runners/$runnerName',
   getParentRoute: () => rootRouteImport,
+} as any)
+const RacesYearRoute = RacesYearRouteImport.update({
+  id: '/$year',
+  path: '/$year',
+  getParentRoute: () => RacesRoute,
 } as any)
 const PhotosPhotoIdRoute = PhotosPhotoIdRouteImport.update({
   id: '/$photoId',
@@ -103,12 +121,15 @@ export interface FileRoutesByFullPath {
   '/legs': typeof LegsRouteWithChildren
   '/photos': typeof PhotosRouteWithChildren
   '/profile': typeof ProfileRoute
+  '/races': typeof RacesRouteWithChildren
   '/team': typeof TeamRoute
   '/upload': typeof UploadRoute
   '/photos/$photoId': typeof PhotosPhotoIdRoute
+  '/races/$year': typeof RacesYearRoute
   '/runners/$runnerName': typeof RunnersRunnerNameRoute
   '/legs/': typeof LegsIndexRoute
   '/photos/': typeof PhotosIndexRoute
+  '/races/': typeof RacesIndexRoute
   '/legs/$legNumber/$version': typeof LegsLegNumberVersionRoute
   '/runs/$runnerName/$year/$legNumber/$version': typeof RunsRunnerNameYearLegNumberVersionRoute
 }
@@ -120,9 +141,11 @@ export interface FileRoutesByTo {
   '/team': typeof TeamRoute
   '/upload': typeof UploadRoute
   '/photos/$photoId': typeof PhotosPhotoIdRoute
+  '/races/$year': typeof RacesYearRoute
   '/runners/$runnerName': typeof RunnersRunnerNameRoute
   '/legs': typeof LegsIndexRoute
   '/photos': typeof PhotosIndexRoute
+  '/races': typeof RacesIndexRoute
   '/legs/$legNumber/$version': typeof LegsLegNumberVersionRoute
   '/runs/$runnerName/$year/$legNumber/$version': typeof RunsRunnerNameYearLegNumberVersionRoute
 }
@@ -134,12 +157,15 @@ export interface FileRoutesById {
   '/legs': typeof LegsRouteWithChildren
   '/photos': typeof PhotosRouteWithChildren
   '/profile': typeof ProfileRoute
+  '/races': typeof RacesRouteWithChildren
   '/team': typeof TeamRoute
   '/upload': typeof UploadRoute
   '/photos/$photoId': typeof PhotosPhotoIdRoute
+  '/races/$year': typeof RacesYearRoute
   '/runners/$runnerName': typeof RunnersRunnerNameRoute
   '/legs/': typeof LegsIndexRoute
   '/photos/': typeof PhotosIndexRoute
+  '/races/': typeof RacesIndexRoute
   '/legs/$legNumber/$version': typeof LegsLegNumberVersionRoute
   '/runs/$runnerName/$year/$legNumber/$version': typeof RunsRunnerNameYearLegNumberVersionRoute
 }
@@ -152,12 +178,15 @@ export interface FileRouteTypes {
     | '/legs'
     | '/photos'
     | '/profile'
+    | '/races'
     | '/team'
     | '/upload'
     | '/photos/$photoId'
+    | '/races/$year'
     | '/runners/$runnerName'
     | '/legs/'
     | '/photos/'
+    | '/races/'
     | '/legs/$legNumber/$version'
     | '/runs/$runnerName/$year/$legNumber/$version'
   fileRoutesByTo: FileRoutesByTo
@@ -169,9 +198,11 @@ export interface FileRouteTypes {
     | '/team'
     | '/upload'
     | '/photos/$photoId'
+    | '/races/$year'
     | '/runners/$runnerName'
     | '/legs'
     | '/photos'
+    | '/races'
     | '/legs/$legNumber/$version'
     | '/runs/$runnerName/$year/$legNumber/$version'
   id:
@@ -182,12 +213,15 @@ export interface FileRouteTypes {
     | '/legs'
     | '/photos'
     | '/profile'
+    | '/races'
     | '/team'
     | '/upload'
     | '/photos/$photoId'
+    | '/races/$year'
     | '/runners/$runnerName'
     | '/legs/'
     | '/photos/'
+    | '/races/'
     | '/legs/$legNumber/$version'
     | '/runs/$runnerName/$year/$legNumber/$version'
   fileRoutesById: FileRoutesById
@@ -199,6 +233,7 @@ export interface RootRouteChildren {
   LegsRoute: typeof LegsRouteWithChildren
   PhotosRoute: typeof PhotosRouteWithChildren
   ProfileRoute: typeof ProfileRoute
+  RacesRoute: typeof RacesRouteWithChildren
   TeamRoute: typeof TeamRoute
   UploadRoute: typeof UploadRoute
   RunnersRunnerNameRoute: typeof RunnersRunnerNameRoute
@@ -219,6 +254,13 @@ declare module '@tanstack/react-router' {
       path: '/team'
       fullPath: '/team'
       preLoaderRoute: typeof TeamRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/races': {
+      id: '/races'
+      path: '/races'
+      fullPath: '/races'
+      preLoaderRoute: typeof RacesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/profile': {
@@ -263,6 +305,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/races/': {
+      id: '/races/'
+      path: '/'
+      fullPath: '/races/'
+      preLoaderRoute: typeof RacesIndexRouteImport
+      parentRoute: typeof RacesRoute
+    }
     '/photos/': {
       id: '/photos/'
       path: '/'
@@ -283,6 +332,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/runners/$runnerName'
       preLoaderRoute: typeof RunnersRunnerNameRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/races/$year': {
+      id: '/races/$year'
+      path: '/$year'
+      fullPath: '/races/$year'
+      preLoaderRoute: typeof RacesYearRouteImport
+      parentRoute: typeof RacesRoute
     }
     '/photos/$photoId': {
       id: '/photos/$photoId'
@@ -333,6 +389,18 @@ const PhotosRouteChildren: PhotosRouteChildren = {
 const PhotosRouteWithChildren =
   PhotosRoute._addFileChildren(PhotosRouteChildren)
 
+interface RacesRouteChildren {
+  RacesYearRoute: typeof RacesYearRoute
+  RacesIndexRoute: typeof RacesIndexRoute
+}
+
+const RacesRouteChildren: RacesRouteChildren = {
+  RacesYearRoute: RacesYearRoute,
+  RacesIndexRoute: RacesIndexRoute,
+}
+
+const RacesRouteWithChildren = RacesRoute._addFileChildren(RacesRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DashboardRoute: DashboardRoute,
@@ -340,6 +408,7 @@ const rootRouteChildren: RootRouteChildren = {
   LegsRoute: LegsRouteWithChildren,
   PhotosRoute: PhotosRouteWithChildren,
   ProfileRoute: ProfileRoute,
+  RacesRoute: RacesRouteWithChildren,
   TeamRoute: TeamRoute,
   UploadRoute: UploadRoute,
   RunnersRunnerNameRoute: RunnersRunnerNameRoute,
