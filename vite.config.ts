@@ -13,11 +13,43 @@ function readWranglerVars() {
   return JSON.parse(json).vars ?? {};
 }
 
+function assertNoProductionEnvOverride(
+  name: "VITE_SUPABASE_URL" | "VITE_SUPABASE_ANON_KEY",
+  envValue: string | undefined,
+  wranglerValue: string | undefined
+) {
+  if (envValue && wranglerValue && envValue !== wranglerValue) {
+    throw new Error(
+      `${name} is set outside wrangler.jsonc during a production build. ` +
+        `Remove the override or update wrangler.jsonc so the client bundle cannot deploy with stale Supabase config.`
+    );
+  }
+}
+
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
   const wranglerVars = readWranglerVars();
-  const supabaseUrl = env.VITE_SUPABASE_URL ?? wranglerVars.VITE_SUPABASE_URL;
-  const supabaseAnonKey = env.VITE_SUPABASE_ANON_KEY ?? wranglerVars.VITE_SUPABASE_ANON_KEY;
+  const isProduction = mode === "production";
+
+  if (isProduction) {
+    assertNoProductionEnvOverride(
+      "VITE_SUPABASE_URL",
+      env.VITE_SUPABASE_URL,
+      wranglerVars.VITE_SUPABASE_URL
+    );
+    assertNoProductionEnvOverride(
+      "VITE_SUPABASE_ANON_KEY",
+      env.VITE_SUPABASE_ANON_KEY,
+      wranglerVars.VITE_SUPABASE_ANON_KEY
+    );
+  }
+
+  const supabaseUrl = isProduction
+    ? wranglerVars.VITE_SUPABASE_URL
+    : env.VITE_SUPABASE_URL ?? wranglerVars.VITE_SUPABASE_URL;
+  const supabaseAnonKey = isProduction
+    ? wranglerVars.VITE_SUPABASE_ANON_KEY
+    : env.VITE_SUPABASE_ANON_KEY ?? wranglerVars.VITE_SUPABASE_ANON_KEY;
 
   return {
     define: {
