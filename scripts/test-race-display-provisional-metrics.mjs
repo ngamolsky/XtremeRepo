@@ -38,10 +38,10 @@ const rows = getDisplayLegResults(
       source_type: "manual_admin",
       source_label: "race day note",
       source_tags: ["provisional"],
-      lap_time: null,
+      lap_time: "00:48:00",
       elapsed_time: null,
       moving_time: null,
-      primary_time: null,
+      primary_time: "00:48:00",
       pace: null,
       observed_distance: null,
       observed_elevation_gain: null,
@@ -55,8 +55,14 @@ const rows = getDisplayLegResults(
 
 assert.equal(rows.length, 1, "source-only provisional observation should still appear in race list");
 assert.equal(rows[0].kind, "self_recorded");
-assert.equal(rows[0].lap_time, null, "missing provisional time should render as N/A");
-assert.equal(rows[0].distance, null, "missing provisional distance should render as N/A, not canonical leg distance");
-assert.equal(rows[0].elevation_gain, null, "missing provisional elevation should render as N/A, not canonical leg elevation");
+assert.equal(rows[0].lap_time, "00:48:00");
+assert.equal(rows[0].distance, 4.8, "missing provisional distance should fall back to canonical leg distance");
+assert.equal(rows[0].elevation_gain, 615, "missing provisional elevation should fall back to canonical leg elevation");
+assert.equal(rows[0].pace, 10, "missing provisional pace should use time divided by assumed distance");
+assert.deepEqual(JSON.parse(JSON.stringify(rows[0].assumed_metrics)), {
+  pace: true,
+  distance: true,
+  elevationGain: true,
+});
 
 console.log("race display provisional metric tests passed");

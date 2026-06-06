@@ -244,8 +244,9 @@ const HistoryView: React.FC = () => {
                       it is saved.
                     </p>
                   ) : (
-                    <div className="overflow-x-auto">
-                      <table className="min-w-full divide-y divide-gray-200">
+                    <>
+                      <div className="overflow-x-auto">
+                        <table className="min-w-full divide-y divide-gray-200">
                         <thead className="bg-gray-100">
                           <tr>
                             <th className="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
@@ -290,13 +291,22 @@ const HistoryView: React.FC = () => {
                                 {leg.lap_time || "N/A"}
                               </td>
                               <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-800">
-                                {formatPace(leg.pace || 0)}
+                                <AssumedMetricValue
+                                  value={formatPace(leg.pace || 0)}
+                                  assumed={leg.assumed_metrics.pace}
+                                />
                               </td>
                               <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-800">
-                                {formatMiles(leg.distance)}
+                                <AssumedMetricValue
+                                  value={formatMiles(leg.distance)}
+                                  assumed={leg.assumed_metrics.distance}
+                                />
                               </td>
                               <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-800">
-                                {formatFeet(leg.elevation_gain)}
+                                <AssumedMetricValue
+                                  value={formatFeet(leg.elevation_gain)}
+                                  assumed={leg.assumed_metrics.elevationGain}
+                                />
                               </td>
                               <td className="px-4 py-2 whitespace-nowrap text-sm font-medium">
                                 {leg.runner_name && leg.leg_number && leg.leg_version ? (
@@ -321,7 +331,11 @@ const HistoryView: React.FC = () => {
                           ))}
                         </tbody>
                       </table>
-                    </div>
+                      </div>
+                      {race.legResults.some((leg: DisplayLegResult) =>
+                        Object.values(leg.assumed_metrics).some((isAssumed) => isAssumed)
+                      ) && <AssumedMetricsLegend />}
+                    </>
                   )}
                   {race.unknownLegParticipations.length > 0 && (
                     <div className="mt-6">
@@ -369,6 +383,20 @@ const RaceStatusBadge: React.FC<{ status: RaceResultStatus }> = ({ status }) => 
   >
     {status.label}
   </span>
+);
+
+const AssumedMetricValue: React.FC<{ assumed: boolean; value: string }> = ({
+  assumed,
+  value,
+}) => (
+  <>
+    {value}
+    {assumed ? <span aria-label="assumed">*</span> : null}
+  </>
+);
+
+const AssumedMetricsLegend: React.FC = () => (
+  <p className="mt-2 text-xs text-gray-500">* means assumed from the leg default.</p>
 );
 
 const SourceBadge: React.FC<{ leg: DisplayLegResult }> = ({ leg }) => {

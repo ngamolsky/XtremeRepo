@@ -17,6 +17,11 @@ export type DisplayLegResult = {
   pace: number | null;
   distance: number | null;
   elevation_gain: number | null;
+  assumed_metrics: {
+    pace: boolean;
+    distance: boolean;
+    elevationGain: boolean;
+  };
   source_type: string | null;
   source_label: string | null;
   officialResult?: OfficialResult;
@@ -129,6 +134,11 @@ function toOfficialDisplayLeg(result: OfficialResult): DisplayLegResult {
     pace: result.pace,
     distance: result.distance,
     elevation_gain: result.elevation_gain,
+    assumed_metrics: {
+      pace: false,
+      distance: false,
+      elevationGain: false,
+    },
     source_type: result.source_type ?? "official",
     source_label: null,
     officialResult: result,
@@ -136,6 +146,16 @@ function toOfficialDisplayLeg(result: OfficialResult): DisplayLegResult {
 }
 
 function toSelfRecordedDisplayLeg(observation: SelfRecordedObservation): DisplayLegResult {
+  const distance = observation.observed_distance ?? observation.display_distance ?? observation.canonical_distance;
+  const elevationGain =
+    observation.observed_elevation_gain ??
+    observation.display_elevation_gain ??
+    observation.canonical_elevation_gain;
+  const pace =
+    observation.observed_distance && observation.pace
+      ? observation.pace
+      : getAssumedPace(observation.primary_time, distance);
+
   return {
     kind: "self_recorded",
     key: `self-recorded-${observation.id ?? `${observation.year}-${observation.leg_number}`}`,
@@ -148,13 +168,45 @@ function toSelfRecordedDisplayLeg(observation: SelfRecordedObservation): Display
       observation.lap_time ??
       observation.elapsed_time ??
       observation.moving_time,
-    pace: observation.observed_distance ? observation.pace : null,
-    distance: observation.observed_distance,
-    elevation_gain: observation.observed_elevation_gain,
+    pace,
+    distance,
+    elevation_gain: elevationGain,
+    assumed_metrics: {
+      pace: !observation.observed_distance && pace !== null,
+      distance: observation.observed_distance === null && distance !== null,
+      elevationGain: observation.observed_elevation_gain === null && elevationGain !== null,
+    },
     source_type: observation.source_type,
     source_label: observation.source_label,
     observation,
   };
+}
+
+function getAssumedPace(time: string | null | undefined, distance: number | null | undefined) {
+  if (!time || !distance || distance <= 0) {
+    return null;
+  }
+
+  const minutes = parseTimeToMinutes(time);
+  return minutes > 0 ? minutes / distance : null;
+}
+
+function parseTimeToMinutes(time: string) {
+  const parts = time.split(":").map((part) => Number(part));
+
+  if (parts.some((part) => !Number.isFinite(part))) {
+    return 0;
+  }
+
+  if (parts.length === 2) {
+    return parts[0] + parts[1] / 60;
+  }
+
+  if (parts.length === 3) {
+    return parts[0] * 60 + parts[1] + parts[2] / 60;
+  }
+
+  return 0;
 }
 
 function hasSelfRecordedData(observation: SelfRecordedObservation) {

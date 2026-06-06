@@ -14,7 +14,7 @@ import {
   getRaceDisplaySummary,
 } from "../lib/raceDisplay";
 import type { RaceResultStatus } from "../lib/raceDisplay";
-import { formatFeet, formatMiles, formatPace, formatSourceType } from "../lib/utils";
+import { formatFeet, formatMiles, formatPace, formatSourceType, parseTimeToMinutes } from "../lib/utils";
 import { supabase } from "../lib/supabase";
 import { Tables } from "../types/database.types";
 import CommentsSection from "./CommentsSection";
@@ -25,7 +25,14 @@ type LegDefinition = Tables<"leg_definitions">;
 type OfficialResult = Tables<"v_results_with_pace">;
 type SelfRecordedObservation = Tables<"v_leg_result_observations_with_pace">;
 
+type MetricAssumptions = {
+  pace: boolean;
+  distance: boolean;
+  elevationGain: boolean;
+};
+
 type RaceLegEntry = {
+  assumedMetrics: MetricAssumptions;
   distance: number | null;
   elevationGain: number | null;
   key: string;
@@ -107,6 +114,11 @@ const RaceDetailView: React.FC = () => {
   const legsWithEntriesCount = raceLegGroups.filter(
     (group) => group.entries.length > 0
   ).length;
+  const hasAssumedMetrics = raceLegGroups.some((group) =>
+    group.entries.some((entry) =>
+      Object.values(entry.assumedMetrics).some((isAssumed) => isAssumed)
+    )
+  );
   const hasOfficialResults = officialEntryCount > 0;
   const legSectionTitle = hasOfficialResults ? "Leg Results" : "Race Day Tracker";
   const legSectionSummary = hasOfficialResults
@@ -302,6 +314,12 @@ const RaceDetailView: React.FC = () => {
                 )}
               </div>
             </div>
+
+            {hasAssumedMetrics && (
+              <p className="mb-4 text-xs text-gray-500">
+                * means assumed from the leg default.
+              </p>
+            )}
 
             <div className="divide-y divide-gray-100">
               {raceLegGroups.map((group) => (
@@ -539,9 +557,9 @@ const RaceLegEntryRow: React.FC<{ entry: RaceLegEntry; raceYear: number }> = ({
 
     <dl className="mt-4 grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
       <EntryMetric label={entry.timeLabel} value={entry.time ?? "N/A"} />
-      <EntryMetric label="Pace" value={formatPace(entry.pace || 0)} />
-      <EntryMetric label="Distance" value={formatMiles(entry.distance)} />
-      <EntryMetric label="Gain" value={formatFeet(entry.elevationGain)} />
+      <EntryMetric label="Pace" value={formatPace(entry.pace || 0)} assumed={entry.assumedMetrics.pace} />
+      <EntryMetric label="Distance" value={formatMiles(entry.distance)} assumed={entry.assumedMetrics.distance} />
+      <EntryMetric label="Gain" value={formatFeet(entry.elevationGain)} assumed={entry.assumedMetrics.elevationGain} />
     </dl>
 
     {entry.sourceTags.length > 0 && (
@@ -559,10 +577,17 @@ const RaceLegEntryRow: React.FC<{ entry: RaceLegEntry; raceYear: number }> = ({
   </div>
 );
 
-const EntryMetric: React.FC<{ label: string; value: string }> = ({ label, value }) => (
+const EntryMetric: React.FC<{ assumed?: boolean; label: string; value: string }> = ({
+  assumed = false,
+  label,
+  value,
+}) => (
   <div>
     <dt className="text-xs font-medium uppercase text-gray-500">{label}</dt>
-    <dd className="mt-1 font-medium text-gray-900">{value}</dd>
+    <dd className="mt-1 font-medium text-gray-900">
+      {value}
+      {assumed ? <span aria-label="assumed">*</span> : null}
+    </dd>
   </div>
 );
 
@@ -679,6 +704,11 @@ function getLatestLegDefinitionByNumber(legDefinitions: LegDefinition[]) {
 
 function toOfficialEntry(result: OfficialResult): RaceLegEntry {
   return {
+    assumedMetrics: {
+      pace: false,
+      distance: false,
+      elevationGain: false,
+    },
     distance: result.distance,
     elevationGain: result.elevation_gain,
     key: `official-${result.year}-${result.leg_number}-${result.leg_version}`,
@@ -697,26 +727,51 @@ function toOfficialEntry(result: OfficialResult): RaceLegEntry {
 }
 
 function toSelfRecordedEntry(observation: SelfRecordedObservation): RaceLegEntry {
+  const distance = observation.observed_distance ?? observation.display_distance ?? observation.canonical_distance;
+  const elevationGain =
+    observation.observed_elevation_gain ??
+    observation.display_elevation_gain ??
+    observation.canonical_elevation_gain;
+  const time =
+    observation.primary_time ??
+    observation.lap_time ??
+    observation.elapsed_time ??
+    observation.moving_time;
+  const pace =
+    observation.observed_distance && observation.pace
+      ? observation.pace
+      : getAssumedEntryPace(time, distance);
+
   return {
-    distance: observation.display_distance,
-    elevationGain: observation.display_elevation_gain,
+    assumedMetrics: {
+      pace: !observation.observed_distance && pace !== null,
+      distance: observation.observed_distance === null && distance !== null,
+      elevationGain: observation.observed_elevation_gain === null && elevationGain !== null,
+    },
+    distance,
+    elevationGain,
     key: `self-recorded-${observation.id ?? `${observation.year}-${observation.leg_number}`}`,
     kind: "self_recorded",
     legNumber: observation.leg_number ?? 0,
     legVersion: observation.leg_version ?? 0,
-    pace: observation.pace,
+    pace,
     runnerName: observation.runner_name,
     sourceLabel: observation.source_label,
     sourceTags: observation.source_tags ?? [],
     sourceType: observation.source_type,
-    time:
-      observation.primary_time ??
-      observation.lap_time ??
-      observation.elapsed_time ??
-      observation.moving_time,
+    time,
     timeLabel: formatObservationTimeLabel(observation.primary_time_type),
     updatedAt: observation.updated_at ?? observation.created_at,
   };
+}
+
+function getAssumedEntryPace(time: string | null | undefined, distance: number | null | undefined) {
+  if (!time || !distance || distance <= 0) {
+    return null;
+  }
+
+  const minutes = parseTimeToMinutes(time);
+  return minutes > 0 ? minutes / distance : null;
 }
 
 function hasMeasuredObservationData(observation: SelfRecordedObservation) {
