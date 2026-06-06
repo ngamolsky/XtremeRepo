@@ -1,5 +1,5 @@
 import { Link, useParams } from "@tanstack/react-router";
-import { Activity, Clock, FileText, Map, PlusCircle, User } from "lucide-react";
+import { Activity, Clock, FileText, Map as MapIcon, PlusCircle, User } from "lucide-react";
 import React, { useEffect, useMemo, useState } from "react";
 import { useRelayData } from "../hooks/useRelayData";
 import { formatFeet, formatMiles, formatPace, formatSourceType } from "../lib/utils";
@@ -265,7 +265,7 @@ const RunInstanceDetail: React.FC = () => {
             <Metric label="Runner" value={runnerName} icon={<User className="h-4 w-4" />} />
             <Metric label="Lap Time" value={canonicalResult.lap_time || "N/A"} icon={<Clock className="h-4 w-4" />} />
             <Metric label="Pace" value={formatPace(canonicalResult.pace || 0)} icon={<Activity className="h-4 w-4" />} />
-            <Metric label="Distance" value={formatMiles(canonicalResult.distance)} icon={<Map className="h-4 w-4" />} />
+            <Metric label="Distance" value={formatMiles(canonicalResult.distance)} icon={<MapIcon className="h-4 w-4" />} />
             <Metric label="Start" value={formatValue(canonicalResult.leg_start_time)} />
             <Metric label="Finish" value={formatValue(canonicalResult.leg_finish_time)} />
             <Metric label="Elevation" value={formatFeet(canonicalResult.elevation_gain)} />
