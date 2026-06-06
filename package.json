@@ -17,7 +17,8 @@
     "db:refresh-local": "npm run db:dump-seed:prod && npx supabase db reset && npm run db:auth:ensure:local",
     "photos:import": "node scripts/supabase/import-photos.mjs",
     "test:observation-null": "node scripts/test-observation-null-handling.mjs",
-    "test:race-display-provisional": "node scripts/test-race-display-provisional-metrics.mjs"
+    "test:race-display-provisional": "node scripts/test-race-display-provisional-metrics.mjs",
+    "test:run-instance-leg-link": "node scripts/test-run-instance-leg-link.mjs"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.81",

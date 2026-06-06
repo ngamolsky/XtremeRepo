@@ -494,14 +494,29 @@ const RunInstanceDetail: React.FC = () => {
             Leg {selectedLegNumber} v{selectedVersion}
           </Link>
         </div>
-        <h1 className="text-3xl font-bold text-gray-900">
-          {selectedYear} Leg {selectedLegNumber}
-        </h1>
-        <p className="mt-2 text-gray-600">
-          {formatMiles(officialResult?.distance ?? legDefinition?.distance)} •{" "}
-          {formatFeet(officialResult?.elevation_gain ?? legDefinition?.elevation_gain)}
-          {yearlyRace?.race_start_time && ` • Race start ${yearlyRace.race_start_time}`}
-        </p>
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">
+              {selectedYear} Leg {selectedLegNumber}
+            </h1>
+            <p className="mt-2 text-gray-600">
+              {formatMiles(officialResult?.distance ?? legDefinition?.distance)} •{" "}
+              {formatFeet(officialResult?.elevation_gain ?? legDefinition?.elevation_gain)}
+              {yearlyRace?.race_start_time && ` • Race start ${yearlyRace.race_start_time}`}
+            </p>
+          </div>
+          <Link
+            to="/legs/$legNumber/$version"
+            params={{
+              legNumber: selectedLegNumber.toString(),
+              version: selectedVersion.toString(),
+            }}
+            className="inline-flex items-center gap-2 rounded-lg border border-primary-200 px-4 py-2 text-sm font-medium text-primary-700 transition-colors hover:border-primary-300 hover:bg-primary-50 hover:text-primary-800"
+          >
+            <MapIcon className="h-4 w-4" />
+            View leg page
+          </Link>
+        </div>
       </div>
 
       <section className="card p-6">
