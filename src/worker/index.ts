@@ -254,11 +254,12 @@ async function handleChat(request: Request, env: Env): Promise<Response> {
   }
 
   const runnerIndex = await getRunnerIndex(supabase).catch(() => []);
+  const limitToolExecution = createToolExecutionLimiter(5);
   const result = streamText({
     model,
     messages,
     system: buildSystemPrompt(body.pageContext, runnerIndex),
-    tools: createRelayTools(supabase),
+    tools: createRelayTools(supabase, limitToolExecution),
     stopWhen: stepCountIs(5),
   });
 
@@ -299,6 +300,44 @@ async function verifyRaceDataAccess(
   }
 
   return null;
+}
+
+type ToolExecutionLimiter = <Input, Output>(
+  execute: (input: Input) => Promise<Output>
+) => (input: Input) => Promise<Output>;
+
+function createToolExecutionLimiter(maxConcurrent: number): ToolExecutionLimiter {
+  let active = 0;
+  const queue: Array<() => void> = [];
+
+  return (execute) => async (input) => {
+    await acquireToolExecutionSlot();
+
+    try {
+      return await execute(input);
+    } finally {
+      releaseToolExecutionSlot();
+    }
+  };
+
+  function acquireToolExecutionSlot() {
+    if (active < maxConcurrent) {
+      active += 1;
+      return Promise.resolve();
+    }
+
+    return new Promise<void>((resolve) => {
+      queue.push(() => {
+        active += 1;
+        resolve();
+      });
+    });
+  }
+
+  function releaseToolExecutionSlot() {
+    active = Math.max(0, active - 1);
+    queue.shift()?.();
+  }
 }
 
 async function readChatRequest(request: Request): Promise<ChatRequestBody> {
@@ -839,11 +878,13 @@ function buildSystemPrompt(pageContext: PageContext | undefined, runnerIndex: Ru
 
 Answer questions about relay race results, team members, legs, years, paces, and rankings. Use the provided tools before making factual claims about the data. Treat lower pace values as faster, and lower percentile values as better because they mean closer to the top of the field.
 
+When a question spans many years, prefer getRaceOverview or another aggregate tool over calling getYearResults once for every year. Only call getYearResults for specific years whose full leg-by-leg details are needed.
+
 Use data terms precisely. A "leg run", "ran leg", "result", or "performance" means a known canonical row from v_results_with_pace/results with a leg number and lap time. A "provisional observation", "watch data", "Garmin data", "phone data", "Strava data", or "runner-submitted data" means a non-canonical row from v_leg_result_observations_with_pace/leg_result_observations. Provisional observations can be shown until canonical data exists for the same year and leg, but they never count as known leg runs, paces, records, aggregate stats, or team totals. A "race-year participation", "race", or "roster year" can include a runner whose leg assignment is unknown. Do not count unknown-leg participation years or provisional observations as leg runs unless the user explicitly asks about non-canonical data. When comparing runners' leg-run counts, use knownLegRuns/results and cite the specific result years and legs that explain the difference. When asked which year one runner ran and another did not, compare known leg years unless the user says roster, participation, or provisional observation.
 
 Resolve names softly. First names, partial names, lowercase names, and common short forms are acceptable when the runner index makes the match clear. Do not ask for full names just because the user supplied only a first name. If a partial name matches multiple runners and the answer would differ, call findRunner for the likely matches, explain the ambiguity briefly, and ask one short clarifying question.
 
-You can also add race-year participation, add or update provisional leg observations, add official canonical leg performance results, and maintain optional fun tidbit notes on years or individual canonical leg runs. Race-year participation means the runner is counted for that year even when their leg is unknown; collect race year and runner name, with optional notes, and do not ask for a leg or lap time unless the user is adding a specific leg result or observation. For any ad hoc leg data write, assume it is non-canonical and call saveLegObservation unless the user explicitly says the data is official, canonical, verified, the real time, the official race result, or should replace the official result. For a provisional observation, collect race year, leg number, leg version, runner name, and at least one observed field such as lap time, moving time, elapsed time, distance, elevation gain, notes, or metadata. Source type defaults to manual_runner; use apple_watch, garmin, phone, strava, manual_runner, manual_admin, or other when the user gives the source. For an official canonical leg performance write, collect exactly: race year, leg number, leg version, runner name, and lap time. Notes are optional. Ask short follow-up questions until every required field is known. Do not invent missing fields. If the runner is missing or ambiguous, ask the user to choose an existing runner or explicitly confirm creating a new runner. If a canonical result already exists for the same race year and leg number, ask the user to confirm replacement before overwriting. Once a write succeeds, summarize the saved row and label whether it is canonical or provisional.
+You can also add race-year participation, add or update provisional leg observations, add official canonical leg performance results, and maintain optional fun tidbit notes on years or individual canonical leg runs. Race-year participation means the runner is counted for that year even when their leg is unknown; collect race year and runner name, with optional notes, and do not ask for a leg or lap time unless the user is adding a specific leg result or observation. Race start time is stored on the race year; assume 7:00 AM unless the data says otherwise, and note that 2024 started at 6:00 AM. For any ad hoc leg data write, assume it is non-canonical and call saveLegObservation unless the user explicitly says the data is official, canonical, verified, the real time, the official race result, or should replace the official result. For a provisional observation, collect race year, leg number, leg version, runner name, and at least one observed field such as lap time, moving time, elapsed time, distance, elevation gain, notes, or metadata. Source type defaults to manual_runner; use apple_watch, garmin, phone, strava, manual_runner, manual_admin, or other when the user gives the source. For an official canonical leg performance write, collect exactly: race year, leg number, leg version, runner name, and lap time. Notes are optional. Ask short follow-up questions until every required field is known. Do not invent missing fields. If the runner is missing or ambiguous, ask the user to choose an existing runner or explicitly confirm creating a new runner. If a canonical result already exists for the same race year and leg number, ask the user to confirm replacement before overwriting. Once a write succeeds, summarize the saved row and label whether it is canonical or provisional.
 
 If the user asks a question that depends on the current screen, use the page context below to scope the answer first. Keep answers concise and practical, cite the years/runners/legs you used, and say when the data does not contain enough information.
 
@@ -854,7 +895,7 @@ Runner index:
 ${runnerContext}`;
 }
 
-function createRelayTools(supabase: DataClient) {
+function createRelayTools(supabase: DataClient, limitToolExecution: ToolExecutionLimiter) {
   return {
     getRaceOverview: tool({
       description:
@@ -864,7 +905,7 @@ function createRelayTools(supabase: DataClient) {
         properties: {},
         additionalProperties: false,
       }),
-      execute: async () => {
+      execute: limitToolExecution(async () => {
         const [yearlySummary, runnerStats, legVersionStats, results, observations, participations] = await Promise.all([
           fetchRows(supabase.from("v_yearly_summary").select("*").order("year", { ascending: false })),
           fetchRows(supabase.from("v_runner_stats").select("*").order("total_races", { ascending: false })),
@@ -890,7 +931,7 @@ function createRelayTools(supabase: DataClient) {
             .sort((a, b) => (a.best_pace || Number.POSITIVE_INFINITY) - (b.best_pace || Number.POSITIVE_INFINITY))
             .slice(0, 8),
         };
-      },
+      }),
     }),
     findRunner: tool({
       description:
@@ -906,9 +947,9 @@ function createRelayTools(supabase: DataClient) {
         required: ["runnerName"],
         additionalProperties: false,
       }),
-      execute: async ({ runnerName }) => {
+      execute: limitToolExecution(async ({ runnerName }) => {
         return findRunnerData(supabase, runnerName);
-      },
+      }),
     }),
     getLegDetails: tool({
       description:
@@ -928,7 +969,7 @@ function createRelayTools(supabase: DataClient) {
         required: ["legNumber"],
         additionalProperties: false,
       }),
-      execute: async ({ legNumber, version }) => {
+      execute: limitToolExecution(async ({ legNumber, version }) => {
         let statQuery = supabase
           .from("v_leg_version_stats")
           .select("*")
@@ -957,7 +998,7 @@ function createRelayTools(supabase: DataClient) {
         ]);
 
         return { legNumber, version: version ?? null, stats, results, observations };
-      },
+      }),
     }),
     getYearResults: tool({
       description:
@@ -973,7 +1014,7 @@ function createRelayTools(supabase: DataClient) {
         required: ["year"],
         additionalProperties: false,
       }),
-      execute: async ({ year }) => {
+      execute: limitToolExecution(async ({ year }) => {
         const [summary, results, observations, participations] = await Promise.all([
           fetchRows(supabase.from("v_yearly_summary").select("*").eq("year", year).limit(1)),
           fetchRows(
@@ -1000,7 +1041,7 @@ function createRelayTools(supabase: DataClient) {
         ]);
 
         return { year, summary: summary[0] ?? null, results, observations, participations };
-      },
+      }),
     }),
     addRaceParticipation: tool({
       description:
@@ -1029,7 +1070,7 @@ function createRelayTools(supabase: DataClient) {
         required: ["year", "runnerName"],
         additionalProperties: false,
       }),
-      execute: async (input) => addRaceParticipation(supabase, input),
+      execute: limitToolExecution(async (input) => addRaceParticipation(supabase, input)),
     }),
     saveLegObservation: tool({
       description:
@@ -1109,7 +1150,7 @@ function createRelayTools(supabase: DataClient) {
         required: ["year", "legNumber", "legVersion", "runnerName"],
         additionalProperties: false,
       }),
-      execute: async (input) => saveLegObservation(supabase, input),
+      execute: limitToolExecution(async (input) => saveLegObservation(supabase, input)),
     }),
     addLegPerformance: tool({
       description:
@@ -1155,7 +1196,7 @@ function createRelayTools(supabase: DataClient) {
         required: ["year", "legNumber", "legVersion", "runnerName", "lapTime"],
         additionalProperties: false,
       }),
-      execute: async (input) => addLegPerformance(supabase, input),
+      execute: limitToolExecution(async (input) => addLegPerformance(supabase, input)),
     }),
     setYearNotes: tool({
       description:
@@ -1175,7 +1216,7 @@ function createRelayTools(supabase: DataClient) {
         required: ["year", "notes"],
         additionalProperties: false,
       }),
-      execute: async (input) => setYearNotes(supabase, input),
+      execute: limitToolExecution(async (input) => setYearNotes(supabase, input)),
     }),
     setLegPerformanceNotes: tool({
       description:
@@ -1199,7 +1240,7 @@ function createRelayTools(supabase: DataClient) {
         required: ["year", "legNumber", "notes"],
         additionalProperties: false,
       }),
-      execute: async (input) => setLegPerformanceNotes(supabase, input),
+      execute: limitToolExecution(async (input) => setLegPerformanceNotes(supabase, input)),
     }),
   };
 }

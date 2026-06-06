@@ -112,6 +112,16 @@
   .falcon-agent-markdown th {
     @apply bg-gray-50 font-semibold dark:bg-slate-900;
   }
+
+  .falcon-agent-input {
+    overflow-y: hidden;
+    -webkit-text-size-adjust: 100%;
+    touch-action: manipulation;
+  }
+
+  .falcon-agent-input::placeholder {
+    text-overflow: ellipsis;
+  }
 }
 
 @layer utilities {

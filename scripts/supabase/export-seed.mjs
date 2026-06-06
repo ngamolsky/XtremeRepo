@@ -23,11 +23,7 @@ const [
 ] = await Promise.all([
   fetchAll("runners", "id,name,email", "name"),
   fetchAll("leg_definitions", "number,version,distance,elevation_gain", "number"),
-  fetchAll(
-    "placements",
-    "year,division,division_place,division_teams,overall_place,overall_teams,bib,notes",
-    "year"
-  ),
+  fetchPlacements(),
   fetchOptionalAll(
     "leg_result_observations",
     [
@@ -220,6 +216,34 @@ async function fetchResults() {
   }
 }
 
+async function fetchPlacements() {
+  try {
+    return await fetchAll(
+      "placements",
+      "year,division,division_place,division_teams,overall_place,overall_teams,bib,notes,race_start_time",
+      "year"
+    );
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      error.message.includes("Could not find the 'race_start_time' column")
+    ) {
+      const rows = await fetchAll(
+        "placements",
+        "year,division,division_place,division_teams,overall_place,overall_teams,bib,notes",
+        "year"
+      );
+
+      return rows.map((row) => ({
+        ...row,
+        race_start_time: row.year === 2024 ? "06:00:00" : "07:00:00",
+      }));
+    }
+
+    throw error;
+  }
+}
+
 async function listRunnerAuthUsers(adminClient) {
   const runnerEmails = new Set(
     runners
@@ -322,6 +346,7 @@ function renderSeedSql({
         "overall_teams",
         "bib",
         "notes",
+        "race_start_time",
       ],
       placements
         .slice()
@@ -335,6 +360,7 @@ function renderSeedSql({
           placement.overall_teams,
           placement.bib,
           placement.notes,
+          placement.race_start_time || (placement.year === 2024 ? "06:00:00" : "07:00:00"),
         ])
     ),
     "",

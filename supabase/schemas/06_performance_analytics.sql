@@ -2,26 +2,50 @@
 
 -- Base view: Results with calculated pace information
 CREATE OR REPLACE VIEW "public"."v_results_with_pace" AS
- SELECT "r"."year",
-    "r"."user_id" AS "runner_id",
-    "r"."leg_number",
-    "r"."leg_version",
-    "r"."lap_time",
-    "ld"."distance",
-    "ld"."elevation_gain",
-    "rn"."name" AS "runner_name",
-    "rn"."auth_user_id",
-    "public"."parse_time_to_minutes"("r"."lap_time") AS "time_in_minutes",
-        CASE
-            WHEN ("ld"."distance" > (0)::double precision) THEN ("public"."parse_time_to_minutes"("r"."lap_time") / "ld"."distance")
-            ELSE NULL::double precision
-        END AS "pace",
-    "r"."notes",
-    "r"."source_type",
-    "r"."canonical_observation_id"
-		   FROM (("public"."results" "r"
-		     JOIN "public"."leg_definitions" "ld" ON ((("r"."leg_number" = "ld"."number") AND ("r"."leg_version" = "ld"."version"))))
-		     LEFT JOIN "public"."runners" "rn" ON (("r"."user_id" = "rn"."id")));
+ WITH "ordered_results" AS (
+         SELECT "r"."year",
+            "r"."user_id" AS "runner_id",
+            "r"."leg_number",
+            "r"."leg_version",
+            "r"."lap_time",
+            "ld"."distance",
+            "ld"."elevation_gain",
+            "rn"."name" AS "runner_name",
+            "rn"."auth_user_id",
+            "public"."parse_time_to_minutes"("r"."lap_time") AS "time_in_minutes",
+                CASE
+                    WHEN ("ld"."distance" > (0)::double precision) THEN ("public"."parse_time_to_minutes"("r"."lap_time") / "ld"."distance")
+                    ELSE NULL::double precision
+                END AS "pace",
+            "r"."notes",
+            "r"."source_type",
+            "r"."canonical_observation_id",
+            "p"."race_start_time",
+            COALESCE(sum(COALESCE("r"."lap_time", '00:00:00'::interval)) OVER (PARTITION BY "r"."year" ORDER BY "r"."leg_number" ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING), '00:00:00'::interval) AS "elapsed_before_leg",
+            COALESCE(sum(COALESCE("r"."lap_time", '00:00:00'::interval)) OVER (PARTITION BY "r"."year" ORDER BY "r"."leg_number" ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW), '00:00:00'::interval) AS "elapsed_through_leg"
+           FROM ((("public"."results" "r"
+             JOIN "public"."leg_definitions" "ld" ON ((("r"."leg_number" = "ld"."number") AND ("r"."leg_version" = "ld"."version"))))
+             JOIN "public"."placements" "p" ON (("r"."year" = "p"."year")))
+             LEFT JOIN "public"."runners" "rn" ON (("r"."user_id" = "rn"."id")))
+        )
+ SELECT "year",
+    "runner_id",
+    "leg_number",
+    "leg_version",
+    "lap_time",
+    "distance",
+    "elevation_gain",
+    "runner_name",
+    "auth_user_id",
+    "time_in_minutes",
+    "pace",
+    "notes",
+    "source_type",
+    "canonical_observation_id",
+    "race_start_time",
+    ("race_start_time" + "elapsed_before_leg") AS "leg_start_time",
+    ("race_start_time" + "elapsed_through_leg") AS "leg_finish_time"
+   FROM "ordered_results";
 
 -- Non-canonical runner/device observations with calculated pace and canonical suppression flag
 CREATE OR REPLACE VIEW "public"."v_leg_result_observations_with_pace" AS
@@ -66,9 +90,11 @@ CREATE OR REPLACE VIEW "public"."v_leg_result_observations_with_pace" AS
     "o"."notes",
     "o"."raw_metadata",
     "o"."created_at",
-    "o"."updated_at"
-   FROM ((((("public"."leg_result_observations" "o"
+    "o"."updated_at",
+    "p"."race_start_time"
+   FROM (((((("public"."leg_result_observations" "o"
      JOIN "public"."leg_definitions" "ld" ON ((("o"."leg_number" = "ld"."number") AND ("o"."leg_version" = "ld"."version"))))
+     JOIN "public"."placements" "p" ON (("o"."year" = "p"."year")))
      LEFT JOIN "public"."runners" "rn" ON (("o"."runner_id" = "rn"."id")))
      LEFT JOIN "public"."runners" "submitted_by" ON (("o"."submitted_by_runner_id" = "submitted_by"."id")))
      LEFT JOIN "public"."results" "canonical_result" ON ((("canonical_result"."year" = "o"."year") AND ("canonical_result"."leg_number" = "o"."leg_number"))))
@@ -111,7 +137,8 @@ CREATE OR REPLACE VIEW "public"."team_performance_summary" AS
             "p"."division_place",
             "p"."division_teams",
             "p"."overall_place",
-            "p"."overall_teams"
+            "p"."overall_teams",
+            "p"."race_start_time"
            FROM ("yearly_totals" "yt"
              JOIN "public"."placements" "p" ON (("yt"."year" = "p"."year")))
         )
@@ -125,7 +152,8 @@ CREATE OR REPLACE VIEW "public"."team_performance_summary" AS
     "division_teams",
     "overall_place",
     "overall_teams",
-    ("lag"("overall_place") OVER (ORDER BY "year") - "overall_place") AS "improvement"
+    ("lag"("overall_place") OVER (ORDER BY "year") - "overall_place") AS "improvement",
+    "race_start_time"
    FROM "yearly_stats"
   ORDER BY "year";
 
@@ -245,7 +273,8 @@ CREATE OR REPLACE VIEW "public"."v_yearly_summary" AS
             ELSE NULL::double precision
         END AS "division_percentile",
     "p"."notes",
-    COALESCE("yp"."participant_count", (0)::bigint) AS "participant_count"
+    COALESCE("yp"."participant_count", (0)::bigint) AS "participant_count",
+    "tps"."race_start_time"
 	   FROM ("public"."team_performance_summary" "tps"
 	     LEFT JOIN "public"."placements" "p" ON (("tps"."year" = "p"."year")))
 	     LEFT JOIN ( SELECT "race_participations"."year",

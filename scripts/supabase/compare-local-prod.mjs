@@ -58,12 +58,7 @@ async function snapshot(target) {
   ] = await Promise.all([
     fetchAll(client, "runners", "id,name,email,auth_user_id", "name"),
     fetchAll(client, "leg_definitions", "number,version,distance,elevation_gain", "number"),
-    fetchAll(
-      client,
-      "placements",
-      "year,division,division_place,division_teams,overall_place,overall_teams,bib,notes",
-      "year"
-    ),
+    fetchPlacements(client),
     fetchAll(client, "results", "year,leg_number,leg_version,lap_time,user_id,notes", "year"),
     fetchAll(client, "race_participations", "year,runner_id,status,notes", "year"),
   ]);
@@ -129,6 +124,36 @@ async function fetchAll(client, table, columns, orderColumn) {
   }
 
   return rows;
+}
+
+async function fetchPlacements(client) {
+  try {
+    return await fetchAll(
+      client,
+      "placements",
+      "year,division,division_place,division_teams,overall_place,overall_teams,bib,notes,race_start_time",
+      "year"
+    );
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      error.message.includes("Could not find the 'race_start_time' column")
+    ) {
+      const rows = await fetchAll(
+        client,
+        "placements",
+        "year,division,division_place,division_teams,overall_place,overall_teams,bib,notes",
+        "year"
+      );
+
+      return rows.map((row) => ({
+        ...row,
+        race_start_time: row.year === 2024 ? "06:00:00" : "07:00:00",
+      }));
+    }
+
+    throw error;
+  }
 }
 
 async function listRunnerAuthEmails(client, runnerEmails) {

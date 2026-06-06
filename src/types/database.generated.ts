@@ -59,13 +59,13 @@ export type Database = {
         Row: {
           created_at: string
           distance: number | null
-          elapsed_time: unknown | null
+          elapsed_time: string | null
           elevation_gain: number | null
           id: string
-          lap_time: unknown | null
+          lap_time: string | null
           leg_number: number
           leg_version: number
-          moving_time: unknown | null
+          moving_time: string | null
           notes: string | null
           raw_metadata: Json
           runner_id: string | null
@@ -78,13 +78,13 @@ export type Database = {
         Insert: {
           created_at?: string
           distance?: number | null
-          elapsed_time?: unknown | null
+          elapsed_time?: string | null
           elevation_gain?: number | null
           id?: string
-          lap_time?: unknown | null
+          lap_time?: string | null
           leg_number: number
           leg_version: number
-          moving_time?: unknown | null
+          moving_time?: string | null
           notes?: string | null
           raw_metadata?: Json
           runner_id?: string | null
@@ -97,13 +97,13 @@ export type Database = {
         Update: {
           created_at?: string
           distance?: number | null
-          elapsed_time?: unknown | null
+          elapsed_time?: string | null
           elevation_gain?: number | null
           id?: string
-          lap_time?: unknown | null
+          lap_time?: string | null
           leg_number?: number
           leg_version?: number
-          moving_time?: unknown | null
+          moving_time?: string | null
           notes?: string | null
           raw_metadata?: Json
           runner_id?: string | null
@@ -153,6 +153,7 @@ export type Database = {
           notes: string | null
           overall_place: number | null
           overall_teams: number | null
+          race_start_time: string
           year: number
         }
         Insert: {
@@ -163,6 +164,7 @@ export type Database = {
           notes?: string | null
           overall_place?: number | null
           overall_teams?: number | null
+          race_start_time?: string
           year: number
         }
         Update: {
@@ -173,6 +175,7 @@ export type Database = {
           notes?: string | null
           overall_place?: number | null
           overall_teams?: number | null
+          race_start_time?: string
           year?: number
         }
         Relationships: []
@@ -245,13 +248,6 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "race_photo_notes_author_id_fkey"
-            columns: ["author_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "race_photo_notes_photo_id_fkey"
             columns: ["photo_id"]
@@ -339,7 +335,7 @@ export type Database = {
       results: {
         Row: {
           canonical_observation_id: string | null
-          lap_time: unknown | null
+          lap_time: string | null
           leg_number: number
           leg_version: number
           notes: string | null
@@ -349,7 +345,7 @@ export type Database = {
         }
         Insert: {
           canonical_observation_id?: string | null
-          lap_time?: unknown | null
+          lap_time?: string | null
           leg_number: number
           leg_version: number
           notes?: string | null
@@ -359,7 +355,7 @@ export type Database = {
         }
         Update: {
           canonical_observation_id?: string | null
-          lap_time?: unknown | null
+          lap_time?: string | null
           leg_number?: number
           leg_version?: number
           notes?: string | null
@@ -436,13 +432,14 @@ export type Database = {
     Views: {
       team_performance_summary: {
         Row: {
-          average_pace: unknown | null
+          average_pace: string | null
           division_place: number | null
           division_teams: number | null
           improvement: number | null
           overall_place: number | null
           overall_teams: number | null
-          total_time: unknown | null
+          race_start_time: string | null
+          total_time: string | null
           year: number | null
         }
         Relationships: [
@@ -455,54 +452,31 @@ export type Database = {
           },
         ]
       }
-      v_leg_version_stats: {
-        Row: {
-          average_pace: number | null
-          best_pace: number | null
-          best_pace_runner_years: Json | null
-          distance: number | null
-          elevation_gain: number | null
-          leg_number: number | null
-          leg_version: number | null
-          runs: number | null
-          total_distance: number | null
-          total_time: number | null
-          unique_runners: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "results_leg_definitions_fkey"
-            columns: ["leg_number", "leg_version"]
-            isOneToOne: false
-            referencedRelation: "leg_definitions"
-            referencedColumns: ["number", "version"]
-          },
-        ]
-      }
       v_leg_result_observations_with_pace: {
         Row: {
           auth_user_id: string | null
           canonical_distance: number | null
           canonical_elevation_gain: number | null
-          canonical_lap_time: unknown | null
+          canonical_lap_time: string | null
           canonical_runner_id: string | null
           canonical_runner_name: string | null
           created_at: string | null
           display_distance: number | null
           display_elevation_gain: number | null
-          elapsed_time: unknown | null
+          elapsed_time: string | null
           has_canonical_result: boolean | null
           id: string | null
-          lap_time: unknown | null
+          lap_time: string | null
           leg_number: number | null
           leg_version: number | null
-          moving_time: unknown | null
+          moving_time: string | null
           notes: string | null
           observed_distance: number | null
           observed_elevation_gain: number | null
           pace: number | null
-          primary_time: unknown | null
+          primary_time: string | null
           primary_time_type: string | null
+          race_start_time: string | null
           raw_metadata: Json | null
           runner_id: string | null
           runner_name: string | null
@@ -543,6 +517,37 @@ export type Database = {
             referencedRelation: "placements"
             referencedColumns: ["year"]
           },
+          {
+            foreignKeyName: "results_user_id_fkey"
+            columns: ["canonical_runner_id"]
+            isOneToOne: false
+            referencedRelation: "runners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      v_leg_version_stats: {
+        Row: {
+          average_pace: number | null
+          best_pace: number | null
+          best_pace_runner_years: Json | null
+          distance: number | null
+          elevation_gain: number | null
+          leg_number: number | null
+          leg_version: number | null
+          runs: number | null
+          total_distance: number | null
+          total_time: number | null
+          unique_runners: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "results_leg_definitions_fkey"
+            columns: ["leg_number", "leg_version"]
+            isOneToOne: false
+            referencedRelation: "leg_definitions"
+            referencedColumns: ["number", "version"]
+          },
         ]
       }
       v_results_with_pace: {
@@ -551,11 +556,14 @@ export type Database = {
           canonical_observation_id: string | null
           distance: number | null
           elevation_gain: number | null
-          lap_time: unknown | null
+          lap_time: string | null
+          leg_finish_time: string | null
           leg_number: number | null
+          leg_start_time: string | null
           leg_version: number | null
           notes: string | null
           pace: number | null
+          race_start_time: string | null
           runner_id: string | null
           runner_name: string | null
           source_type: string | null
@@ -659,7 +667,7 @@ export type Database = {
       }
       v_yearly_summary: {
         Row: {
-          average_pace: unknown | null
+          average_pace: string | null
           bib: number | null
           division: string | null
           division_percentile: number | null
@@ -671,7 +679,8 @@ export type Database = {
           overall_place: number | null
           overall_teams: number | null
           participant_count: number | null
-          total_time: unknown | null
+          race_start_time: string | null
+          total_time: string | null
           year: number | null
         }
         Relationships: [
@@ -687,7 +696,7 @@ export type Database = {
     }
     Functions: {
       parse_time_to_minutes: {
-        Args: { time_interval: unknown }
+        Args: { time_interval: string }
         Returns: number
       }
     }
@@ -700,21 +709,25 @@ export type Database = {
   }
 }
 
-type DefaultSchema = Database[Extract<keyof Database, "public">]
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-        Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
     : never = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-  ? (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-      Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
       Row: infer R
     }
     ? R
@@ -732,14 +745,16 @@ export type Tables<
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-  ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Insert: infer I
     }
     ? I
@@ -755,14 +770,16 @@ export type TablesInsert<
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-  ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Update: infer U
     }
     ? U
@@ -778,14 +795,16 @@ export type TablesUpdate<
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   EnumName extends DefaultSchemaEnumNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
     : never = never,
-> = DefaultSchemaEnumNameOrOptions extends { schema: keyof Database }
-  ? Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
   : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
     ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
     : never
@@ -793,14 +812,16 @@ export type Enums<
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
     : never = never,
-> = PublicCompositeTypeNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
     ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never

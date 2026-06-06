@@ -116,6 +116,7 @@ const FalconAgent: React.FC = () => {
   const abortControllerRef = useRef<AbortController | null>(null);
   const closeTimeoutRef = useRef<number | null>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const inputRef = useRef<HTMLTextAreaElement | null>(null);
 
   const openAgent = () => {
     if (closeTimeoutRef.current !== null) {
@@ -222,6 +223,23 @@ const FalconAgent: React.FC = () => {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ block: "end" });
   }, [messages, isOpen]);
+
+  useEffect(() => {
+    const textarea = inputRef.current;
+
+    if (!textarea) {
+      return;
+    }
+
+    const maxHeight = window.matchMedia("(min-width: 640px)").matches
+      ? 144
+      : 112;
+
+    textarea.style.height = "auto";
+    textarea.style.height = `${Math.min(textarea.scrollHeight, maxHeight)}px`;
+    textarea.style.overflowY =
+      textarea.scrollHeight > maxHeight ? "auto" : "hidden";
+  }, [input, isOpen]);
 
   const chatMessages = useMemo(
     () => messages.filter((message) => message.id !== "welcome"),
@@ -602,11 +620,13 @@ const FalconAgent: React.FC = () => {
             </div>
             <div className="grid grid-cols-[minmax(0,1fr)_2.75rem] items-end gap-2">
               <textarea
+                ref={inputRef}
                 value={input}
                 onChange={(event) => setInput(event.target.value)}
                 disabled={isStreaming}
-                className="max-h-28 min-h-11 min-w-0 resize-none rounded-lg border border-gray-300 px-3 py-2 text-sm leading-6 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:cursor-not-allowed disabled:opacity-70 dark:border-slate-700 sm:max-h-36"
-                placeholder="Ask a question or paste free-form race notes..."
+                className="falcon-agent-input max-h-28 min-h-11 min-w-0 resize-none rounded-lg border border-gray-300 px-3 py-2 text-base leading-7 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:cursor-not-allowed disabled:opacity-70 dark:border-slate-700 sm:max-h-36 sm:text-sm sm:leading-6"
+                placeholder="Ask Falcon..."
+                aria-label="Ask a question or paste free-form race notes"
                 rows={1}
                 enterKeyHint="send"
                 onKeyDown={(event) => {

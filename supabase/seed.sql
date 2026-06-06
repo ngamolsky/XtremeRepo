@@ -56,22 +56,22 @@ INSERT INTO public.leg_definitions (number, version, distance, elevation_gain) V
   (7, 1, 10.5, NULL),
   (7, 2, 11.02, 244);
 
-INSERT INTO public.placements (year, division, division_place, division_teams, overall_place, overall_teams, bib, notes) VALUES
-  (2008, 'Men''s Open', 21, 24, 79, 112, 52, NULL),
-  (2009, 'Men''s Open', 18, 23, 62, 116, 22, NULL),
-  (2011, 'Men''s Open', 19, 19, 97, 119, 30, NULL),
-  (2012, 'Men''s Open', 19, 20, 99, 119, 15, NULL),
-  (2013, 'Men''s Open', 15, 17, 103, 120, 41, NULL),
-  (2014, 'Mixed Open', 11, 11, 105, 122, 98, NULL),
-  (2015, 'Men''s Open', 13, 13, 83, 89, 22, NULL),
-  (2016, 'Men''s Open', 7, 8, 54, 62, 18, NULL),
-  (2017, 'Men''s Open', 8, 9, 47, 63, 3, NULL),
-  (2018, 'Men''s Open', 8, 9, 56, 66, 7, NULL),
-  (2019, 'Men''s Open', 10, 10, 57, 70, 2, NULL),
-  (2022, 'Mixed Open', 6, 12, 19, 26, 24, NULL),
-  (2023, 'Mixed Open', 8, 17, 20, 41, 29, NULL),
-  (2024, 'Mixed Open', 10, 19, 29, 43, 16, NULL),
-  (2025, 'Mixed Open', 20, 28, 37, 54, 37, NULL);
+INSERT INTO public.placements (year, division, division_place, division_teams, overall_place, overall_teams, bib, notes, race_start_time) VALUES
+  (2008, 'Men''s Open', 21, 24, 79, 112, 52, NULL, '07:00:00'),
+  (2009, 'Men''s Open', 18, 23, 62, 116, 22, NULL, '07:00:00'),
+  (2011, 'Men''s Open', 19, 19, 97, 119, 30, NULL, '07:00:00'),
+  (2012, 'Men''s Open', 19, 20, 99, 119, 15, NULL, '07:00:00'),
+  (2013, 'Men''s Open', 15, 17, 103, 120, 41, NULL, '07:00:00'),
+  (2014, 'Mixed Open', 11, 11, 105, 122, 98, NULL, '07:00:00'),
+  (2015, 'Men''s Open', 13, 13, 83, 89, 22, NULL, '07:00:00'),
+  (2016, 'Men''s Open', 7, 8, 54, 62, 18, NULL, '07:00:00'),
+  (2017, 'Men''s Open', 8, 9, 47, 63, 3, NULL, '07:00:00'),
+  (2018, 'Men''s Open', 8, 9, 56, 66, 7, NULL, '07:00:00'),
+  (2019, 'Men''s Open', 10, 10, 57, 70, 2, NULL, '07:00:00'),
+  (2022, 'Mixed Open', 6, 12, 19, 26, 24, NULL, '07:00:00'),
+  (2023, 'Mixed Open', 8, 17, 20, 41, 29, NULL, '07:00:00'),
+  (2024, 'Mixed Open', 10, 19, 29, 43, 16, NULL, '06:00:00'),
+  (2025, 'Mixed Open', 20, 28, 37, 54, 37, NULL, '07:00:00');
 
 -- No rows for public.leg_result_observations.
 
