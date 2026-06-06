@@ -100,7 +100,7 @@ const supportedImageAttachmentTypeSet = new Set<string>(
 );
 const maxImageAttachmentSizeBytes = 4 * 1024 * 1024;
 const defaultScreenshotPrompt =
-  "Read this screenshot as self recorded runner/device data. Extract visible Strava, watch, phone, or app values, then ask me for anything required before saving a self recorded observation.";
+  "Shred this screenshot for self recorded runner/device data. Extract visible Strava, watch, phone, or app values, then ask me for anything required before saving a self recorded observation.";
 
 const chatModelOptions: ChatModelOption[] = [
   {
@@ -129,7 +129,7 @@ const starterMessages: ChatMessage[] = [
   {
     id: "welcome",
     role: "assistant",
-    content: "Ready for race and team questions.",
+    content: "Ready to shred race data, rip splits, and send the Falcons full throttle.",
   },
 ];
 
@@ -624,7 +624,7 @@ const FalconAgent: React.FC = () => {
                   id="falcon-agent-title"
                   className="truncate text-base font-semibold text-gray-900"
                 >
-                  Falcons Agent
+                  Xtreme Falcons Crew Chief
                 </h2>
                 <p className="truncate text-xs text-gray-500 sm:text-sm">
                   Context: {pageContext.title}
@@ -693,7 +693,7 @@ const FalconAgent: React.FC = () => {
                           </Streamdown>
                         </React.Suspense>
                       ) : (
-                        message.toolCalls?.length ? "Working..." : "Thinking..."
+                        message.toolCalls?.length ? "Shredding data..." : "Dialing in..."
                       )}
                     </div>
                   </div>
@@ -814,8 +814,8 @@ const FalconAgent: React.FC = () => {
                 onChange={(event) => setInput(event.target.value)}
                 disabled={isStreaming}
                 className="falcon-agent-input max-h-28 min-h-11 min-w-0 resize-none rounded-lg border border-gray-300 px-3 py-2 text-base leading-7 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:cursor-not-allowed disabled:opacity-70 dark:border-slate-700 sm:max-h-36 sm:text-sm sm:leading-6"
-                placeholder="Ask Falcon or paste a screenshot..."
-                aria-label="Ask a question, paste race context, or paste a screenshot"
+                placeholder="Ask the Crew Chief to shred splits..."
+                aria-label="Ask the Xtreme Falcons Crew Chief a question, paste race context, or paste a screenshot"
                 rows={1}
                 enterKeyHint="send"
                 onPaste={handleTextareaPaste}
@@ -847,8 +847,8 @@ const FalconAgent: React.FC = () => {
             type="button"
             onClick={openAgent}
             className="flex h-14 w-14 items-center justify-center rounded-full bg-primary-600 text-2xl text-white shadow-xl ring-1 ring-primary-300 transition-transform hover:scale-105 hover:bg-primary-700 focus:outline-none focus:ring-4 focus:ring-primary-200"
-            aria-label="Show Falcons agent"
-            title="Falcons Agent"
+            aria-label="Show Xtreme Falcons agent"
+            title="Xtreme Falcons Crew Chief"
           >
             🦅
           </button>
