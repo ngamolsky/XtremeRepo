@@ -6,7 +6,6 @@ import {
   Clock,
   Image,
   Trophy,
-  Users,
 } from "lucide-react";
 import React, { useEffect, useMemo, useState } from "react";
 import { useRelayData } from "../hooks/useRelayData";
@@ -14,7 +13,7 @@ import {
   getDisplayLegResults,
   getRaceDisplaySummary,
 } from "../lib/raceDisplay";
-import type { DisplayLegResult, RaceResultStatus } from "../lib/raceDisplay";
+import type { RaceResultStatus } from "../lib/raceDisplay";
 import { formatFeet, formatMiles, formatPace, formatSourceType } from "../lib/utils";
 import { supabase } from "../lib/supabase";
 import { Tables } from "../types/database.types";
@@ -22,10 +21,38 @@ import CommentsSection from "./CommentsSection";
 
 type AlbumSummary = Tables<"v_race_photo_album_summary">;
 type RacePhoto = Tables<"race_photos">;
-type LegAssignment = Tables<"v_race_leg_assignments">;
+type LegDefinition = Tables<"leg_definitions">;
+type OfficialResult = Tables<"v_results_with_pace">;
+type SelfRecordedObservation = Tables<"v_leg_result_observations_with_pace">;
+
+type RaceLegEntry = {
+  distance: number | null;
+  elevationGain: number | null;
+  key: string;
+  kind: "official" | "self_recorded";
+  legNumber: number;
+  legVersion: number;
+  pace: number | null;
+  runnerName: string | null;
+  sourceLabel: string | null;
+  sourceTags: string[];
+  sourceType: string | null;
+  time: string | null;
+  timeLabel: string;
+  updatedAt: string | null;
+};
+
+type RaceLegGroup = {
+  distance: number | null;
+  elevationGain: number | null;
+  entries: RaceLegEntry[];
+  legNumber: number;
+  legVersion: number | null;
+};
 
 const REMOTE_PUBLIC_STORAGE_BASE_URL =
   "https://vrorouyfpacxpxkcsleq.supabase.co/storage/v1/object/public";
+const EXPECTED_RELAY_LEGS = 7;
 
 const RaceDetailView: React.FC = () => {
   const { year } = useParams({ from: "/races/$year" });
@@ -34,9 +61,8 @@ const RaceDetailView: React.FC = () => {
     data: {
       yearlySummary,
       results,
-      participations,
+      legDefinitions,
       legResultObservations,
-      raceLegAssignments,
     },
     loading,
     error,
@@ -62,23 +88,50 @@ const RaceDetailView: React.FC = () => {
     () => (race ? getRaceDisplaySummary(race, displayLegResults) : null),
     [displayLegResults, race]
   );
-  const yearParticipations = useMemo(
+  const raceLegGroups = useMemo(
     () =>
-      participations
-        .filter((participation) => participation.year === raceYear)
-        .sort((a, b) => (a.runner_name || "").localeCompare(b.runner_name || "")),
-    [participations, raceYear]
+      Number.isFinite(raceYear)
+        ? buildRaceLegGroups(raceYear, legDefinitions, results, legResultObservations)
+        : [],
+    [legDefinitions, legResultObservations, raceYear, results]
   );
-  const unknownLegParticipations = yearParticipations.filter(
-    (participation) => !participation.has_known_leg
+  const officialEntryCount = raceLegGroups.reduce(
+    (count, group) => count + group.entries.filter((entry) => entry.kind === "official").length,
+    0
   );
-  const plannedAssignments = useMemo(
-    () =>
-      raceLegAssignments
-        .filter((assignment) => assignment.year === raceYear)
-        .sort((a, b) => (a.leg_number || 0) - (b.leg_number || 0)),
-    [raceLegAssignments, raceYear]
+  const selfRecordedEntryCount = raceLegGroups.reduce(
+    (count, group) =>
+      count + group.entries.filter((entry) => entry.kind === "self_recorded").length,
+    0
   );
+  const legsWithEntriesCount = raceLegGroups.filter(
+    (group) => group.entries.length > 0
+  ).length;
+  const hasOfficialResults = officialEntryCount > 0;
+  const legSectionTitle = hasOfficialResults ? "Leg Results" : "Race Day Tracker";
+  const legSectionSummary = hasOfficialResults
+    ? "Official results are listed first. Self recorded entries remain as supporting race-day evidence."
+    : "Self recorded entries are provisional race-day evidence until official results arrive.";
+  const resultSectionTitle = hasOfficialResults ? "Official Result" : "Official Result Pending";
+  const resultSectionSummary = hasOfficialResults
+    ? "These totals and placements come from official race data."
+    : "Totals, placements, percentiles, and records stay hidden until official results are available.";
+  const officialDivisionValue =
+    race?.division_place && race.division_teams
+      ? `${race.division_place} of ${race.division_teams}`
+      : race?.division || "N/A";
+  const officialOverallValue =
+    race?.overall_place && race.overall_teams
+      ? `${race.overall_place} of ${race.overall_teams}`
+      : "N/A";
+  const observedRunnerNames = Array.from(
+    new Set(
+      raceLegGroups
+        .flatMap((group) => group.entries)
+        .map((entry) => entry.runnerName)
+        .filter((runnerName): runnerName is string => Boolean(runnerName))
+    )
+  ).sort((a, b) => a.localeCompare(b));
   const coverPhoto = albumSummary?.cover_storage_bucket
     ? {
         storageBucket: albumSummary.cover_storage_bucket,
@@ -230,95 +283,31 @@ const RaceDetailView: React.FC = () => {
           </section>
 
           <section className="card p-6">
-            <div className="mb-4 flex items-center gap-2">
-              <Clock className="h-5 w-5 text-primary-600" />
-              <h2 className="text-lg font-semibold text-gray-900">Leg Results</h2>
+            <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <div className="mb-2 flex items-center gap-2">
+                  <Clock className="h-5 w-5 text-primary-600" />
+                  <h2 className="text-lg font-semibold text-gray-900">{legSectionTitle}</h2>
+                </div>
+                <p className="text-sm text-gray-600">{legSectionSummary}</p>
+              </div>
+              <div className="flex shrink-0 flex-wrap gap-2 text-xs font-medium">
+                <span className="rounded-full bg-amber-50 px-2.5 py-1 text-amber-800">
+                  {selfRecordedEntryCount} self recorded
+                </span>
+                {hasOfficialResults && (
+                  <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-emerald-700">
+                    {officialEntryCount} official
+                  </span>
+                )}
+              </div>
             </div>
 
-            {displayLegResults.length === 0 ? (
-              <p className="text-sm text-gray-600">
-                Official results are pending. Self recorded leg data will appear here as it is
-                saved.
-              </p>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-100">
-                    <tr>
-                      <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-600">
-                        Leg
-                      </th>
-                      <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-600">
-                        Runner
-                      </th>
-                      <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-600">
-                        Source
-                      </th>
-                      <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-600">
-                        Time
-                      </th>
-                      <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-600">
-                        Pace
-                      </th>
-                      <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-600">
-                        Distance
-                      </th>
-                      <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-600">
-                        Gain
-                      </th>
-                      <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-600">
-                        Details
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200 bg-white">
-                    {displayLegResults.map((leg) => (
-                      <tr key={leg.key}>
-                        <td className="whitespace-nowrap px-4 py-2 text-sm font-medium text-gray-800">
-                          {leg.leg_number} (v{leg.leg_version})
-                        </td>
-                        <td className="whitespace-nowrap px-4 py-2 text-sm text-gray-800">
-                          {leg.runner_name || "N/A"}
-                        </td>
-                        <td className="whitespace-nowrap px-4 py-2 text-sm text-gray-800">
-                          <SourceBadge leg={leg} />
-                        </td>
-                        <td className="whitespace-nowrap px-4 py-2 text-sm text-gray-800">
-                          {leg.lap_time || "N/A"}
-                        </td>
-                        <td className="whitespace-nowrap px-4 py-2 text-sm text-gray-800">
-                          {formatPace(leg.pace || 0)}
-                        </td>
-                        <td className="whitespace-nowrap px-4 py-2 text-sm text-gray-800">
-                          {formatMiles(leg.distance)}
-                        </td>
-                        <td className="whitespace-nowrap px-4 py-2 text-sm text-gray-800">
-                          {formatFeet(leg.elevation_gain)}
-                        </td>
-                        <td className="whitespace-nowrap px-4 py-2 text-sm font-medium">
-                          {leg.runner_name && leg.leg_number && leg.leg_version ? (
-                            <Link
-                              to="/runs/$runnerName/$year/$legNumber/$version"
-                              params={{
-                                runnerName: leg.runner_name,
-                                year: String(raceYear),
-                                legNumber: String(leg.leg_number),
-                                version: String(leg.leg_version),
-                              }}
-                              className="text-primary-700 hover:text-primary-800"
-                            >
-                              Open
-                            </Link>
-                          ) : (
-                            "N/A"
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
+            <div className="divide-y divide-gray-100">
+              {raceLegGroups.map((group) => (
+                <RaceLegGroupRow key={group.legNumber} group={group} raceYear={raceYear} />
+              ))}
+            </div>
           </section>
         </div>
 
@@ -360,79 +349,59 @@ const RaceDetailView: React.FC = () => {
           <section className="card p-6">
             <div className="mb-4 flex items-center gap-2">
               <Trophy className="h-5 w-5 text-primary-600" />
-              <h2 className="text-lg font-semibold text-gray-900">Result</h2>
+              <h2 className="text-lg font-semibold text-gray-900">{resultSectionTitle}</h2>
             </div>
+            <p className="mb-4 text-sm text-gray-600">{resultSectionSummary}</p>
             <dl className="space-y-3 text-sm">
               <StatRow label="Status" value={resultSummary?.status.label ?? "N/A"} />
               <StatRow
                 label="Total time"
-                value={resultSummary?.displayTotalTime ?? "N/A"}
+                value={hasOfficialResults ? resultSummary?.displayTotalTime ?? "N/A" : "Pending"}
               />
               <StatRow
                 label="Average pace"
-                value={resultSummary?.displayAveragePace ?? "N/A"}
+                value={hasOfficialResults ? resultSummary?.displayAveragePace ?? "N/A" : "Pending"}
               />
               <StatRow
                 label="Division"
-                value={
-                  race.division_place && race.division_teams
-                    ? `${race.division_place} of ${race.division_teams}`
-                    : race.division || "N/A"
-                }
+                value={hasOfficialResults ? officialDivisionValue : "Pending"}
               />
               <StatRow
                 label="Overall"
-                value={
-                  race.overall_place && race.overall_teams
-                    ? `${race.overall_place} of ${race.overall_teams}`
-                    : "N/A"
-                }
+                value={hasOfficialResults ? officialOverallValue : "Pending"}
               />
-              {resultSummary && resultSummary.selfRecordedResultCount > 0 && (
-                <StatRow
-                  label="Self recorded"
-                  value={`${resultSummary.selfRecordedResultCount} legs`}
-                />
-              )}
             </dl>
           </section>
 
           <section className="card p-6">
             <div className="mb-4 flex items-center gap-2">
-              <Users className="h-5 w-5 text-primary-600" />
-              <h2 className="text-lg font-semibold text-gray-900">Roster</h2>
+              <Clock className="h-5 w-5 text-primary-600" />
+              <h2 className="text-lg font-semibold text-gray-900">Race Day Data</h2>
             </div>
-            <p className="mb-4 text-sm text-gray-600">
-              {formatCount(yearParticipations.length || race.participant_count || 0, "runner")}
-            </p>
-            {plannedAssignments.length > 0 ? (
-              <div className="mb-5 divide-y divide-gray-100">
-                {plannedAssignments.map((assignment) => (
-                  <AssignmentRow
-                    key={assignment.id ?? `${assignment.year}-${assignment.leg_number}`}
-                    assignment={assignment}
-                  />
-                ))}
-              </div>
-            ) : (
-              resultSummary?.status.tone === "pending" && (
-                <p className="mb-5 text-sm text-gray-600">
-                  No planned leg assignments are saved yet.
-                </p>
-              )
-            )}
-            {unknownLegParticipations.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {unknownLegParticipations.map((participation) => (
-                  <span
-                    key={`${participation.year}-${participation.runner_id}`}
-                    className="rounded-full bg-amber-100 px-3 py-1 text-sm text-amber-800"
-                  >
-                    {participation.runner_name}
-                  </span>
-                ))}
-              </div>
-            )}
+            <dl className="space-y-3 text-sm">
+              <StatRow label="Legs with data" value={`${legsWithEntriesCount} of ${EXPECTED_RELAY_LEGS}`} />
+              <StatRow label="Self recorded entries" value={String(selfRecordedEntryCount)} />
+              <StatRow label="Official entries" value={String(officialEntryCount)} />
+            </dl>
+            <div className="mt-4">
+              <p className="mb-2 text-xs font-medium uppercase text-gray-500">
+                Observed runners
+              </p>
+              {observedRunnerNames.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {observedRunnerNames.map((runnerName) => (
+                    <span
+                      key={runnerName}
+                      className="rounded-full bg-primary-50 px-3 py-1 text-sm text-primary-700"
+                    >
+                      {runnerName}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-gray-600">No self recorded entries yet.</p>
+              )}
+            </div>
           </section>
 
           <CommentsSection
@@ -507,18 +476,110 @@ const RaceStatusBadge: React.FC<{ status: RaceResultStatus }> = ({ status }) => 
   </span>
 );
 
-const SourceBadge: React.FC<{ leg: DisplayLegResult }> = ({ leg }) => {
+const RaceLegGroupRow: React.FC<{ group: RaceLegGroup; raceYear: number }> = ({
+  group,
+  raceYear,
+}) => (
+  <div className="grid gap-4 py-5 first:pt-0 last:pb-0 sm:grid-cols-[7rem_minmax(0,1fr)]">
+    <div>
+      <p className="text-sm font-semibold text-gray-900">
+        Leg {group.legNumber}
+        {group.legVersion ? ` (v${group.legVersion})` : ""}
+      </p>
+      <p className="mt-1 text-xs text-gray-500">
+        {formatMiles(group.distance)} · {formatFeet(group.elevationGain)}
+      </p>
+    </div>
+    {group.entries.length > 0 ? (
+      <div className="space-y-3">
+        {group.entries.map((entry) => (
+          <RaceLegEntryRow key={entry.key} entry={entry} raceYear={raceYear} />
+        ))}
+      </div>
+    ) : (
+      <p className="rounded-lg border border-dashed border-gray-200 px-4 py-3 text-sm text-gray-500">
+        No self recorded data yet.
+      </p>
+    )}
+  </div>
+);
+
+const RaceLegEntryRow: React.FC<{ entry: RaceLegEntry; raceYear: number }> = ({
+  entry,
+  raceYear,
+}) => (
+  <div className="rounded-lg border border-gray-200 bg-white p-4">
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+      <div className="min-w-0">
+        <div className="flex flex-wrap items-center gap-2">
+          <EntrySourceBadge entry={entry} />
+          {entry.updatedAt && (
+            <span className="text-xs text-gray-500">{formatEntryDate(entry.updatedAt)}</span>
+          )}
+        </div>
+        <p className="mt-2 text-base font-semibold text-gray-900">
+          {entry.runnerName || "Unknown runner"}
+        </p>
+      </div>
+      {entry.runnerName && entry.legVersion ? (
+        <Link
+          to="/runs/$runnerName/$year/$legNumber/$version"
+          params={{
+            runnerName: entry.runnerName,
+            year: String(raceYear),
+            legNumber: String(entry.legNumber),
+            version: String(entry.legVersion),
+          }}
+          className="text-sm font-medium text-primary-700 hover:text-primary-800"
+        >
+          Open
+        </Link>
+      ) : null}
+    </div>
+
+    <dl className="mt-4 grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
+      <EntryMetric label={entry.timeLabel} value={entry.time ?? "N/A"} />
+      <EntryMetric label="Pace" value={formatPace(entry.pace || 0)} />
+      <EntryMetric label="Distance" value={formatMiles(entry.distance)} />
+      <EntryMetric label="Gain" value={formatFeet(entry.elevationGain)} />
+    </dl>
+
+    {entry.sourceTags.length > 0 && (
+      <div className="mt-3 flex flex-wrap gap-1.5">
+        {entry.sourceTags.map((sourceTag) => (
+          <span
+            key={sourceTag}
+            className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600"
+          >
+            {sourceTag}
+          </span>
+        ))}
+      </div>
+    )}
+  </div>
+);
+
+const EntryMetric: React.FC<{ label: string; value: string }> = ({ label, value }) => (
+  <div>
+    <dt className="text-xs font-medium uppercase text-gray-500">{label}</dt>
+    <dd className="mt-1 font-medium text-gray-900">{value}</dd>
+  </div>
+);
+
+const EntrySourceBadge: React.FC<{ entry: RaceLegEntry }> = ({ entry }) => {
   const label =
-    leg.kind === "official"
+    entry.kind === "official"
       ? "Official"
-      : `Self Recorded${leg.source_type ? ` · ${formatSourceType(leg.source_type)}` : ""}${
-          leg.source_label ? ` (${leg.source_label})` : ""
+      : `Self Recorded${
+          entry.sourceType ? ` · ${formatSourceType(entry.sourceType)}` : ""
+        }${
+          entry.sourceLabel ? ` (${entry.sourceLabel})` : ""
         }`;
 
   return (
     <span
       className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${
-        leg.kind === "official"
+        entry.kind === "official"
           ? "bg-emerald-50 text-emerald-700"
           : "bg-amber-50 text-amber-800"
       }`}
@@ -527,30 +588,6 @@ const SourceBadge: React.FC<{ leg: DisplayLegResult }> = ({ leg }) => {
     </span>
   );
 };
-
-const AssignmentRow: React.FC<{ assignment: LegAssignment }> = ({ assignment }) => (
-  <div className="py-3 first:pt-0 last:pb-0">
-    <div className="flex items-start justify-between gap-3">
-      <div>
-        <p className="text-sm font-medium text-gray-900">
-          Leg {assignment.leg_number} (v{assignment.leg_version})
-        </p>
-        <p className="text-sm text-gray-600">{assignment.runner_name || "Unassigned"}</p>
-      </div>
-      <span
-        className={`inline-flex shrink-0 items-center rounded-full px-2.5 py-1 text-xs font-medium ${getAssignmentStatusClass(
-          assignment.status
-        )}`}
-      >
-        {formatAssignmentStatus(assignment.status)}
-      </span>
-    </div>
-    <p className="mt-1 text-xs text-gray-500">
-      {formatMiles(assignment.distance)} · {formatFeet(assignment.elevation_gain)}
-    </p>
-    {assignment.notes && <p className="mt-1 text-xs text-gray-500">{assignment.notes}</p>}
-  </div>
-);
 
 function getRaceStatusClass(status: RaceResultStatus) {
   if (status.tone === "official") {
@@ -562,30 +599,169 @@ function getRaceStatusClass(status: RaceResultStatus) {
   return "bg-amber-50 text-amber-800";
 }
 
-function formatAssignmentStatus(status: string | null) {
-  if (status === "ran") {
-    return "Ran";
+function buildRaceLegGroups(
+  raceYear: number,
+  legDefinitions: LegDefinition[],
+  officialResults: OfficialResult[],
+  observations: SelfRecordedObservation[]
+): RaceLegGroup[] {
+  const latestLegDefinitionByNumber = getLatestLegDefinitionByNumber(legDefinitions);
+  const officialResultsByLeg = new Map<number, OfficialResult[]>();
+  const observationsByLeg = new Map<number, SelfRecordedObservation[]>();
+  const legNumbers = new Set<number>();
+
+  for (let legNumber = 1; legNumber <= EXPECTED_RELAY_LEGS; legNumber += 1) {
+    legNumbers.add(legNumber);
   }
-  if (status === "changed") {
-    return "Changed";
-  }
-  if (status === "scratched") {
-    return "Scratched";
-  }
-  return "Planned";
+
+  officialResults.forEach((result) => {
+    if (result.year !== raceYear || result.leg_number === null) {
+      return;
+    }
+
+    const currentResults = officialResultsByLeg.get(result.leg_number) ?? [];
+    currentResults.push(result);
+    officialResultsByLeg.set(result.leg_number, currentResults);
+    legNumbers.add(result.leg_number);
+  });
+
+  observations.forEach((observation) => {
+    if (
+      observation.year !== raceYear ||
+      observation.leg_number === null ||
+      !hasMeasuredObservationData(observation)
+    ) {
+      return;
+    }
+
+    const currentObservations = observationsByLeg.get(observation.leg_number) ?? [];
+    currentObservations.push(observation);
+    observationsByLeg.set(observation.leg_number, currentObservations);
+    legNumbers.add(observation.leg_number);
+  });
+
+  return Array.from(legNumbers)
+    .sort((a, b) => a - b)
+    .map((legNumber) => {
+      const officialEntries = (officialResultsByLeg.get(legNumber) ?? [])
+        .sort(sortOfficialResults)
+        .map(toOfficialEntry);
+      const selfRecordedEntries = (observationsByLeg.get(legNumber) ?? [])
+        .sort(sortObservations)
+        .map(toSelfRecordedEntry);
+      const entries = [...officialEntries, ...selfRecordedEntries];
+      const primaryEntry = entries[0];
+      const defaultDefinition = latestLegDefinitionByNumber.get(legNumber);
+
+      return {
+        distance: primaryEntry?.distance ?? defaultDefinition?.distance ?? null,
+        elevationGain:
+          primaryEntry?.elevationGain ?? defaultDefinition?.elevation_gain ?? null,
+        entries,
+        legNumber,
+        legVersion: primaryEntry?.legVersion ?? defaultDefinition?.version ?? null,
+      };
+    });
 }
 
-function getAssignmentStatusClass(status: string | null) {
-  if (status === "ran") {
-    return "bg-emerald-50 text-emerald-700";
+function getLatestLegDefinitionByNumber(legDefinitions: LegDefinition[]) {
+  const latestByNumber = new Map<number, LegDefinition>();
+
+  legDefinitions.forEach((definition) => {
+    const current = latestByNumber.get(definition.number);
+    if (!current || definition.version > current.version) {
+      latestByNumber.set(definition.number, definition);
+    }
+  });
+
+  return latestByNumber;
+}
+
+function toOfficialEntry(result: OfficialResult): RaceLegEntry {
+  return {
+    distance: result.distance,
+    elevationGain: result.elevation_gain,
+    key: `official-${result.year}-${result.leg_number}-${result.leg_version}`,
+    kind: "official",
+    legNumber: result.leg_number ?? 0,
+    legVersion: result.leg_version ?? 0,
+    pace: result.pace,
+    runnerName: result.runner_name,
+    sourceLabel: null,
+    sourceTags: [],
+    sourceType: result.source_type ?? "official",
+    time: result.lap_time,
+    timeLabel: "Lap",
+    updatedAt: null,
+  };
+}
+
+function toSelfRecordedEntry(observation: SelfRecordedObservation): RaceLegEntry {
+  return {
+    distance: observation.display_distance,
+    elevationGain: observation.display_elevation_gain,
+    key: `self-recorded-${observation.id ?? `${observation.year}-${observation.leg_number}`}`,
+    kind: "self_recorded",
+    legNumber: observation.leg_number ?? 0,
+    legVersion: observation.leg_version ?? 0,
+    pace: observation.pace,
+    runnerName: observation.runner_name,
+    sourceLabel: observation.source_label,
+    sourceTags: observation.source_tags ?? [],
+    sourceType: observation.source_type,
+    time:
+      observation.primary_time ??
+      observation.lap_time ??
+      observation.elapsed_time ??
+      observation.moving_time,
+    timeLabel: formatObservationTimeLabel(observation.primary_time_type),
+    updatedAt: observation.updated_at ?? observation.created_at,
+  };
+}
+
+function hasMeasuredObservationData(observation: SelfRecordedObservation) {
+  return Boolean(
+    observation.primary_time ||
+      observation.lap_time ||
+      observation.elapsed_time ||
+      observation.moving_time ||
+      observation.observed_distance ||
+      observation.observed_elevation_gain
+  );
+}
+
+function sortOfficialResults(a: OfficialResult, b: OfficialResult) {
+  return (a.leg_version ?? 0) - (b.leg_version ?? 0);
+}
+
+function sortObservations(a: SelfRecordedObservation, b: SelfRecordedObservation) {
+  return getObservationTimestamp(b) - getObservationTimestamp(a);
+}
+
+function getObservationTimestamp(observation: SelfRecordedObservation) {
+  return Date.parse(observation.updated_at ?? observation.created_at ?? "") || 0;
+}
+
+function formatObservationTimeLabel(timeType: string | null | undefined) {
+  if (timeType === "moving_time") {
+    return "Moving";
   }
-  if (status === "changed") {
-    return "bg-blue-50 text-blue-700";
+  if (timeType === "elapsed_time") {
+    return "Elapsed";
   }
-  if (status === "scratched") {
-    return "bg-gray-100 text-gray-700";
+  return "Lap";
+}
+
+function formatEntryDate(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return "";
   }
-  return "bg-amber-50 text-amber-800";
+
+  return new Intl.DateTimeFormat(undefined, {
+    dateStyle: "short",
+    timeStyle: "short",
+  }).format(date);
 }
 
 function getStorageUrlCandidates(

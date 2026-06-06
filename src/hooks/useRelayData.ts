@@ -9,7 +9,6 @@ type SupabaseRowsResponse<T> = {
 
 export type RelayData = {
   legDefinitions: Tables<"leg_definitions">[];
-  raceLegAssignments: Tables<"v_race_leg_assignments">[];
   legResultObservations: Tables<"v_leg_result_observations_with_pace">[];
   results: Tables<"v_results_with_pace">[];
   participations: Tables<"v_runner_participations">[];
@@ -45,7 +44,6 @@ const readOptionalRows = <T>(
 export const useRelayData = () => {
   const [data, setData] = useState<RelayData>({
     legDefinitions: [],
-    raceLegAssignments: [],
     legResultObservations: [],
     results: [],
     participations: [],
@@ -64,7 +62,6 @@ export const useRelayData = () => {
 
         const [
           legDefinitionsRes,
-          raceLegAssignmentsRes,
           legResultObservationsRes,
           resultsRes,
           participationsRes,
@@ -73,7 +70,6 @@ export const useRelayData = () => {
           yearlySummaryRes,
         ] = await Promise.all([
           supabase.from("leg_definitions").select("*"),
-          supabase.from("v_race_leg_assignments").select("*"),
           supabase.from("v_leg_result_observations_with_pace").select("*"),
           supabase.from("v_results_with_pace").select("*"),
           supabase.from("v_runner_participations").select("*"),
@@ -91,10 +87,6 @@ export const useRelayData = () => {
 
         setData({
           legDefinitions: legDefinitionsRes.data || [],
-          raceLegAssignments: readOptionalRows(
-            raceLegAssignmentsRes,
-            "v_race_leg_assignments"
-          ),
           legResultObservations: readOptionalRows(
             legResultObservationsRes,
             "v_leg_result_observations_with_pace"

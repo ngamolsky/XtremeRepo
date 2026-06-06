@@ -1,5 +1,4 @@
 import type { Tables } from "../types/database.types";
-import { formatPace, parseTimeToMinutes } from "./utils";
 
 type OfficialResult = Tables<"v_results_with_pace">;
 type SelfRecordedObservation = Tables<"v_leg_result_observations_with_pace">;
@@ -78,14 +77,13 @@ export function getRaceDisplaySummary(
   const selfRecordedResultCount = displayLegResults.filter(
     (leg) => leg.kind === "self_recorded"
   ).length;
-  const selfRecordedTotals = getSelfRecordedTotals(displayLegResults);
 
   return {
     officialResultCount,
     selfRecordedResultCount,
     status: getRaceResultStatus(officialResultCount, selfRecordedResultCount),
-    displayTotalTime: race.total_time?.toString() ?? selfRecordedTotals.totalTime,
-    displayAveragePace: race.average_pace ?? selfRecordedTotals.averagePace,
+    displayTotalTime: race.total_time?.toString() ?? null,
+    displayAveragePace: race.average_pace ?? null,
   };
 }
 
@@ -159,28 +157,6 @@ function toSelfRecordedDisplayLeg(observation: SelfRecordedObservation): Display
   };
 }
 
-function getSelfRecordedTotals(displayLegResults: DisplayLegResult[]) {
-  const selfRecordedLegs = displayLegResults.filter(
-    (leg) => leg.kind === "self_recorded"
-  );
-  const totalMinutes = selfRecordedLegs.reduce(
-    (sum, leg) => sum + parseTimeToMinutes(leg.lap_time ?? ""),
-    0
-  );
-  const totalDistance = selfRecordedLegs.reduce(
-    (sum, leg) => sum + (leg.distance ?? 0),
-    0
-  );
-
-  return {
-    totalTime: totalMinutes > 0 ? formatMinutesAsDuration(totalMinutes) : null,
-    averagePace:
-      totalMinutes > 0 && totalDistance > 0
-        ? formatPace(totalMinutes / totalDistance)
-        : null,
-  };
-}
-
 function hasSelfRecordedData(observation: SelfRecordedObservation) {
   return Boolean(
     observation.primary_time ||
@@ -203,15 +179,4 @@ function sortDisplayLegs(a: DisplayLegResult, b: DisplayLegResult) {
     (a.leg_number ?? 0) - (b.leg_number ?? 0) ||
     (a.leg_version ?? 0) - (b.leg_version ?? 0)
   );
-}
-
-function formatMinutesAsDuration(totalMinutes: number) {
-  const totalSeconds = Math.round(totalMinutes * 60);
-  const hours = Math.floor(totalSeconds / 3600);
-  const minutes = Math.floor((totalSeconds % 3600) / 60);
-  const seconds = totalSeconds % 60;
-
-  return `${hours}:${minutes.toString().padStart(2, "0")}:${seconds
-    .toString()
-    .padStart(2, "0")}`;
 }
