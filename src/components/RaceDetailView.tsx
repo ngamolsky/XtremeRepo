@@ -21,7 +21,11 @@ import { Tables } from "../types/database.types";
 import CommentsSection from "./CommentsSection";
 
 type AlbumSummary = Tables<"v_race_photo_album_summary">;
+type RacePhoto = Tables<"race_photos">;
 type LegAssignment = Tables<"v_race_leg_assignments">;
+
+const REMOTE_PUBLIC_STORAGE_BASE_URL =
+  "https://vrorouyfpacxpxkcsleq.supabase.co/storage/v1/object/public";
 
 const RaceDetailView: React.FC = () => {
   const { year } = useParams({ from: "/races/$year" });
@@ -38,6 +42,7 @@ const RaceDetailView: React.FC = () => {
     error,
   } = useRelayData();
   const [albumSummary, setAlbumSummary] = useState<AlbumSummary | null>(null);
+  const [fallbackCoverPhoto, setFallbackCoverPhoto] = useState<RacePhoto | null>(null);
   const [albumLoading, setAlbumLoading] = useState(true);
   const [albumError, setAlbumError] = useState<string | null>(null);
 
@@ -74,12 +79,31 @@ const RaceDetailView: React.FC = () => {
         .sort((a, b) => (a.leg_number || 0) - (b.leg_number || 0)),
     [raceLegAssignments, raceYear]
   );
-  const coverUrl =
-    albumSummary?.cover_storage_bucket && albumSummary.cover_storage_path
-      ? supabase.storage
-          .from(albumSummary.cover_storage_bucket)
-          .getPublicUrl(albumSummary.cover_storage_path).data.publicUrl
+  const coverPhoto = albumSummary?.cover_storage_bucket
+    ? {
+        storageBucket: albumSummary.cover_storage_bucket,
+        storagePath: albumSummary.cover_storage_path,
+        alt: `${raceYear} ${raceName}`,
+      }
+    : fallbackCoverPhoto
+      ? {
+          storageBucket: fallbackCoverPhoto.storage_bucket,
+          storagePath: fallbackCoverPhoto.storage_path,
+          alt:
+            fallbackCoverPhoto.alt_text ||
+            `${fallbackCoverPhoto.year} ${fallbackCoverPhoto.race} cover photo`,
+        }
       : null;
+  const coverUrlCandidates = getStorageUrlCandidates(
+    coverPhoto?.storageBucket,
+    coverPhoto?.storagePath
+  );
+  const coverAlt = coverPhoto?.alt ?? `${raceYear} ${raceName}`;
+
+  const albumCoverUrlCandidates = getStorageUrlCandidates(
+    albumSummary?.cover_storage_bucket,
+    albumSummary?.cover_storage_path
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -93,6 +117,7 @@ const RaceDetailView: React.FC = () => {
 
       setAlbumLoading(true);
       setAlbumError(null);
+      setFallbackCoverPhoto(null);
 
       const { data, error: summaryError } = await supabase
         .from("v_race_photo_album_summary")
@@ -108,8 +133,26 @@ const RaceDetailView: React.FC = () => {
       if (summaryError) {
         setAlbumError(summaryError.message);
         setAlbumSummary(null);
-      } else {
+      } else if (data) {
         setAlbumSummary(data);
+      } else {
+        setAlbumSummary(null);
+
+        const {
+          data: fallbackPhoto,
+          error: fallbackError,
+        } = await loadRaceCoverFallback(raceName);
+
+        if (cancelled) {
+          return;
+        }
+
+        if (fallbackError) {
+          setAlbumError(fallbackError.message);
+          setFallbackCoverPhoto(null);
+        } else {
+          setFallbackCoverPhoto(fallbackPhoto);
+        }
       }
 
       setAlbumLoading(false);
@@ -163,16 +206,15 @@ const RaceDetailView: React.FC = () => {
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_360px]">
         <div className="space-y-6">
           <section className="card overflow-hidden">
-            {coverUrl ? (
-              <img
-                src={coverUrl}
-                alt={`${raceYear} ${raceName}`}
+            {coverUrlCandidates.length > 0 ? (
+              <FallbackImage
+                urls={coverUrlCandidates}
+                alt={coverAlt}
                 className="h-80 w-full object-cover"
+                fallback={<ImagePlaceholder />}
               />
             ) : (
-              <div className="flex h-80 items-center justify-center bg-gray-100 dark:bg-slate-800">
-                <Image className="h-16 w-16 text-gray-300" />
-              </div>
+              <ImagePlaceholder />
             )}
             <div className="p-6">
               <div className="mb-3 flex flex-wrap items-center gap-2 text-sm font-medium text-primary-700">
@@ -291,6 +333,13 @@ const RaceDetailView: React.FC = () => {
               <div className="h-10 animate-pulse rounded-lg bg-gray-100 dark:bg-slate-800" />
             ) : albumSummary ? (
               <>
+                {albumCoverUrlCandidates.length > 0 && (
+                  <FallbackImage
+                    urls={albumCoverUrlCandidates}
+                    alt={`${raceYear} ${raceName} album cover`}
+                    className="mb-4 aspect-video w-full rounded-lg object-cover"
+                  />
+                )}
                 <p className="mb-4 text-sm text-gray-600">
                   {formatCount(albumSummary.photo_count ?? 0, "photo")} linked to this race.
                 </p>
@@ -414,6 +463,39 @@ const StatRow: React.FC<{ label: string; value: string }> = ({ label, value }) =
   </div>
 );
 
+const ImagePlaceholder: React.FC = () => (
+  <div className="flex h-80 items-center justify-center bg-gray-100 dark:bg-slate-800">
+    <Image className="h-16 w-16 text-gray-300" />
+  </div>
+);
+
+const FallbackImage: React.FC<{
+  alt: string;
+  className: string;
+  fallback?: React.ReactNode;
+  urls: string[];
+}> = ({ alt, className, fallback = null, urls }) => {
+  const [urlIndex, setUrlIndex] = useState(0);
+  const signature = urls.join("|");
+
+  useEffect(() => {
+    setUrlIndex(0);
+  }, [signature]);
+
+  if (urls.length === 0 || urlIndex >= urls.length) {
+    return fallback;
+  }
+
+  return (
+    <img
+      src={urls[urlIndex]}
+      alt={alt}
+      className={className}
+      onError={() => setUrlIndex((currentIndex) => currentIndex + 1)}
+    />
+  );
+};
+
 const RaceStatusBadge: React.FC<{ status: RaceResultStatus }> = ({ status }) => (
   <span
     className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${getRaceStatusClass(
@@ -504,6 +586,62 @@ function getAssignmentStatusClass(status: string | null) {
     return "bg-gray-100 text-gray-700";
   }
   return "bg-amber-50 text-amber-800";
+}
+
+function getStorageUrlCandidates(
+  storageBucket: string | null | undefined,
+  storagePath: string | null | undefined
+) {
+  if (!storageBucket || !storagePath) {
+    return [];
+  }
+
+  const currentPublicUrl = supabase.storage
+    .from(storageBucket)
+    .getPublicUrl(storagePath).data.publicUrl;
+  const shouldUseRemoteFallback =
+    storageBucket === "race-photos" &&
+    (import.meta.env.VITE_SUPABASE_URL as string | undefined)?.includes("127.0.0.1");
+  const remotePublicUrl = shouldUseRemoteFallback
+    ? `${REMOTE_PUBLIC_STORAGE_BASE_URL}/${encodeStoragePath(storageBucket)}/${encodeStoragePath(
+        storagePath
+      )}`
+    : null;
+
+  return Array.from(
+    new Set([currentPublicUrl, remotePublicUrl].filter((url): url is string => Boolean(url)))
+  );
+}
+
+function encodeStoragePath(path: string) {
+  return path.split("/").map(encodeURIComponent).join("/");
+}
+
+async function loadRaceCoverFallback(raceName: string) {
+  const featuredResult = await supabase
+    .from("race_photos")
+    .select("*")
+    .eq("race", raceName)
+    .eq("featured", true)
+    .order("year", { ascending: false })
+    .order("sort_order", { ascending: true })
+    .order("created_at", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+
+  if (featuredResult.data || featuredResult.error) {
+    return featuredResult;
+  }
+
+  return supabase
+    .from("race_photos")
+    .select("*")
+    .eq("race", raceName)
+    .order("year", { ascending: false })
+    .order("sort_order", { ascending: true })
+    .order("created_at", { ascending: true })
+    .limit(1)
+    .maybeSingle();
 }
 
 function formatCount(count: number, singularLabel: string) {
