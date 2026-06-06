@@ -30,16 +30,24 @@ const chartTooltipStyle = {
 const RunnerDetail: React.FC = () => {
   const { runnerName } = useParams({ from: "/runners/$runnerName" });
   const {
-    data: { runnerStats, results },
+    data: { runnerStats, results, participations },
     loading,
     error,
   } = useRelayData();
 
   const runnerStat = runnerStats.find((r) => r.runner_name === runnerName);
   const runnerResults = results.filter((r) => r.runner_name === runnerName);
+  const runnerParticipations = participations.filter(
+    (participation) => participation.runner_name === runnerName
+  );
+  const unknownLegYears = runnerParticipations
+    .filter((participation) => !participation.has_known_leg)
+    .map((participation) => participation.year)
+    .filter((year): year is number => typeof year === "number")
+    .sort((a, b) => a - b);
 
   const runnerAuthId =
-    runnerResults.length > 0 ? runnerResults[0].auth_user_id : undefined;
+    runnerResults[0]?.auth_user_id ?? runnerParticipations[0]?.auth_user_id;
   const { isMyProfile } = useIsMyProfile(runnerAuthId);
 
   if (loading) {
@@ -76,6 +84,9 @@ const RunnerDetail: React.FC = () => {
     );
   }
 
+  const yearsCompeted = runnerStat.unique_years ?? 0;
+  const knownLegRuns = runnerStat.known_leg_runs ?? 0;
+
   // Prepare data for the performance chart
   const performanceData = runnerResults
     .map((result) => ({
@@ -97,10 +108,8 @@ const RunnerDetail: React.FC = () => {
         </div>
         <h1 className="text-4xl font-bold text-gray-900 mb-2">{runnerName}</h1>
         <p className="text-lg text-gray-600">
-          {runnerStat.unique_years}{" "}
-          {runnerStat.unique_years === 1 ? "year" : "years"} •{" "}
-          {runnerStat.total_races}{" "}
-          {runnerStat.total_races === 1 ? "run" : "runs"}
+          {yearsCompeted} {yearsCompeted === 1 ? "year" : "years"} •{" "}
+          {knownLegRuns} known {knownLegRuns === 1 ? "leg run" : "leg runs"}
         </p>
         {isMyProfile && (
           <button
@@ -137,73 +146,95 @@ const RunnerDetail: React.FC = () => {
         />
       </div>
 
+      {unknownLegYears.length > 0 && (
+        <div className="card p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-3">
+            Years With Unknown Leg
+          </h3>
+          <div className="flex flex-wrap gap-2">
+            {unknownLegYears.map((year) => (
+              <span
+                key={year}
+                className="px-3 py-1 bg-amber-100 text-amber-800 text-sm rounded-full"
+              >
+                {year}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Performance Chart */}
       <div className="card p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">
           Performance History
         </h3>
-        <ResponsiveContainer width="100%" height={400}>
-          <LineChart
-            data={performanceData}
-            margin={{ top: 12, right: 24, left: 30, bottom: 8 }}
-          >
-            <CartesianGrid strokeDasharray="3 3" stroke={chartGridColor} />
-            <XAxis
-              dataKey="year"
-              stroke={chartAxisColor}
-              tick={{ fill: chartAxisColor }}
-              tickLine={{ stroke: chartAxisColor }}
-            />
-            <YAxis
-              width={76}
-              tickMargin={8}
-              stroke={chartAxisColor}
-              tick={{ fill: chartAxisColor }}
-              tickLine={{ stroke: chartAxisColor }}
-              reversed
-              tickFormatter={(tick) => formatPace(tick)}
-            />
-            <Tooltip
-              contentStyle={chartTooltipStyle}
-              formatter={(value, name, props) => {
-                const numericValue = typeof value === "number" ? value : Number(value);
+        {performanceData.length > 0 ? (
+          <ResponsiveContainer width="100%" height={400}>
+            <LineChart
+              data={performanceData}
+              margin={{ top: 12, right: 24, left: 30, bottom: 8 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" stroke={chartGridColor} />
+              <XAxis
+                dataKey="year"
+                stroke={chartAxisColor}
+                tick={{ fill: chartAxisColor }}
+                tickLine={{ stroke: chartAxisColor }}
+              />
+              <YAxis
+                width={76}
+                tickMargin={8}
+                stroke={chartAxisColor}
+                tick={{ fill: chartAxisColor }}
+                tickLine={{ stroke: chartAxisColor }}
+                reversed
+                tickFormatter={(tick) => formatPace(tick)}
+              />
+              <Tooltip
+                contentStyle={chartTooltipStyle}
+                formatter={(value, name, props) => {
+                  const numericValue = typeof value === "number" ? value : Number(value);
 
-                if (name === "pace") {
-                  return [
-                    formatPace(Number.isFinite(numericValue) ? numericValue : 0),
-                    `Pace (Leg ${props.payload.leg})`,
-                  ];
-                }
-                if (name === "time") {
-                  const formattedValue = Number.isFinite(numericValue)
-                    ? numericValue.toFixed(2)
-                    : String(value);
+                  if (name === "pace") {
+                    return [
+                      formatPace(Number.isFinite(numericValue) ? numericValue : 0),
+                      `Pace (Leg ${props.payload.leg})`,
+                    ];
+                  }
+                  if (name === "time") {
+                    const formattedValue = Number.isFinite(numericValue)
+                      ? numericValue.toFixed(2)
+                      : String(value);
 
-                  return [`${formattedValue} mins`, "Time"];
-                }
-                return [value, name];
-              }}
-            />
-            <Line
-              type="monotone"
-              dataKey="pace"
-              stroke="#3b82f6"
-              strokeWidth={2}
-              dot={{
-                stroke: "#3b82f6",
-                strokeWidth: 2,
-                r: 4,
-                fill: "var(--chart-dot-fill)",
-              }}
-            />
-          </LineChart>
-        </ResponsiveContainer>
+                    return [`${formattedValue} mins`, "Time"];
+                  }
+                  return [value, name];
+                }}
+              />
+              <Line
+                type="monotone"
+                dataKey="pace"
+                stroke="#3b82f6"
+                strokeWidth={2}
+                dot={{
+                  stroke: "#3b82f6",
+                  strokeWidth: 2,
+                  r: 4,
+                  fill: "var(--chart-dot-fill)",
+                }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        ) : (
+          <p className="text-sm text-gray-600">No known leg results yet.</p>
+        )}
       </div>
 
       {/* Results Table */}
       <div className="card p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">
-          All Results
+          Known Leg Results
         </h3>
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
@@ -233,7 +264,8 @@ const RunnerDetail: React.FC = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {runnerResults
+              {runnerResults.length > 0 ? (
+                runnerResults
                 .sort((a, b) => (b.year || 0) - (a.year || 0))
                 .map((result, idx) => (
                   <tr
@@ -270,7 +302,18 @@ const RunnerDetail: React.FC = () => {
                       {result.notes || ""}
                     </td>
                   </tr>
-                ))}
+                ))
+              ) : (
+                <tr>
+                  <td
+                    colSpan={7}
+                    className="px-6 py-4 text-sm text-gray-600"
+                  >
+                    This runner is counted for race-year participation, but no
+                    leg assignment is known yet.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>

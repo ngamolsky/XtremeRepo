@@ -11,7 +11,6 @@ CREATE OR REPLACE VIEW public.v_results_with_pace AS
     r.leg_number,
     r.leg_version,
     r.lap_time,
-    r.notes,
     ld.distance,
     ld.elevation_gain,
     rn.name AS runner_name,
@@ -20,7 +19,8 @@ CREATE OR REPLACE VIEW public.v_results_with_pace AS
         CASE
             WHEN (ld.distance > (0)::double precision) THEN (public.parse_time_to_minutes(r.lap_time) / ld.distance)
             ELSE NULL::double precision
-        END AS pace
+        END AS pace,
+    r.notes
    FROM ((public.results r
      JOIN public.leg_definitions ld ON (((r.leg_number = ld.number) AND (r.leg_version = ld.version))))
      LEFT JOIN public.runners rn ON ((r.user_id = rn.id)));
@@ -36,7 +36,6 @@ CREATE OR REPLACE VIEW public.v_yearly_summary AS
     tps.division_teams,
     p.division,
     p.bib,
-    p.notes,
         CASE
             WHEN (tps.overall_teams > 0) THEN (((tps.overall_place)::double precision / (tps.overall_teams)::double precision) * (100)::double precision)
             ELSE NULL::double precision
@@ -44,6 +43,7 @@ CREATE OR REPLACE VIEW public.v_yearly_summary AS
         CASE
             WHEN (tps.division_teams > 0) THEN (((tps.division_place)::double precision / (tps.division_teams)::double precision) * (100)::double precision)
             ELSE NULL::double precision
-        END AS division_percentile
+        END AS division_percentile,
+    p.notes
    FROM (public.team_performance_summary tps
      LEFT JOIN public.placements p ON ((tps.year = p.year)));

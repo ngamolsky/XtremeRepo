@@ -17,4 +17,10 @@ ALTER TABLE "public"."leg_definitions" ENABLE ROW LEVEL SECURITY;
 
 -- RLS Policy: Allow authenticated users to read leg definitions
 CREATE POLICY "Allow authenticated users to read leg_definitions" 
-    ON "public"."leg_definitions" FOR SELECT TO "authenticated" USING (true); 
+    ON "public"."leg_definitions" FOR SELECT TO "authenticated" USING (true);
+
+CREATE POLICY "Allow authenticated users to insert leg_definitions"
+    ON "public"."leg_definitions" FOR INSERT TO "authenticated" WITH CHECK (true);
+
+CREATE POLICY "Allow authenticated users to update leg_definitions"
+    ON "public"."leg_definitions" FOR UPDATE TO "authenticated" USING (true) WITH CHECK (true);

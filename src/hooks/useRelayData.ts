@@ -4,6 +4,7 @@ import { Tables } from "../types/database.types";
 
 export type RelayData = {
   results: Tables<"v_results_with_pace">[];
+  participations: Tables<"v_runner_participations">[];
   runnerStats: Tables<"v_runner_stats">[];
   legVersionStats: Tables<"v_leg_version_stats">[];
   yearlySummary: Tables<"v_yearly_summary">[];
@@ -12,6 +13,7 @@ export type RelayData = {
 export const useRelayData = () => {
   const [data, setData] = useState<RelayData>({
     results: [],
+    participations: [],
     runnerStats: [],
     legVersionStats: [],
     yearlySummary: [],
@@ -27,23 +29,27 @@ export const useRelayData = () => {
 
         const [
           resultsRes,
+          participationsRes,
           runnerStatsRes,
           legVersionStatsRes,
           yearlySummaryRes,
         ] = await Promise.all([
           supabase.from("v_results_with_pace").select("*"),
+          supabase.from("v_runner_participations").select("*"),
           supabase.from("v_runner_stats").select("*"),
           supabase.from("v_leg_version_stats").select("*"),
           supabase.from("v_yearly_summary").select("*").order("year", { ascending: false }),
         ]);
 
         if (resultsRes.error) throw resultsRes.error;
+        if (participationsRes.error) throw participationsRes.error;
         if (runnerStatsRes.error) throw runnerStatsRes.error;
         if (legVersionStatsRes.error) throw legVersionStatsRes.error;
         if (yearlySummaryRes.error) throw yearlySummaryRes.error;
 
         setData({
           results: resultsRes.data || [],
+          participations: participationsRes.data || [],
           runnerStats: runnerStatsRes.data || [],
           legVersionStats: legVersionStatsRes.data || [],
           yearlySummary: yearlySummaryRes.data || [],
@@ -65,5 +71,4 @@ export const useRelayData = () => {
 
   return { data, loading, error };
 };
-
 

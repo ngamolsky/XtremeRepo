@@ -1,5 +1,6 @@
 -- Insert runners (with auto-generated UUIDs)
 INSERT INTO public.runners (email, name) VALUES
+(NULL, 'Abdul'),
 (NULL, 'Amber'),
 (NULL, 'Annie Strugatsky'),
 (NULL, 'Chris Badolato'),
@@ -7,6 +8,7 @@ INSERT INTO public.runners (email, name) VALUES
 (NULL, 'Elias Denny'),
 (NULL, 'Gabe Pannell'),
 (NULL, 'Hayes'),
+(NULL, 'Jonah'),
 (NULL, 'Lisa Brooks'),
 (NULL, 'Morgen Harvey'),
 (NULL, 'Multiple Runners'),
@@ -19,7 +21,10 @@ INSERT INTO public.runners (email, name) VALUES
 ('rocky@xtreme-falcons.com', 'Rocky Lubbers'),
 ('sean@xtreme-falcons.com', 'Sean Lubbers'),
 ('ssearle@xtreme-falcons.com', 'Sean Searle'),
-(NULL, 'Turi');
+(NULL, 'Troy'),
+(NULL, 'Turi'),
+(NULL, 'Vasan'),
+(NULL, 'Will Thrill Hill');
 
 -- Insert leg definitions
 INSERT INTO public.leg_definitions (number, version, distance, elevation_gain) VALUES
@@ -80,7 +85,7 @@ INSERT INTO public.results (year, leg_number, leg_version, user_id, lap_time) VA
 (2011, 1, 1, NULL, INTERVAL '02:11:33'),
 (2011, 2, 1, NULL, INTERVAL '01:25:43'),
 (2011, 3, 1, NULL, INTERVAL '01:57:49'),
-(2011, 4, 1, NULL, INTERVAL '01:26:03'),
+(2011, 4, 1, (SELECT id FROM public.runners WHERE name = 'Peter Lubbers'), INTERVAL '01:26:03'), -- Peter Lubbers
 (2011, 5, 1, NULL, INTERVAL '01:35:12'),
 (2011, 6, 1, NULL, INTERVAL '01:59:09'),
 (2011, 7, 1, NULL, INTERVAL '01:29:58'),
@@ -192,3 +197,38 @@ INSERT INTO public.results (year, leg_number, leg_version, user_id, lap_time) VA
 (2025, 5, 2, (SELECT id FROM public.runners WHERE name = 'Lisa Brooks'), INTERVAL '01:57:21'), -- Lisa Brooks
 (2025, 6, 2, (SELECT id FROM public.runners WHERE name = 'Nick Searle'), INTERVAL '01:25:24'), -- Nick Searle
 (2025, 7, 2, (SELECT id FROM public.runners WHERE name = 'Nikita Gamolsky'), INTERVAL '01:29:48'); -- Nikita Gamolsky
+
+-- Insert recovered race-year rosters where leg assignments are unknown or partial.
+WITH recovered_participations (year, runner_name, notes) AS (
+  VALUES
+    (2011, 'Oliver', 'Recovered roster entry; leg assignment unknown.'),
+    (2011, 'Peter Lubbers', 'Recovered roster entry; known leg 4.'),
+    (2011, 'Hayes', 'Recovered roster entry; leg assignment unknown.'),
+    (2011, 'Sean Lubbers', 'Recovered roster entry; leg assignment unknown.'),
+    (2011, 'Rocky Lubbers', 'Recovered roster entry; leg assignment unknown.'),
+    (2011, 'Troy', 'Recovered roster entry; noted as next fastest; leg assignment unknown.'),
+    (2011, 'Sean Searle', 'Recovered roster entry; leg assignment unknown.'),
+    (2014, 'Will Thrill Hill', 'Recovered roster entry; leg assignment unknown.'),
+    (2014, 'Peter Lubbers', 'Recovered roster entry; leg assignment unknown.'),
+    (2014, 'Oliver', 'Recovered roster entry; leg assignment unknown.'),
+    (2014, 'Abdul', 'Recovered roster entry; leg assignment unknown.'),
+    (2014, 'Sean Lubbers', 'Recovered roster entry; leg assignment unknown.'),
+    (2014, 'Rocky Lubbers', 'Recovered roster entry; leg assignment unknown.'),
+    (2014, 'Elias Denny', 'Recovered roster entry; leg assignment unknown.'),
+    (2015, 'Elias Denny', 'Recovered roster entry; leg assignment unknown.'),
+    (2015, 'Rocky Lubbers', 'Recovered roster entry; leg assignment unknown.'),
+    (2015, 'Sean Lubbers', 'Recovered roster entry; leg assignment unknown.'),
+    (2015, 'Peter Lubbers', 'Recovered roster entry; leg assignment unknown.'),
+    (2015, 'Turi', 'Recovered roster entry; leg assignment unknown.'),
+    (2015, 'Gabe Pannell', 'Recovered roster entry; leg assignment unknown.'),
+    (2015, 'Jonah', 'Recovered roster entry; leg assignment unknown.'),
+    (2016, 'Vasan', 'Recovered roster entry; leg assignment unknown.'),
+    (2016, 'Turi', 'Recovered roster entry; leg assignment unknown.')
+)
+INSERT INTO public.race_participations (year, runner_id, notes)
+SELECT rp.year, r.id, rp.notes
+FROM recovered_participations rp
+  JOIN public.runners r ON r.name = rp.runner_name
+ON CONFLICT (year, runner_id) DO UPDATE
+SET notes = COALESCE(public.race_participations.notes, EXCLUDED.notes),
+    updated_at = now();

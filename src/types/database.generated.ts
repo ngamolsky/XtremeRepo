@@ -88,6 +88,48 @@ export type Database = {
         }
         Relationships: []
       }
+      race_participations: {
+        Row: {
+          created_at: string
+          notes: string | null
+          runner_id: string
+          status: string
+          updated_at: string
+          year: number
+        }
+        Insert: {
+          created_at?: string
+          notes?: string | null
+          runner_id: string
+          status?: string
+          updated_at?: string
+          year: number
+        }
+        Update: {
+          created_at?: string
+          notes?: string | null
+          runner_id?: string
+          status?: string
+          updated_at?: string
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "race_participations_runner_id_fkey"
+            columns: ["runner_id"]
+            isOneToOne: false
+            referencedRelation: "runners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "race_participations_year_fkey"
+            columns: ["year"]
+            isOneToOne: false
+            referencedRelation: "placements"
+            referencedColumns: ["year"]
+          },
+        ]
+      }
       results: {
         Row: {
           lap_time: unknown | null
@@ -250,6 +292,34 @@ export type Database = {
           },
         ]
       }
+      v_runner_participations: {
+        Row: {
+          auth_user_id: string | null
+          has_known_leg: boolean | null
+          known_legs: Json | null
+          notes: string | null
+          runner_id: string | null
+          runner_name: string | null
+          status: string | null
+          year: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "race_participations_runner_id_fkey"
+            columns: ["runner_id"]
+            isOneToOne: false
+            referencedRelation: "runners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "race_participations_year_fkey"
+            columns: ["year"]
+            isOneToOne: false
+            referencedRelation: "placements"
+            referencedColumns: ["year"]
+          },
+        ]
+      }
       v_runner_stats: {
         Row: {
           average_pace: number | null
@@ -257,7 +327,9 @@ export type Database = {
           best_pace: number | null
           best_pace_legs_with_versions: Json | null
           best_time: number | null
+          known_leg_runs: number | null
           legs_run: Json | null
+          participation_years: Json | null
           runner_id: string | null
           runner_name: string | null
           total_distance: number | null
@@ -265,10 +337,11 @@ export type Database = {
           total_time_minutes: number | null
           unique_legs: number | null
           unique_years: number | null
+          unknown_leg_years: Json | null
         }
         Relationships: [
           {
-            foreignKeyName: "results_user_id_fkey"
+            foreignKeyName: "race_participations_runner_id_fkey"
             columns: ["runner_id"]
             isOneToOne: false
             referencedRelation: "runners"
@@ -289,6 +362,7 @@ export type Database = {
           overall_percentile: number | null
           overall_place: number | null
           overall_teams: number | null
+          participant_count: number | null
           total_time: unknown | null
           year: number | null
         }

@@ -37,9 +37,36 @@ ALTER TABLE ONLY "public"."results"
 ALTER TABLE ONLY "public"."results"
     ADD CONSTRAINT "results_year_fkey" FOREIGN KEY ("year") REFERENCES "public"."placements"("year");
 
+-- Function to ensure every known leg result also counts as race-year participation
+CREATE OR REPLACE FUNCTION "public"."ensure_result_participation"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    SET "search_path" TO ''
+    AS $$
+BEGIN
+  IF NEW.user_id IS NOT NULL THEN
+    INSERT INTO public.race_participations (year, runner_id)
+    VALUES (NEW.year, NEW.user_id)
+    ON CONFLICT (year, runner_id) DO UPDATE
+    SET updated_at = now();
+  END IF;
+
+  RETURN NEW;
+END;
+$$;
+
+CREATE OR REPLACE TRIGGER "ensure_result_participation"
+    AFTER INSERT OR UPDATE OF "year", "user_id" ON "public"."results"
+    FOR EACH ROW EXECUTE FUNCTION "public"."ensure_result_participation"();
+
 -- Row Level Security
 ALTER TABLE "public"."results" ENABLE ROW LEVEL SECURITY;
 
 -- RLS Policy: Allow authenticated users to read results
 CREATE POLICY "Allow authenticated users to read results" 
-    ON "public"."results" FOR SELECT TO "authenticated" USING (true); 
+    ON "public"."results" FOR SELECT TO "authenticated" USING (true);
+
+CREATE POLICY "Allow authenticated users to insert results"
+    ON "public"."results" FOR INSERT TO "authenticated" WITH CHECK (true);
+
+CREATE POLICY "Allow authenticated users to update results"
+    ON "public"."results" FOR UPDATE TO "authenticated" USING (true) WITH CHECK (true);

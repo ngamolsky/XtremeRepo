@@ -67,7 +67,10 @@ type ChatRequestBody = {
 
 type DataClient = ReturnType<typeof createClient<Database>>;
 type RunnerRow = Pick<Database["public"]["Tables"]["runners"]["Row"], "email" | "id" | "name">;
+type ResultWithPaceRow = Database["public"]["Views"]["v_results_with_pace"]["Row"];
+type RunnerParticipationRow = Database["public"]["Views"]["v_runner_participations"]["Row"];
 type ResultInsert = Database["public"]["Tables"]["results"]["Insert"];
+type RaceParticipationInsert = Database["public"]["Tables"]["race_participations"]["Insert"];
 
 type AddLegPerformanceInput = {
   year: number;
@@ -85,10 +88,62 @@ type SetYearNotesInput = {
   notes: string;
 };
 
+type AddRaceParticipationInput = {
+  year: number;
+  runnerName: string;
+  notes?: string;
+  createRunnerIfMissing?: boolean;
+};
+
 type SetLegPerformanceNotesInput = {
   year: number;
   legNumber: number;
   notes: string;
+};
+
+type RunnerIndexEntry = {
+  id: string | null;
+  name: string;
+  aliases: string[];
+  totalRaces: number;
+  uniqueYears: number;
+  knownLegRuns: number;
+  years: number[];
+  unknownLegYears: number[];
+  legs: Array<{
+    year: number;
+    legNumber: number;
+    legVersion: number;
+  }>;
+};
+
+type AgentStreamEvent =
+  | {
+      type: "text";
+      text: string;
+    }
+  | {
+      type: "tool-call";
+      id: string;
+      toolName: string;
+      label: string;
+    }
+  | {
+      type: "tool-result";
+      id: string;
+      toolName: string;
+      label: string;
+      status: "done" | "error";
+    }
+  | {
+      type: "error";
+      message: string;
+    };
+
+type AgentStreamInit = {
+  headers?: ConstructorParameters<typeof Headers>[0];
+  status?: number;
+  statusText?: string;
 };
 
 const jsonHeaders = {
@@ -153,19 +208,57 @@ async function handleChat(request: Request, env: Env): Promise<Response> {
 
   const model = resolveModel(selectedModel, env);
   const supabase = createRelayClient(env, authorizationHeader);
+  const dataAccessError = await verifyRaceDataAccess(supabase, authorizationHeader);
+
+  if (dataAccessError) {
+    return dataAccessError;
+  }
+
+  const runnerIndex = await getRunnerIndex(supabase).catch(() => []);
   const result = streamText({
     model,
     messages,
-    system: buildSystemPrompt(body.pageContext),
+    system: buildSystemPrompt(body.pageContext, runnerIndex),
     tools: createRelayTools(supabase),
     stopWhen: stepCountIs(5),
   });
 
-  return result.toTextStreamResponse({
+  return streamAgentEvents(result.fullStream, {
     headers: {
       "Cache-Control": "no-store",
     },
   });
+}
+
+async function verifyRaceDataAccess(
+  supabase: DataClient,
+  authorizationHeader: string | undefined
+): Promise<Response | null> {
+  if (!authorizationHeader?.startsWith("Bearer ")) {
+    return Response.json(
+      { error: "Sign in before using the agent so it can read and update race data." },
+      { status: 401, headers: jsonHeaders }
+    );
+  }
+
+  try {
+    await Promise.all([
+      fetchRows(supabase.from("v_results_with_pace").select("year").limit(1)),
+      fetchRows(supabase.from("v_runner_participations").select("year").limit(1)),
+      fetchRows(supabase.from("runners").select("id").limit(1)),
+    ]);
+  } catch (error) {
+    return Response.json(
+      {
+        error:
+          `The agent could not read race data with your current Supabase session (${getErrorMessage(error)}). ` +
+          "Sign out and sign back in, then try again.",
+      },
+      { status: 403, headers: jsonHeaders }
+    );
+  }
+
+  return null;
 }
 
 async function readChatRequest(request: Request): Promise<ChatRequestBody> {
@@ -240,7 +333,393 @@ function createRelayClient(env: Env, authorizationHeader?: string): DataClient {
   });
 }
 
-function buildSystemPrompt(pageContext: PageContext | undefined): string {
+function streamAgentEvents(
+  stream: AsyncIterable<{ type: string; [key: string]: unknown }>,
+  init?: AgentStreamInit
+): Response {
+  const encoder = new TextEncoder();
+  const headers = new Headers(init?.headers);
+  headers.set("Content-Type", "application/x-ndjson; charset=utf-8");
+
+  const body = new ReadableStream({
+    async start(controller) {
+      const send = (event: AgentStreamEvent) => {
+        controller.enqueue(encoder.encode(`${JSON.stringify(event)}\n`));
+      };
+
+      try {
+        for await (const part of stream) {
+          if (part.type === "text-delta" && typeof part.text === "string") {
+            send({ type: "text", text: part.text });
+          }
+
+          if (
+            part.type === "tool-call" &&
+            typeof part.toolCallId === "string" &&
+            typeof part.toolName === "string"
+          ) {
+            send({
+              type: "tool-call",
+              id: part.toolCallId,
+              toolName: part.toolName,
+              label: describeToolUse(part.toolName, part.input),
+            });
+          }
+
+          if (
+            part.type === "tool-result" &&
+            typeof part.toolCallId === "string" &&
+            typeof part.toolName === "string"
+          ) {
+            send({
+              type: "tool-result",
+              id: part.toolCallId,
+              toolName: part.toolName,
+              label: describeToolUse(part.toolName, part.input),
+              status: "done",
+            });
+          }
+
+          if (
+            part.type === "tool-error" &&
+            typeof part.toolCallId === "string" &&
+            typeof part.toolName === "string"
+          ) {
+            send({
+              type: "tool-result",
+              id: part.toolCallId,
+              toolName: part.toolName,
+              label: describeToolUse(part.toolName, part.input),
+              status: "error",
+            });
+          }
+
+          if (part.type === "error") {
+            send({ type: "error", message: getErrorMessage(part.error) });
+          }
+        }
+      } catch (error) {
+        send({ type: "error", message: getErrorMessage(error) });
+      } finally {
+        controller.close();
+      }
+    },
+  });
+
+  return new Response(body, {
+    ...init,
+    headers,
+  });
+}
+
+async function getRunnerIndex(supabase: DataClient): Promise<RunnerIndexEntry[]> {
+  const [runners, stats, results, participations] = await Promise.all([
+    fetchRows(supabase.from("runners").select("id,name,email").order("name", { ascending: true })),
+    fetchRows(supabase.from("v_runner_stats").select("*")),
+    fetchRows(
+      supabase
+        .from("v_results_with_pace")
+        .select("runner_id,runner_name,year,leg_number,leg_version")
+        .order("year", { ascending: true })
+    ),
+    fetchRows(
+      supabase
+        .from("v_runner_participations")
+        .select("runner_id,year,has_known_leg")
+        .order("year", { ascending: true })
+    ),
+  ]);
+  const statsByRunnerId = new Map(
+    stats
+      .filter((stat) => stat.runner_id)
+      .map((stat) => [stat.runner_id as string, stat])
+  );
+  const legsByRunnerId = groupResultsByRunner(results);
+  const participationsByRunnerId = groupParticipationsByRunner(participations);
+
+  return runners
+    .filter((runner) => runner.name)
+    .map((runner) => {
+      const legs = legsByRunnerId.get(runner.id) ?? [];
+      const participation = participationsByRunnerId.get(runner.id);
+      const years = participation?.years ?? uniqueSortedNumbers(legs.map((leg) => leg.year));
+      const stat = statsByRunnerId.get(runner.id);
+
+      return {
+        id: runner.id,
+        name: runner.name,
+        aliases: createRunnerAliases(runner.name, runner.email),
+        totalRaces: stat?.total_races ?? years.length,
+        uniqueYears: stat?.unique_years ?? years.length,
+        knownLegRuns: stat?.known_leg_runs ?? legs.length,
+        years,
+        unknownLegYears: participation?.unknownLegYears ?? [],
+        legs,
+      };
+    });
+}
+
+function groupResultsByRunner(results: Pick<ResultWithPaceRow, "runner_id" | "year" | "leg_number" | "leg_version">[]) {
+  const byRunnerId = new Map<string, RunnerIndexEntry["legs"]>();
+
+  for (const result of results) {
+    if (!result.runner_id || !result.year || !result.leg_number || !result.leg_version) {
+      continue;
+    }
+
+    const legs = byRunnerId.get(result.runner_id) ?? [];
+    legs.push({
+      year: result.year,
+      legNumber: result.leg_number,
+      legVersion: result.leg_version,
+    });
+    byRunnerId.set(result.runner_id, legs);
+  }
+
+  return byRunnerId;
+}
+
+function groupParticipationsByRunner(
+  participations: Pick<RunnerParticipationRow, "runner_id" | "year" | "has_known_leg">[]
+) {
+  const byRunnerId = new Map<string, { years: number[]; unknownLegYears: number[] }>();
+
+  for (const participation of participations) {
+    if (!participation.runner_id || !participation.year) {
+      continue;
+    }
+
+    const entry = byRunnerId.get(participation.runner_id) ?? {
+      years: [],
+      unknownLegYears: [],
+    };
+    entry.years.push(participation.year);
+
+    if (!participation.has_known_leg) {
+      entry.unknownLegYears.push(participation.year);
+    }
+
+    byRunnerId.set(participation.runner_id, entry);
+  }
+
+  return new Map(
+    [...byRunnerId.entries()].map(([runnerId, entry]) => [
+      runnerId,
+      {
+        years: uniqueSortedNumbers(entry.years),
+        unknownLegYears: uniqueSortedNumbers(entry.unknownLegYears),
+      },
+    ])
+  );
+}
+
+function formatRunnerIndexForPrompt(runnerIndex: RunnerIndexEntry[]): string {
+  if (runnerIndex.length === 0) {
+    return "No runners found.";
+  }
+
+  return runnerIndex
+    .map((runner) => {
+      const aliases = runner.aliases.filter((alias) => alias !== normalizeSearchText(runner.name));
+      const legs = runner.legs
+        .map((leg) => `${leg.year}:L${leg.legNumber}v${leg.legVersion}`)
+        .join(" ");
+      const unknownLegYears = runner.unknownLegYears.join(", ");
+
+      return [
+        `- ${runner.name}`,
+        aliases.length > 0 && `aliases: ${aliases.join(", ")}`,
+        `race-years: ${runner.totalRaces}`,
+        `known leg runs: ${runner.knownLegRuns}`,
+        `years: ${runner.years.join(", ") || "none"}`,
+        unknownLegYears && `unknown legs in: ${unknownLegYears}`,
+        legs && `legs: ${legs}`,
+      ]
+        .filter(Boolean)
+        .join("; ");
+    })
+    .join("\n");
+}
+
+async function findRunnerData(supabase: DataClient, runnerName: string) {
+  const query = runnerName.trim();
+  const runnerIndex = await getRunnerIndex(supabase);
+  const matches = runnerIndex
+    .map((runner) => ({
+      runner,
+      score: scoreRunnerMatch(runner, query),
+    }))
+    .filter((match) => match.score > 0)
+    .sort((a, b) => b.score - a.score || b.runner.totalRaces - a.runner.totalRaces)
+    .slice(0, 6);
+  const runnerIds = matches
+    .map((match) => match.runner.id)
+    .filter((id): id is string => Boolean(id));
+
+  if (runnerIds.length === 0) {
+    return {
+      query,
+      matches: [],
+      stats: [],
+      results: [],
+      participations: [],
+      message: "No runner matched that name. Ask for another spelling or a more specific name.",
+    };
+  }
+
+  const [stats, results, participations] = await Promise.all([
+    fetchRows(
+      supabase
+        .from("v_runner_stats")
+        .select("*")
+        .in("runner_id", runnerIds)
+        .order("total_races", { ascending: false })
+    ),
+    fetchRows(
+      supabase
+        .from("v_results_with_pace")
+        .select("*")
+        .in("runner_id", runnerIds)
+        .order("year", { ascending: false })
+        .order("leg_number", { ascending: true })
+    ),
+    fetchRows(
+      supabase
+        .from("v_runner_participations")
+        .select("*")
+        .in("runner_id", runnerIds)
+        .order("year", { ascending: false })
+    ),
+  ]);
+
+  return {
+    query,
+    matches: matches.map((match) => ({
+      score: match.score,
+      runner: match.runner,
+      stats: stats.find((stat) => stat.runner_id === match.runner.id) ?? null,
+      results: results.filter((result) => result.runner_id === match.runner.id),
+      participations: participations.filter((participation) => participation.runner_id === match.runner.id),
+    })),
+    stats,
+    results,
+    participations,
+  };
+}
+
+function scoreRunnerMatch(runner: RunnerIndexEntry, rawQuery: string): number {
+  const query = normalizeSearchText(rawQuery);
+
+  if (!query) {
+    return 0;
+  }
+
+  const name = normalizeSearchText(runner.name);
+  const aliases = runner.aliases.map(normalizeSearchText);
+  const queryTokens = query.split(" ").filter(Boolean);
+  const nameTokens = name.split(" ").filter(Boolean);
+
+  if (name === query) {
+    return 100;
+  }
+
+  if (aliases.some((alias) => alias === query)) {
+    return 95;
+  }
+
+  if (aliases.some((alias) => alias.startsWith(query) && query.length >= 3)) {
+    return 85;
+  }
+
+  if (queryTokens.length > 1 && queryTokens.every((token) => nameTokens.some((nameToken) => nameToken.startsWith(token)))) {
+    return 80;
+  }
+
+  if (name.includes(query) && query.length >= 3) {
+    return 70;
+  }
+
+  if (queryTokens.every((token) => aliases.some((alias) => alias.includes(token)))) {
+    return 60;
+  }
+
+  return 0;
+}
+
+function createRunnerAliases(name: string, email?: string | null): string[] {
+  const normalizedName = normalizeSearchText(name);
+  const nameParts = normalizedName.split(" ").filter(Boolean);
+  const aliases = [
+    normalizedName,
+    nameParts[0],
+    nameParts[nameParts.length - 1],
+    nameParts.map((part) => part[0]).join(""),
+    email?.split("@")[0],
+  ];
+
+  return uniqueStrings(aliases.map((alias) => normalizeSearchText(alias ?? "")).filter(Boolean));
+}
+
+function describeToolUse(toolName: string, input: unknown): string {
+  const params = isRecord(input) ? input : {};
+
+  switch (toolName) {
+    case "getRaceOverview":
+      return "Reading race overview";
+    case "findRunner":
+      return `Finding ${stringValue(params.runnerName) || "runner"}`;
+    case "getLegDetails":
+      return `Reading leg ${stringValue(params.legNumber) || ""}`.trim();
+    case "getYearResults":
+      return `Reading ${stringValue(params.year) || "year"} results`;
+    case "addLegPerformance":
+      return "Saving leg result";
+    case "addRaceParticipation":
+      return "Saving race participation";
+    case "setYearNotes":
+      return "Saving year notes";
+    case "setLegPerformanceNotes":
+      return "Saving leg notes";
+    default:
+      return `Using ${formatToolName(toolName)}`;
+  }
+}
+
+function normalizeSearchText(value: string): string {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim()
+    .replace(/\s+/g, " ");
+}
+
+function uniqueSortedNumbers(values: Array<number | null>): number[] {
+  return [...new Set(values.filter((value): value is number => typeof value === "number"))].sort(
+    (a, b) => a - b
+  );
+}
+
+function uniqueStrings(values: string[]): string[] {
+  return [...new Set(values)];
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function stringValue(value: unknown): string {
+  return typeof value === "string" || typeof value === "number" ? String(value) : "";
+}
+
+function formatToolName(value: string): string {
+  return value.replace(/([A-Z])/g, " $1").toLowerCase();
+}
+
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : "The agent stream failed.";
+}
+
+function buildSystemPrompt(pageContext: PageContext | undefined, runnerIndex: RunnerIndexEntry[]): string {
   const page = [
     pageContext?.title && `Page title: ${pageContext.title}`,
     pageContext?.pathname && `Route: ${pageContext.pathname}`,
@@ -249,17 +728,23 @@ function buildSystemPrompt(pageContext: PageContext | undefined): string {
   ]
     .filter(Boolean)
     .join("\n");
+  const runnerContext = formatRunnerIndexForPrompt(runnerIndex);
 
   return `You are the Xtreme Falcons race data agent.
 
 Answer questions about relay race results, team members, legs, years, paces, and rankings. Use the provided tools before making factual claims about the data. Treat lower pace values as faster, and lower percentile values as better because they mean closer to the top of the field.
 
-You can also add individual leg performance results and maintain optional fun tidbit notes on years or individual leg runs. For a leg performance write, collect exactly: race year, leg number, leg version, runner name, and lap time. Notes are optional. Ask short follow-up questions until every required field is known. Do not invent missing fields. If the runner is missing or ambiguous, ask the user to choose an existing runner or explicitly confirm creating a new runner. If a result already exists for the same race year and leg number, ask the user to confirm replacement before overwriting. Once a write succeeds, summarize the saved row.
+Resolve names softly. First names, partial names, lowercase names, and common short forms are acceptable when the runner index makes the match clear. Do not ask for full names just because the user supplied only a first name. If a partial name matches multiple runners and the answer would differ, call findRunner for the likely matches, explain the ambiguity briefly, and ask one short clarifying question.
+
+You can also add race-year participation, add individual leg performance results, and maintain optional fun tidbit notes on years or individual leg runs. Race-year participation means the runner is counted for that year even when their leg is unknown; collect race year and runner name, with optional notes, and do not ask for a leg or lap time unless the user is adding a specific leg result. For a leg performance write, collect exactly: race year, leg number, leg version, runner name, and lap time. Notes are optional. Ask short follow-up questions until every required field is known. Do not invent missing fields. If the runner is missing or ambiguous, ask the user to choose an existing runner or explicitly confirm creating a new runner. If a result already exists for the same race year and leg number, ask the user to confirm replacement before overwriting. Once a write succeeds, summarize the saved row.
 
 If the user asks a question that depends on the current screen, use the page context below to scope the answer first. Keep answers concise and practical, cite the years/runners/legs you used, and say when the data does not contain enough information.
 
 Current page context:
-${page || "No page context provided."}`;
+${page || "No page context provided."}
+
+Runner index:
+${runnerContext}`;
 }
 
 function createRelayTools(supabase: DataClient) {
@@ -273,11 +758,12 @@ function createRelayTools(supabase: DataClient) {
         additionalProperties: false,
       }),
       execute: async () => {
-        const [yearlySummary, runnerStats, legVersionStats, results] = await Promise.all([
+        const [yearlySummary, runnerStats, legVersionStats, results, participations] = await Promise.all([
           fetchRows(supabase.from("v_yearly_summary").select("*").order("year", { ascending: false })),
           fetchRows(supabase.from("v_runner_stats").select("*").order("total_races", { ascending: false })),
           fetchRows(supabase.from("v_leg_version_stats").select("*")),
           fetchRows(supabase.from("v_results_with_pace").select("*")),
+          fetchRows(supabase.from("v_runner_participations").select("*")),
         ]);
 
         return {
@@ -285,6 +771,7 @@ function createRelayTools(supabase: DataClient) {
           totals: {
             yearsCompeted: yearlySummary.length,
             legResults: results.length,
+            runnerYearParticipations: participations.length,
             runners: runnerStats.filter((runner) => runner.runner_name).length,
             legVersions: legVersionStats.length,
           },
@@ -298,7 +785,7 @@ function createRelayTools(supabase: DataClient) {
     }),
     findRunner: tool({
       description:
-        "Find team member stats and race results by runner name. Use for questions about a person or comparing a named runner.",
+        "Find team member stats and race results by runner name. Soft matches first names, partial names, and aliases. Use for questions about a person or comparing a named runner.",
       inputSchema: jsonSchema<{ runnerName: string }>({
         type: "object",
         properties: {
@@ -311,26 +798,7 @@ function createRelayTools(supabase: DataClient) {
         additionalProperties: false,
       }),
       execute: async ({ runnerName }) => {
-        const query = runnerName.trim();
-        const [stats, results] = await Promise.all([
-          fetchRows(
-            supabase
-              .from("v_runner_stats")
-              .select("*")
-              .ilike("runner_name", `%${escapeLike(query)}%`)
-              .limit(10)
-          ),
-          fetchRows(
-            supabase
-              .from("v_results_with_pace")
-              .select("*")
-              .ilike("runner_name", `%${escapeLike(query)}%`)
-              .order("year", { ascending: false })
-              .limit(80)
-          ),
-        ]);
-
-        return { query, stats, results };
+        return findRunnerData(supabase, runnerName);
       },
     }),
     getLegDetails: tool({
@@ -390,7 +858,7 @@ function createRelayTools(supabase: DataClient) {
         additionalProperties: false,
       }),
       execute: async ({ year }) => {
-        const [summary, results] = await Promise.all([
+        const [summary, results, participations] = await Promise.all([
           fetchRows(supabase.from("v_yearly_summary").select("*").eq("year", year).limit(1)),
           fetchRows(
             supabase
@@ -399,10 +867,46 @@ function createRelayTools(supabase: DataClient) {
               .eq("year", year)
               .order("leg_number", { ascending: true })
           ),
+          fetchRows(
+            supabase
+              .from("v_runner_participations")
+              .select("*")
+              .eq("year", year)
+              .order("runner_name", { ascending: true })
+          ),
         ]);
 
-        return { year, summary: summary[0] ?? null, results };
+        return { year, summary: summary[0] ?? null, results, participations };
       },
+    }),
+    addRaceParticipation: tool({
+      description:
+        "Add or update a runner's race-year participation when the runner is known to have raced that year but the leg assignment or lap time is unknown.",
+      inputSchema: jsonSchema<AddRaceParticipationInput>({
+        type: "object",
+        properties: {
+          year: {
+            type: "number",
+            description: "Race year, such as 2015.",
+          },
+          runnerName: {
+            type: "string",
+            description: "Exact runner name.",
+          },
+          notes: {
+            type: "string",
+            description: "Optional note about uncertainty, source, or known partial details.",
+          },
+          createRunnerIfMissing: {
+            type: "boolean",
+            description:
+              "Set true only when the user explicitly confirms creating a runner if no exact runner exists.",
+          },
+        },
+        required: ["year", "runnerName"],
+        additionalProperties: false,
+      }),
+      execute: async (input) => addRaceParticipation(supabase, input),
     }),
     addLegPerformance: tool({
       description:
@@ -629,6 +1133,85 @@ async function addLegPerformance(supabase: DataClient, input: AddLegPerformanceI
     ok: true,
     action: existingResult ? "replaced_leg_performance" : "added_leg_performance",
     result: savedResult,
+  };
+}
+
+async function addRaceParticipation(supabase: DataClient, input: AddRaceParticipationInput) {
+  const year = normalizeInteger(input.year);
+  const runnerName = input.runnerName.trim();
+
+  const missingFields = [
+    !year && "race year",
+    !runnerName && "runner name",
+  ].filter(Boolean);
+
+  if (missingFields.length > 0) {
+    return {
+      ok: false,
+      action: "ask_for_missing_fields",
+      missingFields,
+    };
+  }
+
+  const placement = await fetchMaybeRow(
+    supabase
+      .from("placements")
+      .select("*")
+      .eq("year", year)
+      .maybeSingle()
+  );
+
+  if (!placement) {
+    return {
+      ok: false,
+      action: "ask_for_existing_race_year_or_placement",
+      message:
+        "This race year is not in placements yet. Ask for official placement details or choose an existing year before adding runner participation.",
+      year,
+    };
+  }
+
+  const runner = await resolveRunner(supabase, runnerName, Boolean(input.createRunnerIfMissing));
+
+  if (!runner.ok) {
+    return runner;
+  }
+
+  const existingParticipation = await fetchMaybeRow(
+    supabase
+      .from("v_runner_participations")
+      .select("*")
+      .eq("year", year)
+      .eq("runner_id", runner.runner.id)
+      .maybeSingle()
+  );
+  const notes = input.notes === undefined ? undefined : normalizeNotes(input.notes);
+  const payload: RaceParticipationInsert = {
+    year,
+    runner_id: runner.runner.id,
+    ...(notes !== undefined ? { notes } : {}),
+  };
+
+  await fetchRows(
+    supabase
+      .from("race_participations")
+      .upsert(payload, { onConflict: "year,runner_id" })
+      .select("*")
+  );
+
+  const savedParticipation = await fetchMaybeRow(
+    supabase
+      .from("v_runner_participations")
+      .select("*")
+      .eq("year", year)
+      .eq("runner_id", runner.runner.id)
+      .maybeSingle()
+  );
+
+  return {
+    ok: true,
+    action: existingParticipation ? "updated_race_participation" : "added_race_participation",
+    participation: savedParticipation,
   };
 }
 

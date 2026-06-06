@@ -1,5 +1,5 @@
 import { useRouterState } from "@tanstack/react-router";
-import { RotateCcw, Send, X } from "lucide-react";
+import { CheckCircle2, LoaderCircle, RotateCcw, Send, X, XCircle } from "lucide-react";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "../lib/supabase";
 
@@ -14,7 +14,40 @@ type ChatMessage = {
   id: string;
   role: "user" | "assistant";
   content: string;
+  toolCalls?: ToolCallBubble[];
 };
+
+type ToolCallStatus = "running" | "done" | "error";
+
+type ToolCallBubble = {
+  id: string;
+  toolName: string;
+  label: string;
+  status: ToolCallStatus;
+};
+
+type AgentStreamEvent =
+  | {
+      type: "text";
+      text: string;
+    }
+  | {
+      type: "tool-call";
+      id: string;
+      toolName: string;
+      label: string;
+    }
+  | {
+      type: "tool-result";
+      id: string;
+      toolName: string;
+      label: string;
+      status: "done" | "error";
+    }
+  | {
+      type: "error";
+      message: string;
+    };
 
 type PageContext = {
   pathname: string;
@@ -202,6 +235,7 @@ const FalconAgent: React.FC = () => {
       id: createMessageId(),
       role: "assistant",
       content: "",
+      toolCalls: [],
     };
     const nextMessages = [...chatMessages, userMessage];
 
@@ -251,6 +285,24 @@ const FalconAgent: React.FC = () => {
 
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
+      let bufferedText = "";
+
+      const handleStreamLine = (line: string) => {
+        const trimmedLine = line.trim();
+
+        if (!trimmedLine) {
+          return;
+        }
+
+        try {
+          handleAgentStreamEvent(
+            assistantMessage.id,
+            JSON.parse(trimmedLine) as AgentStreamEvent
+          );
+        } catch {
+          appendToMessage(assistantMessage.id, line);
+        }
+      };
 
       while (true) {
         const { done, value } = await reader.read();
@@ -258,8 +310,19 @@ const FalconAgent: React.FC = () => {
           break;
         }
 
-        const chunk = decoder.decode(value, { stream: true });
-        appendToMessage(assistantMessage.id, chunk);
+        bufferedText += decoder.decode(value, { stream: true });
+        const lines = bufferedText.split("\n");
+        bufferedText = lines.pop() ?? "";
+        lines.forEach(handleStreamLine);
+      }
+
+      const finalChunk = decoder.decode();
+      if (finalChunk) {
+        bufferedText += finalChunk;
+      }
+
+      if (bufferedText) {
+        handleStreamLine(bufferedText);
       }
     } catch (error) {
       if (!abortController.signal.aborted) {
@@ -281,6 +344,69 @@ const FalconAgent: React.FC = () => {
     setMessages(starterMessages);
     setInput("");
     setIsStreaming(false);
+  };
+
+  const upsertToolCall = (
+    messageId: string,
+    toolCall: ToolCallBubble
+  ) => {
+    setMessages((currentMessages) =>
+      currentMessages.map((message) => {
+        if (message.id !== messageId) {
+          return message;
+        }
+
+        const existingToolCalls = message.toolCalls ?? [];
+        const existingIndex = existingToolCalls.findIndex(
+          (existingToolCall) => existingToolCall.id === toolCall.id
+        );
+        const nextToolCalls =
+          existingIndex === -1
+            ? [...existingToolCalls, toolCall]
+            : existingToolCalls.map((existingToolCall) =>
+                existingToolCall.id === toolCall.id
+                  ? { ...existingToolCall, ...toolCall }
+                  : existingToolCall
+              );
+
+        return {
+          ...message,
+          toolCalls: nextToolCalls,
+        };
+      })
+    );
+  };
+
+  const handleAgentStreamEvent = (
+    assistantMessageId: string,
+    event: AgentStreamEvent
+  ) => {
+    if (event.type === "text") {
+      appendToMessage(assistantMessageId, event.text);
+      return;
+    }
+
+    if (event.type === "tool-call") {
+      upsertToolCall(assistantMessageId, {
+        id: event.id,
+        toolName: event.toolName,
+        label: event.label,
+        status: "running",
+      });
+      return;
+    }
+
+    if (event.type === "tool-result") {
+      upsertToolCall(assistantMessageId, {
+        id: event.id,
+        toolName: event.toolName,
+        label: event.label,
+        status: event.status,
+      });
+      return;
+    }
+
+    replaceMessage(assistantMessageId, event.message);
   };
 
   return (
@@ -350,15 +476,28 @@ const FalconAgent: React.FC = () => {
                   message.role === "user" ? "justify-end" : "justify-start"
                 }`}
               >
-                <div
-                  className={`max-w-[92%] whitespace-pre-wrap break-words rounded-lg px-3 py-2 text-sm leading-6 sm:max-w-[78%] ${
-                    message.role === "user"
-                      ? "bg-primary-600 text-white"
-                      : "bg-gray-100 text-gray-900 dark:bg-slate-800 dark:text-slate-100"
-                  }`}
-                >
-                  {message.content || "Thinking..."}
-                </div>
+                {message.role === "assistant" ? (
+                  <div className="max-w-[92%] space-y-2 sm:max-w-[78%]">
+                    {message.toolCalls && message.toolCalls.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5">
+                        {message.toolCalls.map((toolCall) => (
+                          <ToolCallBubbleView
+                            key={toolCall.id}
+                            toolCall={toolCall}
+                          />
+                        ))}
+                      </div>
+                    )}
+                    <div className="whitespace-pre-wrap break-words rounded-lg bg-gray-100 px-3 py-2 text-sm leading-6 text-gray-900 dark:bg-slate-800 dark:text-slate-100">
+                      {message.content ||
+                        (message.toolCalls?.length ? "Working..." : "Thinking...")}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="max-w-[92%] whitespace-pre-wrap break-words rounded-lg bg-primary-600 px-3 py-2 text-sm leading-6 text-white sm:max-w-[78%]">
+                    {message.content}
+                  </div>
+                )}
               </div>
             ))}
             <div ref={messagesEndRef} />
@@ -506,5 +645,39 @@ function createMessageId(): string {
     ? crypto.randomUUID()
     : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
+
+const toolCallStatusStyles: Record<ToolCallStatus, string> = {
+  running:
+    "border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-900/70 dark:bg-amber-950/40 dark:text-amber-200",
+  done:
+    "border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-900/70 dark:bg-emerald-950/40 dark:text-emerald-200",
+  error:
+    "border-red-200 bg-red-50 text-red-800 dark:border-red-900/70 dark:bg-red-950/40 dark:text-red-200",
+};
+
+const ToolCallBubbleView: React.FC<{ toolCall: ToolCallBubble }> = ({
+  toolCall,
+}) => {
+  const Icon =
+    toolCall.status === "running"
+      ? LoaderCircle
+      : toolCall.status === "done"
+        ? CheckCircle2
+        : XCircle;
+
+  return (
+    <span
+      className={`inline-flex max-w-full items-center gap-1.5 rounded-full border px-2 py-1 text-[11px] font-medium leading-none ${toolCallStatusStyles[toolCall.status]}`}
+      title={toolCall.toolName}
+    >
+      <Icon
+        className={`h-3 w-3 shrink-0 ${
+          toolCall.status === "running" ? "animate-spin" : ""
+        }`}
+      />
+      <span className="truncate">{toolCall.label}</span>
+    </span>
+  );
+};
 
 export default FalconAgent;

@@ -38,7 +38,7 @@ const chartTooltipStyle = {
 
 const Dashboard: React.FC = () => {
   const {
-    data: { yearlySummary, results },
+    data: { yearlySummary, results, participations },
     loading,
     error,
   } = useRelayData();
@@ -109,8 +109,16 @@ const Dashboard: React.FC = () => {
     0
   );
   const currentRaceRunners = new Set(
+    participations
+      .filter((participation) => participation.year === currentYear)
+      .map((participation) => participation.runner_name)
+      .filter(Boolean)
+  ).size;
+  const currentRaceKnownRunners = new Set(
     latestRaceResults.map((result) => result.runner_name).filter(Boolean)
   ).size;
+  const displayedCurrentRaceRunners =
+    currentRaceRunners > 0 ? currentRaceRunners : currentRaceKnownRunners;
   const fastestLatestLeg = latestRaceResults
     .filter((result) => result.pace !== null)
     .sort((a, b) => (a.pace || 0) - (b.pace || 0))[0];
@@ -133,7 +141,10 @@ const Dashboard: React.FC = () => {
     },
     {
       label: "Handoff Crew",
-      value: currentRaceRunners > 0 ? currentRaceRunners.toString() : "N/A",
+      value:
+        displayedCurrentRaceRunners > 0
+          ? displayedCurrentRaceRunners.toString()
+          : "N/A",
       detail: "Falcons in the latest relay",
       icon: <Users className="w-5 h-5" />,
     },

@@ -13,7 +13,7 @@ import { Tables } from "../types/database.types";
 
 const HistoryView: React.FC = () => {
   const {
-    data: { yearlySummary, results },
+    data: { yearlySummary, results, participations },
     loading,
     error,
   } = useRelayData();
@@ -40,11 +40,20 @@ const HistoryView: React.FC = () => {
 
   const raceHistory = yearlySummary.map((race) => {
     const yearResults = results.filter((r) => r.year === race.year);
+    const yearParticipations = participations.filter(
+      (participation) => participation.year === race.year
+    );
     return {
       ...race,
       legResults: yearResults.sort(
         (a, b) => (a.leg_number || 0) - (b.leg_number || 0)
       ),
+      participantCount: yearParticipations.length || race.participant_count || 0,
+      unknownLegParticipations: yearParticipations
+        .filter((participation) => !participation.has_known_leg)
+        .sort((a, b) =>
+          (a.runner_name || "").localeCompare(b.runner_name || "")
+        ),
     };
   });
 
@@ -150,6 +159,8 @@ const HistoryView: React.FC = () => {
                       <p className="text-gray-600">
                         Division: {race.division}{" "}
                         {race.bib && `• Bib #${race.bib}`}
+                        {race.participantCount > 0 &&
+                          ` • ${race.participantCount} runners`}
                       </p>
                       {race.notes && (
                         <p className="text-sm text-gray-500 mt-1">
@@ -261,11 +272,29 @@ const HistoryView: React.FC = () => {
                             </tr>
                           )
                         )}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              )}
+	                      </tbody>
+	                    </table>
+	                  </div>
+                  {race.unknownLegParticipations.length > 0 && (
+                    <div className="mt-6">
+                      <h4 className="text-md font-semibold text-gray-900 mb-3">
+                        Roster With Unknown Legs
+                      </h4>
+                      <div className="flex flex-wrap gap-2">
+                        {race.unknownLegParticipations.map((participation) => (
+                          <span
+                            key={`${participation.year}-${participation.runner_id}`}
+                            className="px-3 py-1 bg-amber-100 text-amber-800 text-sm rounded-full"
+                            title={participation.notes || undefined}
+                          >
+                            {participation.runner_name}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+	                </div>
+	              )}
             </div>
           ))}
         </div>

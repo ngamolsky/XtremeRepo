@@ -63,4 +63,10 @@ ALTER TABLE "public"."runners" ENABLE ROW LEVEL SECURITY;
 
 -- RLS Policy: Allow authenticated users to read runners
 CREATE POLICY "Allow authenticated users to read runners" 
-    ON "public"."runners" FOR SELECT TO "authenticated" USING (true); 
+    ON "public"."runners" FOR SELECT TO "authenticated" USING (true);
+
+CREATE POLICY "Allow authenticated users to insert runners"
+    ON "public"."runners" FOR INSERT TO "authenticated" WITH CHECK (true);
+
+CREATE POLICY "Allow authenticated users to update runners"
+    ON "public"."runners" FOR UPDATE TO "authenticated" USING (true) WITH CHECK (true);

@@ -12,8 +12,9 @@ export const parseTimeToMinutes = (timeStr: string): number => {
 
 export const formatPace = (pace: number): string => {
   if (!pace || pace === Infinity || isNaN(pace)) return "N/A";
-  const mins = Math.floor(pace);
-  const secs = Math.round((pace - mins) * 60);
+  const totalSeconds = Math.round(pace * 60);
+  const mins = Math.floor(totalSeconds / 60);
+  const secs = totalSeconds % 60;
   return `${mins}:${secs.toString().padStart(2, "0")}/mi`;
 };
 
@@ -23,4 +24,4 @@ export const getInitials = (name: string): string => {
     .map((n) => n[0])
     .join("")
     .toUpperCase();
-}; 
+};
