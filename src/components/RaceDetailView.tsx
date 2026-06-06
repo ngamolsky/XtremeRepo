@@ -60,6 +60,8 @@ type RaceLegGroup = {
 const REMOTE_PUBLIC_STORAGE_BASE_URL =
   "https://vrorouyfpacxpxkcsleq.supabase.co/storage/v1/object/public";
 const EXPECTED_RELAY_LEGS = 7;
+const ASSUMED_METRIC_LEGEND =
+  "* means a self recorded value was missing and inherited from the leg default.";
 
 const RaceDetailView: React.FC = () => {
   const { year } = useParams({ from: "/races/$year" });
@@ -317,7 +319,7 @@ const RaceDetailView: React.FC = () => {
 
             {hasAssumedMetrics && (
               <p className="mb-4 text-xs text-gray-500">
-                * means assumed from the leg default.
+                {ASSUMED_METRIC_LEGEND}
               </p>
             )}
 

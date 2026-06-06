@@ -55,6 +55,8 @@ const sourceTypeOptions = [
 ];
 
 const defaultSourceTagOptions = ["Apple Fitness", "Strava", "Garmin", "Manual"];
+const ASSUMED_OBSERVATION_LEGEND =
+  "* means a self recorded value was missing and inherited from the leg default.";
 
 const formatValue = (value: string | number | null | undefined) =>
   value === null || value === undefined || value === "" ? "N/A" : String(value);
@@ -184,6 +186,9 @@ const RunInstanceDetail: React.FC = () => {
       return createdCompare || (a.source_type || "").localeCompare(b.source_type || "");
     });
   }, [createdObservations, deletedObservationIds, routeObservations]);
+  const hasAssumedObservationMetrics = observations.some((observation) =>
+    Object.values(getObservationAssumedMetrics(observation)).some((isAssumed) => isAssumed)
+  );
   const legDefinition = legDefinitions.find(
     (leg) => leg.number === selectedLegNumber && leg.version === selectedVersion
   );
@@ -569,6 +574,7 @@ const RunInstanceDetail: React.FC = () => {
               </thead>
               <tbody className="divide-y divide-gray-200 bg-white">
                 {observations.map((observation, index) => {
+                  const assumedMetrics = getObservationAssumedMetrics(observation);
                   const status = observation.has_canonical_result
                     ? "Official exists"
                     : "Self Recorded";
@@ -615,13 +621,22 @@ const RunInstanceDetail: React.FC = () => {
                         )}
                       </td>
                       <td className="px-4 py-3 text-sm text-gray-900">
-                        {formatPace(observation.pace || 0)}
+                        <AssumedObservationValue
+                          value={formatPace(observation.pace || 0)}
+                          assumed={assumedMetrics.pace}
+                        />
                       </td>
                       <td className="px-4 py-3 text-sm text-gray-900">
-                        {formatMiles(observation.display_distance)}
+                        <AssumedObservationValue
+                          value={formatMiles(observation.display_distance)}
+                          assumed={assumedMetrics.distance}
+                        />
                       </td>
                       <td className="px-4 py-3 text-sm text-gray-900">
-                        {formatFeet(observation.display_elevation_gain)}
+                        <AssumedObservationValue
+                          value={formatFeet(observation.display_elevation_gain)}
+                          assumed={assumedMetrics.elevationGain}
+                        />
                       </td>
                       <td className="px-4 py-3 text-sm text-gray-900">
                         {observation.submitted_by_runner_name || "N/A"}
@@ -658,6 +673,9 @@ const RunInstanceDetail: React.FC = () => {
                 })}
               </tbody>
             </table>
+            {hasAssumedObservationMetrics && (
+              <p className="mt-2 text-xs text-gray-500">{ASSUMED_OBSERVATION_LEGEND}</p>
+            )}
           </div>
         ) : (
           <p className="text-sm text-gray-600">
@@ -893,6 +911,16 @@ const EvidenceHeader: React.FC<{ label: string }> = ({ label }) => (
   </th>
 );
 
+const AssumedObservationValue: React.FC<{ assumed?: boolean; value: string }> = ({
+  assumed = false,
+  value,
+}) => (
+  <span>
+    {value}
+    {assumed ? <span aria-label="assumed">*</span> : null}
+  </span>
+);
+
 const Field: React.FC<{ children: React.ReactNode; label: string }> = ({
   children,
   label,
@@ -925,6 +953,16 @@ function formatObservationSource(observation: ObservationRow) {
   const source = formatSourceType(observation.source_type);
 
   return observation.source_label ? `${source} (${observation.source_label})` : source;
+}
+
+function getObservationAssumedMetrics(observation: ObservationRow) {
+  return {
+    pace: observation.observed_distance === null && observation.pace !== null,
+    distance: observation.observed_distance === null && observation.display_distance !== null,
+    elevationGain:
+      observation.observed_elevation_gain === null &&
+      observation.display_elevation_gain !== null,
+  };
 }
 
 export default RunInstanceDetail;

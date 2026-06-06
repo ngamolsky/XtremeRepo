@@ -396,7 +396,9 @@ const AssumedMetricValue: React.FC<{ assumed: boolean; value: string }> = ({
 );
 
 const AssumedMetricsLegend: React.FC = () => (
-  <p className="mt-2 text-xs text-gray-500">* means assumed from the leg default.</p>
+  <p className="mt-2 text-xs text-gray-500">
+    * means a self recorded value was missing and inherited from the leg default.
+  </p>
 );
 
 const SourceBadge: React.FC<{ leg: DisplayLegResult }> = ({ leg }) => {
