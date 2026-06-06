@@ -108,6 +108,7 @@ type RunnerIndexEntry = {
   totalRaces: number;
   uniqueYears: number;
   knownLegRuns: number;
+  knownLegYears: number[];
   years: number[];
   unknownLegYears: number[];
   legs: Array<{
@@ -442,6 +443,7 @@ async function getRunnerIndex(supabase: DataClient): Promise<RunnerIndexEntry[]>
     .map((runner) => {
       const legs = legsByRunnerId.get(runner.id) ?? [];
       const participation = participationsByRunnerId.get(runner.id);
+      const knownLegYears = uniqueSortedNumbers(legs.map((leg) => leg.year));
       const years = participation?.years ?? uniqueSortedNumbers(legs.map((leg) => leg.year));
       const stat = statsByRunnerId.get(runner.id);
 
@@ -452,6 +454,7 @@ async function getRunnerIndex(supabase: DataClient): Promise<RunnerIndexEntry[]>
         totalRaces: stat?.total_races ?? years.length,
         uniqueYears: stat?.unique_years ?? years.length,
         knownLegRuns: stat?.known_leg_runs ?? legs.length,
+        knownLegYears,
         years,
         unknownLegYears: participation?.unknownLegYears ?? [],
         legs,
@@ -531,7 +534,8 @@ function formatRunnerIndexForPrompt(runnerIndex: RunnerIndexEntry[]): string {
         aliases.length > 0 && `aliases: ${aliases.join(", ")}`,
         `race-years: ${runner.totalRaces}`,
         `known leg runs: ${runner.knownLegRuns}`,
-        `years: ${runner.years.join(", ") || "none"}`,
+        `known leg years: ${runner.knownLegYears.join(", ") || "none"}`,
+        `participation years: ${runner.years.join(", ") || "none"}`,
         unknownLegYears && `unknown legs in: ${unknownLegYears}`,
         legs && `legs: ${legs}`,
       ]
@@ -733,6 +737,8 @@ function buildSystemPrompt(pageContext: PageContext | undefined, runnerIndex: Ru
   return `You are the Xtreme Falcons race data agent.
 
 Answer questions about relay race results, team members, legs, years, paces, and rankings. Use the provided tools before making factual claims about the data. Treat lower pace values as faster, and lower percentile values as better because they mean closer to the top of the field.
+
+Use data terms precisely. A "leg run", "ran leg", "result", or "performance" means a known row from v_results_with_pace/results with a leg number and lap time. A "race-year participation", "race", or "roster year" can include a runner whose leg assignment is unknown. Do not count unknown-leg participation years as leg runs unless the user explicitly asks about roster participation. When comparing runners' leg-run counts, use knownLegRuns/results and cite the specific result years and legs that explain the difference. When asked which year one runner ran and another did not, compare known leg years unless the user says roster or participation.
 
 Resolve names softly. First names, partial names, lowercase names, and common short forms are acceptable when the runner index makes the match clear. Do not ask for full names just because the user supplied only a first name. If a partial name matches multiple runners and the answer would differ, call findRunner for the likely matches, explain the ambiguity briefly, and ask one short clarifying question.
 
