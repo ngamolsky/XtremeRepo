@@ -1,7 +1,7 @@
 import { Link, useRouter } from "@tanstack/react-router";
 import { BarChart3, Camera, History, Trophy, User, Users, Upload } from "lucide-react";
 import React from "react";
-import { supabase } from "../lib/supabase";
+import ThemeToggle from "./ThemeToggle";
 
 const Navigation: React.FC = () => {
   const router = useRouter();
@@ -26,12 +26,8 @@ const Navigation: React.FC = () => {
   };
   const activeTabId = getActiveTabId();
 
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-  };
-
   return (
-    <nav className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
+    <nav className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50 dark:bg-slate-950/90 dark:border-slate-800 dark:shadow-none dark:backdrop-blur">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
@@ -41,9 +37,11 @@ const Navigation: React.FC = () => {
             </div>
             <div>
               <h1 className="text-xl font-bold text-gray-900">
-                Relay Dashboard
+                Xtreme Falcons
               </h1>
-              <p className="text-xs text-gray-500">Team Performance Tracker</p>
+              <p className="text-xs text-gray-500">
+                Falcon Relay Tracker
+              </p>
             </div>
           </div>
 
@@ -73,9 +71,10 @@ const Navigation: React.FC = () => {
             })}
 
             {/* Profile Button */}
+            <ThemeToggle className="ml-3" />
             <Link
               to="/profile"
-              className="flex items-center space-x-2 px-4 py-2 rounded-lg font-medium text-gray-600 hover:text-primary-600 hover:bg-primary-50 transition-all duration-200 ml-4"
+              className="flex items-center space-x-2 px-4 py-2 rounded-lg font-medium text-gray-600 hover:text-primary-600 hover:bg-primary-50 transition-all duration-200"
               activeProps={{
                 className:
                   "bg-primary-50 text-primary-700 border border-primary-200",
@@ -88,6 +87,7 @@ const Navigation: React.FC = () => {
 
           {/* Mobile Navigation */}
           <div className="md:hidden flex items-center space-x-2">
+            <ThemeToggle />
             <select
               value={activeTabId}
               onChange={(e) =>
@@ -96,7 +96,7 @@ const Navigation: React.FC = () => {
                     e.target.value === "dashboard" ? "/" : `/${e.target.value}`,
                 })
               }
-              className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:border-slate-700"
             >
               {tabs.map((tab) => (
                 <option key={tab.id} value={tab.id}>

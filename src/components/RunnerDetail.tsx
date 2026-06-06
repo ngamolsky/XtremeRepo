@@ -17,6 +17,16 @@ import { formatPace } from "../lib/utils";
 import { LegPill } from "./LegPill";
 import { StatCard } from "./StatCard";
 
+const chartAxisColor = "var(--chart-axis)";
+const chartGridColor = "var(--chart-grid)";
+const chartTooltipStyle = {
+  backgroundColor: "var(--chart-tooltip-bg)",
+  border: "1px solid var(--chart-tooltip-border)",
+  borderRadius: "8px",
+  color: "var(--chart-tooltip-text)",
+  boxShadow: "var(--chart-tooltip-shadow)",
+};
+
 const RunnerDetail: React.FC = () => {
   const { runnerName } = useParams({ from: "/runners/$runnerName" });
   const {
@@ -133,27 +143,43 @@ const RunnerDetail: React.FC = () => {
           Performance History
         </h3>
         <ResponsiveContainer width="100%" height={400}>
-          <LineChart data={performanceData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-            <XAxis dataKey="year" stroke="#6b7280" />
+          <LineChart
+            data={performanceData}
+            margin={{ top: 12, right: 24, left: 30, bottom: 8 }}
+          >
+            <CartesianGrid strokeDasharray="3 3" stroke={chartGridColor} />
+            <XAxis
+              dataKey="year"
+              stroke={chartAxisColor}
+              tick={{ fill: chartAxisColor }}
+              tickLine={{ stroke: chartAxisColor }}
+            />
             <YAxis
-              stroke="#6b7280"
+              width={76}
+              tickMargin={8}
+              stroke={chartAxisColor}
+              tick={{ fill: chartAxisColor }}
+              tickLine={{ stroke: chartAxisColor }}
               reversed
               tickFormatter={(tick) => formatPace(tick)}
             />
             <Tooltip
-              contentStyle={{
-                backgroundColor: "white",
-                border: "1px solid #e5e7eb",
-                borderRadius: "8px",
-                boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
-              }}
-              formatter={(value: any, name: string, props: any) => {
+              contentStyle={chartTooltipStyle}
+              formatter={(value, name, props) => {
+                const numericValue = typeof value === "number" ? value : Number(value);
+
                 if (name === "pace") {
-                  return [formatPace(value), `Pace (Leg ${props.payload.leg})`];
+                  return [
+                    formatPace(Number.isFinite(numericValue) ? numericValue : 0),
+                    `Pace (Leg ${props.payload.leg})`,
+                  ];
                 }
                 if (name === "time") {
-                  return [`${value.toFixed(2)} mins`, "Time"];
+                  const formattedValue = Number.isFinite(numericValue)
+                    ? numericValue.toFixed(2)
+                    : String(value);
+
+                  return [`${formattedValue} mins`, "Time"];
                 }
                 return [value, name];
               }}
@@ -167,7 +193,7 @@ const RunnerDetail: React.FC = () => {
                 stroke: "#3b82f6",
                 strokeWidth: 2,
                 r: 4,
-                fill: "white",
+                fill: "var(--chart-dot-fill)",
               }}
             />
           </LineChart>

@@ -1,6 +1,7 @@
 import { AlertCircle, Mail, Trophy, User } from "lucide-react";
 import React, { useState } from "react";
 import { supabase } from "../lib/supabase";
+import ThemeToggle from "./ThemeToggle";
 
 const AuthForm: React.FC = () => {
   const [email, setEmail] = useState("");
@@ -49,7 +50,11 @@ const AuthForm: React.FC = () => {
 
       if (existingRunner) {
         // Update existing runner with auth_user_id and any missing data
-        const updateData: any = { auth_user_id: authUserId };
+        const updateData: {
+          auth_user_id: string;
+          name?: string;
+          email?: string;
+        } = { auth_user_id: authUserId };
         if (!existingRunner.name && userName) {
           updateData.name = userName;
         }
@@ -77,7 +82,10 @@ const AuthForm: React.FC = () => {
 
         if (runnerByName) {
           // Update existing runner with auth_user_id and email
-          const updateData: any = { auth_user_id: authUserId };
+          const updateData: {
+            auth_user_id: string;
+            email?: string;
+          } = { auth_user_id: authUserId };
           if (!runnerByName.email && userEmail) {
             updateData.email = userEmail;
           }
@@ -175,15 +183,18 @@ const AuthForm: React.FC = () => {
           setEmail(email);
         }
       }
-    } catch (error: any) {
-      setError(error.message);
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "An unknown error occurred");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center p-4">
+    <div className="relative min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center p-4 dark:from-slate-950 dark:to-slate-900">
+      <div className="absolute right-4 top-4">
+        <ThemeToggle />
+      </div>
       <div className="max-w-md w-full">
         {/* Header */}
         <div className="text-center mb-8">
@@ -197,7 +208,7 @@ const AuthForm: React.FC = () => {
         </div>
 
         {/* Auth Form */}
-        <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-8">
+        <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-8 dark:bg-slate-900/90 dark:border-slate-800 dark:shadow-none">
           <div className="mb-6">
             <h2 className="text-xl font-semibold text-gray-900 mb-2">
               {isSignUp ? "Join the Team" : "Welcome Back"}
@@ -237,7 +248,7 @@ const AuthForm: React.FC = () => {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="Your full name"
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors dark:border-slate-700"
                     required={isSignUp}
                   />
                 </div>
@@ -260,11 +271,11 @@ const AuthForm: React.FC = () => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="your.name"
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-l-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-l-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors dark:border-slate-700"
                     required
                   />
                 </div>
-                <div className="bg-gray-100 px-3 py-3 border border-l-0 border-gray-300 rounded-r-lg text-gray-600 text-sm font-medium">
+                <div className="bg-gray-100 px-3 py-3 border border-l-0 border-gray-300 rounded-r-lg text-gray-600 text-sm font-medium dark:border-slate-700">
                   @xtreme-falcons.com
                 </div>
               </div>
