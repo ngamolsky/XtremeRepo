@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { RELAY_DATA_INVALIDATED_EVENT } from "../lib/relayDataFreshness";
 import { supabase } from "../lib/supabase";
 import { Tables } from "../types/database.types";
 
@@ -53,9 +54,31 @@ export const useRelayData = () => {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [refreshNonce, setRefreshNonce] = useState(0);
+  const fetchSequenceRef = useRef(0);
+
+  useEffect(() => {
+    const handleRelayDataInvalidated = () => {
+      setRefreshNonce((currentNonce) => currentNonce + 1);
+    };
+
+    window.addEventListener(
+      RELAY_DATA_INVALIDATED_EVENT,
+      handleRelayDataInvalidated
+    );
+
+    return () => {
+      window.removeEventListener(
+        RELAY_DATA_INVALIDATED_EVENT,
+        handleRelayDataInvalidated
+      );
+    };
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
+      const fetchSequence = (fetchSequenceRef.current += 1);
+
       try {
         setLoading(true);
         setError(null);
@@ -85,6 +108,10 @@ export const useRelayData = () => {
         if (legVersionStatsRes.error) throw legVersionStatsRes.error;
         if (yearlySummaryRes.error) throw yearlySummaryRes.error;
 
+        if (fetchSequence !== fetchSequenceRef.current) {
+          return;
+        }
+
         setData({
           legDefinitions: legDefinitionsRes.data || [],
           legResultObservations: readOptionalRows(
@@ -98,6 +125,10 @@ export const useRelayData = () => {
           yearlySummary: yearlySummaryRes.data || [],
         });
       } catch (err) {
+        if (fetchSequence !== fetchSequenceRef.current) {
+          return;
+        }
+
         setError(
           err instanceof Error
             ? err.message
@@ -105,12 +136,14 @@ export const useRelayData = () => {
         );
         console.error("Error fetching relay data:", err);
       } finally {
-        setLoading(false);
+        if (fetchSequence === fetchSequenceRef.current) {
+          setLoading(false);
+        }
       }
     };
 
     fetchData();
-  }, []);
+  }, [refreshNonce]);
 
   return { data, loading, error };
 };

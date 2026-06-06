@@ -9,6 +9,10 @@ import {
   XCircle,
 } from "lucide-react";
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import {
+  dispatchRelayDataInvalidated,
+  isRelayDataMutationTool,
+} from "../lib/relayDataFreshness";
 import { supabase } from "../lib/supabase";
 
 type ChatProvider = "openai" | "anthropic";
@@ -584,6 +588,10 @@ const FalconAgent: React.FC = () => {
         label: event.label,
         status: event.status,
       });
+
+      if (event.status === "done" && isRelayDataMutationTool(event.toolName)) {
+        dispatchRelayDataInvalidated();
+      }
       return;
     }
 
