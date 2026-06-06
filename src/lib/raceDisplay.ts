@@ -4,6 +4,7 @@ import type { Tables } from "../types/database.types";
 type OfficialResult = Tables<"v_results_with_pace">;
 type SelfRecordedObservation = Tables<"v_leg_result_observations_with_pace">;
 type YearlySummary = Tables<"v_yearly_summary">;
+type LegDefinition = Tables<"leg_definitions">;
 
 const EXPECTED_RELAY_LEGS = 7;
 
@@ -115,7 +116,8 @@ export function getRaceDisplaySummary(
 export function getNaiveLiveProjection(
   raceYear: number,
   displayLegResults: DisplayLegResult[],
-  officialResults: OfficialResult[]
+  officialResults: OfficialResult[],
+  legDefinitions: LegDefinition[] = []
 ): LiveProjection | null {
   const reportedLegByNumber = new Map<number, DisplayLegResult>();
 
@@ -130,7 +132,14 @@ export function getNaiveLiveProjection(
     }
   });
 
-  const historicalAveragesByLeg = getHistoricalAverageMinutesByLeg(raceYear, officialResults);
+  const currentLegVersionByNumber = getCurrentLegVersionByNumber(
+    displayLegResults,
+    legDefinitions
+  );
+  const historicalAveragesByLegVersion = getHistoricalAverageMinutesByLegVersion(
+    raceYear,
+    officialResults
+  );
   const legs: LiveProjectionLeg[] = [];
   let currentRecordedMinutes = 0;
   let projectedTotalMinutes = 0;
@@ -155,8 +164,12 @@ export function getNaiveLiveProjection(
       continue;
     }
 
-    const estimatedMinutes = historicalAveragesByLeg.get(legNumber) ?? null;
-    if (estimatedMinutes !== null) {
+    const targetLegVersion = currentLegVersionByNumber.get(legNumber) ?? null;
+    const estimatedMinutes =
+      targetLegVersion === null
+        ? null
+        : historicalAveragesByLegVersion.get(formatLegVersionKey(legNumber, targetLegVersion)) ?? null;
+    if (estimatedMinutes !== null && targetLegVersion !== null) {
       projectedTotalMinutes += estimatedMinutes;
       estimatedLegCount += 1;
       legs.push({
@@ -164,7 +177,7 @@ export function getNaiveLiveProjection(
         minutes: estimatedMinutes,
         displayTime: formatDuration(estimatedMinutes),
         status: "estimated",
-        sourceLabel: `Historical avg for leg ${legNumber}`,
+        sourceLabel: `Historical avg for leg ${legNumber} v${targetLegVersion}`,
       });
       continue;
     }
@@ -333,11 +346,40 @@ function formatDuration(minutes: number) {
   return `${hours}:${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
 }
 
-function getHistoricalAverageMinutesByLeg(raceYear: number, officialResults: OfficialResult[]) {
-  const minutesByLeg = new Map<number, number[]>();
+function getCurrentLegVersionByNumber(
+  displayLegResults: DisplayLegResult[],
+  legDefinitions: LegDefinition[]
+) {
+  const versionByLeg = new Map<number, number>();
+
+  displayLegResults.forEach((leg) => {
+    if (leg.leg_number === null || leg.leg_version === null) {
+      return;
+    }
+
+    versionByLeg.set(leg.leg_number, leg.leg_version);
+  });
+
+  legDefinitions.forEach((definition) => {
+    const currentVersion = versionByLeg.get(definition.number);
+    if (currentVersion === undefined || definition.version > currentVersion) {
+      versionByLeg.set(definition.number, definition.version);
+    }
+  });
+
+  return versionByLeg;
+}
+
+function getHistoricalAverageMinutesByLegVersion(raceYear: number, officialResults: OfficialResult[]) {
+  const minutesByLegVersion = new Map<string, number[]>();
 
   officialResults.forEach((result) => {
-    if (result.year === raceYear || result.leg_number === null || !result.lap_time) {
+    if (
+      result.year === raceYear ||
+      result.leg_number === null ||
+      result.leg_version === null ||
+      !result.lap_time
+    ) {
       return;
     }
 
@@ -346,17 +388,22 @@ function getHistoricalAverageMinutesByLeg(raceYear: number, officialResults: Off
       return;
     }
 
-    const current = minutesByLeg.get(result.leg_number) ?? [];
+    const key = formatLegVersionKey(result.leg_number, result.leg_version);
+    const current = minutesByLegVersion.get(key) ?? [];
     current.push(minutes);
-    minutesByLeg.set(result.leg_number, current);
+    minutesByLegVersion.set(key, current);
   });
 
   return new Map(
-    Array.from(minutesByLeg.entries()).map(([legNumber, minutes]) => [
-      legNumber,
+    Array.from(minutesByLegVersion.entries()).map(([key, minutes]) => [
+      key,
       minutes.reduce((sum, value) => sum + value, 0) / minutes.length,
     ])
   );
+}
+
+function formatLegVersionKey(legNumber: number, legVersion: number) {
+  return `${legNumber}:${legVersion}`;
 }
 
 function formatProjectionSource(leg: DisplayLegResult) {

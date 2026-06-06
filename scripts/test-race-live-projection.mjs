@@ -49,6 +49,7 @@ const historicalOfficialResults = [
   { year: 2024, leg_number: 1, leg_version: 2, lap_time: "00:54:00" },
   { year: 2023, leg_number: 2, leg_version: 2, lap_time: "01:00:00" },
   { year: 2024, leg_number: 2, leg_version: 2, lap_time: "01:04:00" },
+  { year: 2022, leg_number: 3, leg_version: 1, lap_time: "01:45:00" },
   { year: 2023, leg_number: 3, leg_version: 2, lap_time: "00:45:00" },
   { year: 2024, leg_number: 3, leg_version: 2, lap_time: "00:51:00" },
   { year: 2023, leg_number: 4, leg_version: 2, lap_time: "00:55:00" },
@@ -60,6 +61,12 @@ const historicalOfficialResults = [
   { year: 2023, leg_number: 7, leg_version: 2, lap_time: "00:40:00" },
   { year: 2024, leg_number: 7, leg_version: 2, lap_time: "00:44:00" },
 ];
+const legDefinitions = Array.from({ length: 7 }, (_, index) => ({
+  number: index + 1,
+  version: 2,
+  distance: null,
+  elevation_gain: null,
+}));
 const currentOfficialResults = [
   { year: 2026, leg_number: 1, leg_version: 2, lap_time: "00:49:00" },
 ];
@@ -113,7 +120,7 @@ const currentObservations = [
 ];
 
 const displayLegResults = getDisplayLegResults(2026, currentOfficialResults, currentObservations);
-const projection = getNaiveLiveProjection(2026, displayLegResults, [...historicalOfficialResults, ...currentOfficialResults]);
+const projection = getNaiveLiveProjection(2026, displayLegResults, [...historicalOfficialResults, ...currentOfficialResults], legDefinitions);
 
 assert.equal(projection.reportedLegCount, 2, "only official/current self recorded legs with a time should count as reported");
 assert.equal(projection.estimatedLegCount, 5, "remaining legs should be estimated from historical averages");
@@ -126,11 +133,11 @@ assert.deepEqual(
   [
     { legNumber: 1, status: "reported", minutes: 49, sourceLabel: "Official" },
     { legNumber: 2, status: "reported", minutes: 58, sourceLabel: "Garmin · watch" },
-    { legNumber: 3, status: "estimated", minutes: 48, sourceLabel: "Historical avg for leg 3" },
-    { legNumber: 4, status: "estimated", minutes: 58, sourceLabel: "Historical avg for leg 4" },
-    { legNumber: 5, status: "estimated", minutes: 72, sourceLabel: "Historical avg for leg 5" },
-    { legNumber: 6, status: "estimated", minutes: 82, sourceLabel: "Historical avg for leg 6" },
-    { legNumber: 7, status: "estimated", minutes: 42, sourceLabel: "Historical avg for leg 7" },
+    { legNumber: 3, status: "estimated", minutes: 48, sourceLabel: "Historical avg for leg 3 v2" },
+    { legNumber: 4, status: "estimated", minutes: 58, sourceLabel: "Historical avg for leg 4 v2" },
+    { legNumber: 5, status: "estimated", minutes: 72, sourceLabel: "Historical avg for leg 5 v2" },
+    { legNumber: 6, status: "estimated", minutes: 82, sourceLabel: "Historical avg for leg 6 v2" },
+    { legNumber: 7, status: "estimated", minutes: 42, sourceLabel: "Historical avg for leg 7 v2" },
   ]
 );
 

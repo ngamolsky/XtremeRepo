@@ -106,9 +106,9 @@ const RaceDetailView: React.FC = () => {
   const liveProjection = useMemo(
     () =>
       Number.isFinite(raceYear)
-        ? getNaiveLiveProjection(raceYear, displayLegResults, results)
+        ? getNaiveLiveProjection(raceYear, displayLegResults, results, legDefinitions)
         : null,
-    [displayLegResults, raceYear, results]
+    [displayLegResults, legDefinitions, raceYear, results]
   );
   const raceLegGroups = useMemo(
     () =>
