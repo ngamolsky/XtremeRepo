@@ -109,8 +109,8 @@ type SaveLegObservationInput = {
   lapTime?: string;
   movingTime?: string;
   elapsedTime?: string;
-  distance?: number;
-  elevationGain?: number;
+  distance?: number | null;
+  elevationGain?: number | null;
   metadata?: Record<string, unknown>;
   overwriteExisting?: boolean;
 };
@@ -1074,7 +1074,7 @@ Use the current signed-in user context to resolve first-person references like "
 
 Official data and comments are read-only. You can read official results, placements, participation, runner records, comments, and self recorded observations, but you cannot write, replace, edit, or delete official data or comments. If the user asks you to edit official data, refuse briefly and offer to save the supplied values only as a self recorded observation when they include runner/device/app source data. If the user asks you to add/edit/delete comments, explain that the UI supports comments but you cannot write comments. Do not claim that self recorded data is official, verified, or a replacement for official results.
 
-Your only write capability is adding, updating, or deleting self recorded leg observations with saveLegObservation and deleteLegObservation. For any ad hoc leg data write, use saveLegObservation and label it self recorded. For a self recorded observation, collect race year, leg number, the existing runner name the observation is about, and at least one measured field such as lap time, moving time, elapsed time, distance, or elevation gain. Default leg version to v2 unless the user or source explicitly says another version. Source type defaults to manual_runner; use apple_watch, garmin, phone, strava, manual_runner, manual_admin, or other when the user gives the source. Source labels, source tags, screenshots, app names, device names, files, activity titles, and metadata are useful provenance, but they are not enough by themselves to create a new observation. Ask short follow-up questions until every required field is known. Do not invent missing fields. If the runner is missing or ambiguous, ask the user to choose an existing runner; do not create new runners and do not infer the runner from other race-day state. Delete self recorded observations only after the user clearly asks to delete self recorded data and you have a specific observationId or an unambiguous match.
+Your only write capability is adding, updating, or deleting self recorded leg observations with saveLegObservation and deleteLegObservation. For any ad hoc leg data write, use saveLegObservation and label it self recorded. For a self recorded observation, collect race year, leg number, the existing runner name the observation is about, and at least one measured field such as lap time, moving time, elapsed time, distance, or elevation gain. Default leg version to v2 unless the user or source explicitly says another version. Source type defaults to manual_runner; use apple_watch, garmin, phone, strava, manual_runner, manual_admin, or other when the user gives the source. Source labels, source tags, screenshots, app names, device names, files, activity titles, and metadata are useful provenance, but they are not enough by themselves to create a new observation. Ask short follow-up questions until every required field is known. Do not invent missing fields. Do not pass null for unknown distance or elevation gain; omit those fields unless the user or source provides a numeric value. If the runner is missing or ambiguous, ask the user to choose an existing runner; do not create new runners and do not infer the runner from other race-day state. Delete self recorded observations only after the user clearly asks to delete self recorded data and you have a specific observationId or an unambiguous match.
 
 When the user attaches a screenshot or image from Strava, Garmin, Apple Watch, phone fitness apps, or similar sources, treat visible values as self recorded source evidence. Extract only values visible in the image or supplied by the user. Prefer source_type strava for Strava screenshots, and capture as much visible screenshot context as possible in metadata: app name, screenshot filename, visible activity title, date/time, route/location text, elapsed/moving/lap time labels, distance, elevation, pace/splits, heart rate, cadence, calories, device/source labels, units, cropped/obscured fields, and any uncertainty. If year, leg number, runner, or the intended source are not visible or supplied, ask for them before saving; default leg version to v2 unless another version is visible or supplied. Once a write succeeds, summarize the saved row and label it self recorded.
 
@@ -1374,12 +1374,12 @@ function createRelayTools(
             description: "Observed elapsed time, if the source distinguishes it from moving time.",
           },
           distance: {
-            type: "number",
-            description: "Observed distance in miles.",
+            type: ["number", "null"],
+            description: "Observed distance in miles. Omit when unknown; null is treated as omitted, not as a value to save.",
           },
           elevationGain: {
-            type: "number",
-            description: "Observed elevation gain in feet.",
+            type: ["number", "null"],
+            description: "Observed elevation gain in feet. Omit when unknown; null is treated as omitted, not as a value to save.",
           },
           metadata: {
             type: "object",
@@ -2061,8 +2061,8 @@ function normalizeOptionalLapTime(value: string | undefined): string | null | un
   return normalizeLapTime(value);
 }
 
-function normalizeOptionalPositiveNumber(value: number | undefined): number | null | undefined {
-  if (value === undefined) {
+function normalizeOptionalPositiveNumber(value: number | null | undefined): number | null | undefined {
+  if (value === undefined || value === null) {
     return undefined;
   }
 
@@ -2073,8 +2073,8 @@ function normalizeOptionalPositiveNumber(value: number | undefined): number | nu
   return value;
 }
 
-function normalizeOptionalElevationGain(value: number | undefined): number | null | undefined {
-  if (value === undefined) {
+function normalizeOptionalElevationGain(value: number | null | undefined): number | null | undefined {
+  if (value === undefined || value === null) {
     return undefined;
   }
 
