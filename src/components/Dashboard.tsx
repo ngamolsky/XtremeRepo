@@ -1,14 +1,4 @@
-import {
-  Calendar,
-  Clock,
-  Feather,
-  Mountain,
-  Route,
-  TrendingUp,
-  Trophy,
-  Users,
-  Zap,
-} from "lucide-react";
+import { Calendar, Clock, TrendingUp, Trophy } from "lucide-react";
 import React from "react";
 import {
   Bar,
@@ -23,7 +13,6 @@ import {
   YAxis,
 } from "recharts";
 import { useRelayData } from "../hooks/useRelayData";
-import { formatPace } from "../lib/utils";
 import { StatCard } from "./StatCard";
 
 const chartAxisColor = "var(--chart-axis)";
@@ -38,7 +27,7 @@ const chartTooltipStyle = {
 
 const Dashboard: React.FC = () => {
   const {
-    data: { yearlySummary, results, participations },
+    data: { yearlySummary, results },
     loading,
     error,
   } = useRelayData();
@@ -92,71 +81,14 @@ const Dashboard: React.FC = () => {
     .reverse();
 
   const currentYear = latestPerformance?.year || new Date().getFullYear();
-  const latestRaceResults = results.filter((result) => result.year === currentYear);
-  const legPerformanceData = results
-    .filter((result) => result.year === currentYear)
-    .map((result) => ({
-      leg: `Leg ${result.leg_number}`,
-      time: result.time_in_minutes,
-      runner: result.runner_name || "Missing Runner Name",
-    }));
-  const currentRaceMiles = latestRaceResults.reduce(
-    (total, result) => total + (result.distance || 0),
-    0
+  const latestRaceResults = results.filter(
+    (result) => result.year === currentYear
   );
-  const currentRaceElevation = latestRaceResults.reduce(
-    (total, result) => total + (result.elevation_gain || 0),
-    0
-  );
-  const currentRaceRunners = new Set(
-    participations
-      .filter((participation) => participation.year === currentYear)
-      .map((participation) => participation.runner_name)
-      .filter(Boolean)
-  ).size;
-  const currentRaceKnownRunners = new Set(
-    latestRaceResults.map((result) => result.runner_name).filter(Boolean)
-  ).size;
-  const displayedCurrentRaceRunners =
-    currentRaceRunners > 0 ? currentRaceRunners : currentRaceKnownRunners;
-  const fastestLatestLeg = latestRaceResults
-    .filter((result) => result.pace !== null)
-    .sort((a, b) => (a.pace || 0) - (b.pace || 0))[0];
-  const falconHighlights = [
-    {
-      label: "Falcon Course",
-      value:
-        currentRaceMiles > 0 ? `${currentRaceMiles.toFixed(1)} mi` : "N/A",
-      detail: `${currentYear} race distance logged`,
-      icon: <Route className="w-5 h-5" />,
-    },
-    {
-      label: "Climb Watch",
-      value:
-        currentRaceElevation > 0
-          ? `+${Math.round(currentRaceElevation).toLocaleString()} ft`
-          : "N/A",
-      detail: "Elevation carried by the squad",
-      icon: <Mountain className="w-5 h-5" />,
-    },
-    {
-      label: "Handoff Crew",
-      value:
-        displayedCurrentRaceRunners > 0
-          ? displayedCurrentRaceRunners.toString()
-          : "N/A",
-      detail: "Falcons in the latest relay",
-      icon: <Users className="w-5 h-5" />,
-    },
-    {
-      label: "Fastest Wing",
-      value: fastestLatestLeg?.pace ? formatPace(fastestLatestLeg.pace) : "N/A",
-      detail: fastestLatestLeg
-        ? `Leg ${fastestLatestLeg.leg_number} by ${fastestLatestLeg.runner_name}`
-        : "Waiting on split data",
-      icon: <Zap className="w-5 h-5" />,
-    },
-  ];
+  const legPerformanceData = latestRaceResults.map((result) => ({
+    leg: `Leg ${result.leg_number}`,
+    time: result.time_in_minutes,
+    runner: result.runner_name || "Missing Runner Name",
+  }));
 
   return (
     <div className="space-y-8 animate-fade-in">
@@ -200,46 +132,6 @@ const Dashboard: React.FC = () => {
               : "N/A"
           }
         />
-      </div>
-
-      <div className="card p-6">
-        <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-          <div className="max-w-2xl">
-            <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-primary-200 bg-primary-50 px-3 py-1 text-xs font-semibold uppercase text-primary-700">
-              <Feather className="w-3.5 h-3.5" />
-              Falcon Flight Board
-            </div>
-            <h2 className="text-2xl font-bold text-gray-900">
-              Built for Falcons who race the whole course, not just their own
-              split.
-            </h2>
-            <p className="mt-2 text-sm leading-6 text-gray-600">
-              The latest relay snapshot blends distance, climb, crew size, and
-              fastest pace so the Falcons can read the course at a glance.
-            </p>
-          </div>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:min-w-[28rem]">
-            {falconHighlights.map((highlight) => (
-              <div
-                key={highlight.label}
-                className="rounded-lg border border-gray-100 bg-gray-50 p-4 dark:border-slate-800 dark:bg-slate-950/60"
-              >
-                <div className="mb-3 flex items-center justify-between">
-                  <span className="text-xs font-semibold uppercase text-gray-500">
-                    {highlight.label}
-                  </span>
-                  <span className="rounded-full bg-white p-2 text-primary-600 shadow-sm dark:bg-slate-900 dark:text-primary-300">
-                    {highlight.icon}
-                  </span>
-                </div>
-                <div className="text-2xl font-bold text-gray-900">
-                  {highlight.value}
-                </div>
-                <p className="mt-1 text-xs text-gray-500">{highlight.detail}</p>
-              </div>
-            ))}
-          </div>
-        </div>
       </div>
 
       {/* Charts Section */}
