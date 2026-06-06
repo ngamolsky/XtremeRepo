@@ -53,6 +53,8 @@ const sourceTypeOptions = [
   "other",
 ];
 
+const defaultSourceTagOptions = ["Apple Fitness", "Strava", "Garmin", "Manual"];
+
 const formatValue = (value: string | number | null | undefined) =>
   value === null || value === undefined || value === "" ? "N/A" : String(value);
 
@@ -79,11 +81,21 @@ const isEmptyMetadata = (value: ObservationRow["raw_metadata"]) => {
 };
 
 const normalizeTag = (value: string) => value.trim().replace(/\s+/g, " ");
+const tagKey = (value: string) => normalizeTag(value).toLocaleLowerCase();
 
-const uniqueTags = (tags: string[]) =>
-  [...new Set(tags.map(normalizeTag).filter(Boolean))].sort((a, b) =>
-    a.localeCompare(b)
-  );
+const uniqueTags = (tags: string[]) => {
+  const tagsByKey = new Map<string, string>();
+
+  tags.forEach((tag) => {
+    const normalizedTag = normalizeTag(tag);
+
+    if (normalizedTag && !tagsByKey.has(tagKey(normalizedTag))) {
+      tagsByKey.set(tagKey(normalizedTag), normalizedTag);
+    }
+  });
+
+  return [...tagsByKey.values()];
+};
 
 const RunInstanceDetail: React.FC = () => {
   const { runnerName, year, legNumber, version } = useParams({
@@ -101,6 +113,7 @@ const RunInstanceDetail: React.FC = () => {
   const [observationForm, setObservationForm] = useState<ObservationFormState>({
     ...defaultObservationForm,
   });
+  const [sourceTagComboboxOpen, setSourceTagComboboxOpen] = useState(false);
   const [newTagText, setNewTagText] = useState("");
   const [savingObservation, setSavingObservation] = useState(false);
   const [saveMessage, setSaveMessage] = useState("");
@@ -179,14 +192,33 @@ const RunInstanceDetail: React.FC = () => {
     observations.find((observation) => observation.runner_id)?.runner_id ||
     null;
   const sourceTagOptions = useMemo(
-    () =>
-      uniqueTags([
-        ...legResultObservations.flatMap((observation) => observation.source_tags || []),
-        ...legResultObservations.map((observation) => observation.source_label || ""),
-        ...sourceTypeOptions.map(formatSourceType),
-      ]),
-    [legResultObservations]
+    () => uniqueTags([...defaultSourceTagOptions, ...observationForm.sourceTags]),
+    [observationForm.sourceTags]
   );
+  const sourceTagQuery = normalizeTag(newTagText);
+  const selectedSourceTagKeys = new Set(observationForm.sourceTags.map(tagKey));
+  const filteredSourceTagOptions = sourceTagOptions.filter(
+    (sourceTag) =>
+      !selectedSourceTagKeys.has(tagKey(sourceTag)) &&
+      (!sourceTagQuery || tagKey(sourceTag).includes(tagKey(sourceTagQuery)))
+  );
+  const canCreateSourceTag =
+    Boolean(sourceTagQuery) &&
+    !sourceTagOptions.some((sourceTag) => tagKey(sourceTag) === tagKey(sourceTagQuery));
+  const showSourceTagCombobox =
+    sourceTagComboboxOpen && (filteredSourceTagOptions.length > 0 || canCreateSourceTag);
+  const exactSourceTagMatch =
+    sourceTagQuery &&
+    sourceTagOptions.find((sourceTag) => tagKey(sourceTag) === tagKey(sourceTagQuery));
+  const firstSuggestedSourceTag = exactSourceTagMatch || filteredSourceTagOptions[0];
+  const lastSelectedSourceTag =
+    observationForm.sourceTags.length > 0
+      ? observationForm.sourceTags[observationForm.sourceTags.length - 1]
+      : null;
+  const sourceTagHelpText =
+    observationForm.sourceTags.length > 0
+      ? "Search or create another tag"
+      : "Search Apple Fitness, Strava, Garmin, or Manual";
 
   if (loading) {
     return (
@@ -237,18 +269,45 @@ const RunInstanceDetail: React.FC = () => {
       return;
     }
 
-    setObservationForm((current) => ({
-      ...current,
-      sourceTags: uniqueTags([...current.sourceTags, normalizedTag]),
-    }));
+    setObservationForm((current) => {
+      if (current.sourceTags.some((sourceTag) => tagKey(sourceTag) === tagKey(normalizedTag))) {
+        return current;
+      }
+
+      return {
+        ...current,
+        sourceTags: uniqueTags([...current.sourceTags, normalizedTag]),
+      };
+    });
     setNewTagText("");
+    setSourceTagComboboxOpen(true);
   };
 
   const handleRemoveSourceTag = (tag: string) => {
     setObservationForm((current) => ({
       ...current,
-      sourceTags: current.sourceTags.filter((sourceTag) => sourceTag !== tag),
+      sourceTags: current.sourceTags.filter((sourceTag) => tagKey(sourceTag) !== tagKey(tag)),
     }));
+  };
+
+  const handleSourceTagKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "Enter") {
+      if (firstSuggestedSourceTag || sourceTagQuery) {
+        event.preventDefault();
+        handleAddSourceTag(firstSuggestedSourceTag || sourceTagQuery);
+      }
+      return;
+    }
+
+    if (event.key === "Backspace" && !newTagText && lastSelectedSourceTag) {
+      event.preventDefault();
+      handleRemoveSourceTag(lastSelectedSourceTag);
+      return;
+    }
+
+    if (event.key === "Escape") {
+      setSourceTagComboboxOpen(false);
+    }
   };
 
   const handleSaveObservation = async (event: React.FormEvent) => {
@@ -678,49 +737,83 @@ const RunInstanceDetail: React.FC = () => {
               <Tag className="h-4 w-4 text-gray-500" />
               <span>Source Tags</span>
             </div>
-            {observationForm.sourceTags.length > 0 && (
-              <div className="mb-3 flex flex-wrap gap-2">
+            <div className="relative">
+              <div className="flex min-h-11 flex-wrap items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 transition-colors focus-within:border-primary-500 focus-within:ring-2 focus-within:ring-primary-500">
                 {observationForm.sourceTags.map((sourceTag) => (
                   <button
                     key={sourceTag}
                     type="button"
                     onClick={() => handleRemoveSourceTag(sourceTag)}
-                    className="inline-flex items-center gap-1 rounded-full bg-primary-100 px-3 py-1 text-sm text-primary-800 transition-colors hover:bg-primary-200"
+                    className="inline-flex items-center gap-1 rounded-full bg-primary-100 px-2.5 py-1 text-sm font-medium text-primary-800 transition-colors hover:bg-primary-200"
+                    aria-label={`Remove ${sourceTag}`}
                   >
                     <span>{sourceTag}</span>
                     <X className="h-3 w-3" />
                   </button>
                 ))}
-              </div>
-            )}
-            <div className="mb-3 flex flex-wrap gap-2">
-              {sourceTagOptions.map((sourceTag) => (
-                <button
-                  key={sourceTag}
-                  type="button"
-                  onClick={() => handleAddSourceTag(sourceTag)}
-                  disabled={observationForm.sourceTags.includes(sourceTag)}
-                  className="rounded-full border border-gray-300 px-3 py-1 text-sm text-gray-700 transition-colors hover:border-primary-300 hover:bg-primary-50 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400"
-                >
-                  {sourceTag}
-                </button>
-              ))}
-            </div>
-            <div className="flex flex-col gap-2 sm:flex-row">
               <input
                 type="text"
                 value={newTagText}
-                onChange={(event) => setNewTagText(event.target.value)}
-                className="field-input"
-                placeholder="Create source tag"
+                onChange={(event) => {
+                  setNewTagText(event.target.value);
+                  setSourceTagComboboxOpen(true);
+                }}
+                onFocus={() => setSourceTagComboboxOpen(true)}
+                onClick={() => setSourceTagComboboxOpen(true)}
+                onBlur={() => {
+                  window.setTimeout(() => setSourceTagComboboxOpen(false), 100);
+                }}
+                onKeyDown={handleSourceTagKeyDown}
+                role="combobox"
+                aria-autocomplete="list"
+                aria-controls="source-tag-options"
+                aria-expanded={showSourceTagCombobox}
+                aria-label="Source Tags"
+                autoComplete="off"
+                className="min-w-44 flex-1 border-0 bg-transparent p-0 text-sm text-gray-900 outline-none placeholder:text-gray-400 focus:ring-0"
+                placeholder={
+                  observationForm.sourceTags.length > 0
+                    ? "Search or create tag"
+                    : sourceTagHelpText
+                }
               />
-              <button
-                type="button"
-                onClick={() => handleAddSourceTag(newTagText)}
-                className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:border-primary-300 hover:bg-primary-50"
-              >
-                Add Tag
-              </button>
+            </div>
+              {showSourceTagCombobox && (
+                <div
+                  id="source-tag-options"
+                  role="listbox"
+                  aria-label="Source tag suggestions"
+                  className="absolute z-20 mt-2 max-h-56 w-full overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-lg"
+                >
+                  {filteredSourceTagOptions.map((sourceTag) => (
+                    <button
+                      key={sourceTag}
+                      type="button"
+                      role="option"
+                      aria-selected={false}
+                      onMouseDown={(event) => event.preventDefault()}
+                      onClick={() => handleAddSourceTag(sourceTag)}
+                      className="flex w-full items-center justify-between px-3 py-2 text-left text-sm text-gray-800 transition-colors hover:bg-primary-50"
+                    >
+                      <span>{sourceTag}</span>
+                      <span className="text-xs text-gray-500">Add</span>
+                    </button>
+                  ))}
+                  {canCreateSourceTag && (
+                    <button
+                      type="button"
+                      role="option"
+                      aria-selected={false}
+                      onMouseDown={(event) => event.preventDefault()}
+                      onClick={() => handleAddSourceTag(sourceTagQuery)}
+                      className="flex w-full items-center justify-between border-t border-gray-100 px-3 py-2 text-left text-sm font-medium text-primary-800 transition-colors hover:bg-primary-50"
+                    >
+                      <span>{sourceTagQuery}</span>
+                      <span className="text-xs text-primary-600">Create</span>
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 
