@@ -304,7 +304,6 @@ const RaceDetailView: React.FC = () => {
                   <span
                     key={`${participation.year}-${participation.runner_id}`}
                     className="rounded-full bg-amber-100 px-3 py-1 text-sm text-amber-800"
-                    title={participation.notes || undefined}
                   >
                     {participation.runner_name}
                   </span>

@@ -317,7 +317,6 @@ const HistoryView: React.FC = () => {
                           <span
                             key={`${participation.year}-${participation.runner_id}`}
                             className="px-3 py-1 bg-amber-100 text-amber-800 text-sm rounded-full"
-                            title={participation.notes || undefined}
                           >
                             {participation.runner_name}
                           </span>
