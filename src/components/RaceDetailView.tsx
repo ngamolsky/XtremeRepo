@@ -600,10 +600,21 @@ const RaceLegGroupRow: React.FC<{ group: RaceLegGroup; raceYear: number }> = ({
 }) => (
   <div className="grid gap-4 py-5 first:pt-0 last:pb-0 sm:grid-cols-[7rem_minmax(0,1fr)]">
     <div>
-      <p className="text-sm font-semibold text-gray-900">
-        Leg {group.legNumber}
-        {group.legVersion ? ` (v${group.legVersion})` : ""}
-      </p>
+      {group.legVersion ? (
+        <Link
+          to="/legs/$legNumber/$version"
+          params={{
+            legNumber: String(group.legNumber),
+            version: String(group.legVersion),
+          }}
+          aria-label={`View Leg ${group.legNumber} v${group.legVersion} details`}
+          className="text-sm font-semibold text-primary-700 hover:text-primary-800"
+        >
+          Leg {group.legNumber} (v{group.legVersion})
+        </Link>
+      ) : (
+        <p className="text-sm font-semibold text-gray-900">Leg {group.legNumber}</p>
+      )}
       <p className="mt-1 text-xs text-gray-500">
         {formatMiles(group.distance)} · {formatFeet(group.elevationGain)}
       </p>

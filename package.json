@@ -29,7 +29,8 @@
     "test:falco-branding": "node scripts/test-falco-branding-and-home-link.mjs",
     "test:mobile-nav-breadcrumbs": "node scripts/test-mobile-nav-and-breadcrumbs.mjs",
     "test:xtreme-agent-vibes": "node scripts/test-xtreme-agent-vibes.mjs",
-    "test:agent-data-freshness": "node scripts/test-agent-data-freshness.mjs"
+    "test:agent-data-freshness": "node scripts/test-agent-data-freshness.mjs",
+    "test:race-detail-leg-links": "node scripts/test-race-detail-leg-links.mjs"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.81",
