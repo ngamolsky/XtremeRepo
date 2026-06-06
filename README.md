@@ -228,7 +228,11 @@ VITE_SUPABASE_URL=http://localhost:54321
 VITE_SUPABASE_ANON_KEY=your-local-anon-key
 ```
 
-For production, use the values from your Supabase project settings.
+For production, keep public Supabase values in `wrangler.jsonc` under `vars`.
+Local `.env.local`, `.env.development.local`, and `.dev.vars` files are gitignored and can point
+at the local Supabase stack. Avoid also defining `VITE_SUPABASE_URL` or
+`VITE_SUPABASE_ANON_KEY` in the Cloudflare dashboard unless they exactly match
+`wrangler.jsonc`; otherwise the dashboard can look like a second source of truth.
 
 ### AI Agent Keys
 
