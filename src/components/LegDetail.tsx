@@ -1,5 +1,5 @@
 import { Link, useParams } from "@tanstack/react-router";
-import { Award, BarChart, Clock, Map, Users } from "lucide-react";
+import { Award, BarChart, Map, Users } from "lucide-react";
 import React from "react";
 import {
   CartesianGrid,
@@ -11,7 +11,7 @@ import {
   YAxis,
 } from "recharts";
 import { useRelayData } from "../hooks/useRelayData";
-import { formatFeet, formatMiles, formatPace, formatSourceType } from "../lib/utils";
+import { formatFeet, formatMiles, formatPace } from "../lib/utils";
 import { StatCard } from "./StatCard";
 
 const chartAxisColor = "var(--chart-axis)";
@@ -29,7 +29,7 @@ const LegDetail: React.FC = () => {
     from: "/legs/$legNumber/$version",
   });
   const {
-    data: { legDefinitions, legResultObservations, legVersionStats, results },
+    data: { legDefinitions, legVersionStats, results },
     loading,
     error,
   } = useRelayData();
@@ -73,13 +73,7 @@ const LegDetail: React.FC = () => {
       result.leg_version === selectedVersion
   );
 
-  const provisionalLegData = legResultObservations.filter(
-    (observation) =>
-      observation.leg_number === selectedLegNumber &&
-      observation.leg_version === selectedVersion
-  );
-
-  if (!legStat && !legDefinition && provisionalLegData.length === 0) {
+  if (!legStat && !legDefinition) {
     return (
       <div className="text-center py-12">
         <h3 className="text-lg font-medium text-gray-900 mb-2">
@@ -94,14 +88,10 @@ const LegDetail: React.FC = () => {
 
   const displayDistance =
     legStat?.distance ??
-    legDefinition?.distance ??
-    provisionalLegData[0]?.canonical_distance ??
-    provisionalLegData[0]?.display_distance;
+    legDefinition?.distance;
   const displayElevation =
     legStat?.elevation_gain ??
-    legDefinition?.elevation_gain ??
-    provisionalLegData[0]?.canonical_elevation_gain ??
-    provisionalLegData[0]?.display_elevation_gain;
+    legDefinition?.elevation_gain;
   const formattedElevation = formatFeet(displayElevation);
 
   // Prepare data for the performance chart
@@ -245,9 +235,6 @@ const LegDetail: React.FC = () => {
                   Pace
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Notes
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Details
                 </th>
               </tr>
@@ -282,9 +269,6 @@ const LegDetail: React.FC = () => {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {formatPace(result.pace || 0)}
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-900">
-                      {result.notes || ""}
-                    </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       {result.runner_name ? (
                         <Link
@@ -307,7 +291,7 @@ const LegDetail: React.FC = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={6} className="px-6 py-4 text-sm text-gray-600">
+                  <td colSpan={5} className="px-6 py-4 text-sm text-gray-600">
                     No canonical results yet.
                   </td>
                 </tr>
@@ -316,140 +300,6 @@ const LegDetail: React.FC = () => {
           </table>
         </div>
       </div>
-
-      {provisionalLegData.length > 0 && (
-        <div className="card p-6">
-          <div className="mb-4 flex items-center gap-2">
-            <Clock className="h-5 w-5 text-amber-600" />
-            <h3 className="text-lg font-semibold text-gray-900">
-              Provisional Runner Data
-            </h3>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Year
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Runner
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Source
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Submitted By
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Time
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Pace
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Distance
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Elevation
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Notes
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Details
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {provisionalLegData
-                  .sort((a, b) => (b.year || 0) - (a.year || 0))
-                  .map((observation, idx) => {
-                    const source = observation.source_label
-                      ? `${formatSourceType(observation.source_type)} (${observation.source_label})`
-                      : formatSourceType(observation.source_type);
-                    const status = observation.has_canonical_result
-                      ? "Canonical exists"
-                      : "Provisional";
-                    const statusClass = observation.has_canonical_result
-                      ? "bg-gray-100 text-gray-700"
-                      : "bg-amber-100 text-amber-800";
-
-                    return (
-                      <tr
-                        key={observation.id || `${observation.year}-${observation.runner_id}-${idx}`}
-                        className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}
-                      >
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                          {observation.year}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 hover:text-primary-600">
-                          {observation.runner_name ? (
-                            <Link
-                              to="/runners/$runnerName"
-                              params={{ runnerName: observation.runner_name }}
-                            >
-                              {observation.runner_name}
-                            </Link>
-                          ) : (
-                            "N/A"
-                          )}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {source}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          <span className={`rounded-full px-2 py-1 text-xs font-medium ${statusClass}`}>
-                            {status}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {observation.submitted_by_runner_name || "N/A"}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {observation.primary_time || "N/A"}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {formatPace(observation.pace || 0)}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {formatMiles(observation.display_distance)}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {formatFeet(observation.display_elevation_gain)}
-                        </td>
-                        <td className="px-6 py-4 text-sm text-gray-900">
-                          {observation.notes || ""}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                          {observation.runner_name ? (
-                            <Link
-                              to="/runs/$runnerName/$year/$legNumber/$version"
-                              params={{
-                                runnerName: observation.runner_name,
-                                year: String(observation.year),
-                                legNumber: String(observation.leg_number),
-                                version: String(observation.leg_version),
-                              }}
-                              className="text-primary-700 hover:text-primary-800"
-                            >
-                              Open
-                            </Link>
-                          ) : (
-                            "N/A"
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

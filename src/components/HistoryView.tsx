@@ -239,9 +239,6 @@ const HistoryView: React.FC = () => {
                             Gain
                           </th>
                           <th className="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
-                            Notes
-                          </th>
-                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
                             Details
                           </th>
                         </tr>
@@ -269,9 +266,6 @@ const HistoryView: React.FC = () => {
                                 {leg.elevation_gain
                                   ? `+${leg.elevation_gain} ft`
                                   : "N/A"}
-                              </td>
-                              <td className="px-4 py-2 text-sm text-gray-800">
-                                {leg.notes || ""}
                               </td>
                               <td className="px-4 py-2 whitespace-nowrap text-sm font-medium">
                                 {leg.runner_name ? (
