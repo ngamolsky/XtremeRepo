@@ -108,6 +108,12 @@ const LegDetail: React.FC = () => {
   const bestPaceRunners =
     (legStat?.best_pace_runner_years as { runner: string; year: number }[]) ||
     [];
+  const bestPaceAttribution =
+    bestPaceRunners.length > 0
+      ? `by ${bestPaceRunners.map((r) => r.runner).join(", ")} in ${bestPaceRunners
+          .map((r) => r.year)
+          .join(", ")}`
+      : undefined;
 
   return (
     <div className="space-y-8 animate-fade-in">
@@ -134,19 +140,12 @@ const LegDetail: React.FC = () => {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div>
-          <StatCard
-            icon={<Award className="w-6 h-6 text-yellow-600" />}
-            label="Best Pace"
-            value={legStat?.best_pace ? formatPace(legStat.best_pace) : "N/A"}
-          />
-          {bestPaceRunners.length > 0 && (
-            <p className="text-xs text-gray-500 mt-1">
-              by {bestPaceRunners.map((r) => r.runner).join(", ")} in{" "}
-              {bestPaceRunners.map((r) => r.year).join(", ")}
-            </p>
-          )}
-        </div>
+        <StatCard
+          detail={bestPaceAttribution}
+          icon={<Award className="w-6 h-6 text-yellow-600" />}
+          label="Best Pace"
+          value={legStat?.best_pace ? formatPace(legStat.best_pace) : "N/A"}
+        />
         <StatCard
           icon={<BarChart className="w-6 h-6 text-blue-600" />}
           label="Average Pace"
