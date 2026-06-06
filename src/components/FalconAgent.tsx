@@ -93,6 +93,12 @@ const starterMessages: ChatMessage[] = [
   },
 ];
 
+const Streamdown = React.lazy(() =>
+  import("streamdown").then((module) => ({
+    default: module.Streamdown,
+  }))
+);
+
 const FalconAgent: React.FC = () => {
   const pathname = useRouterState({
     select: (state) => state.location.pathname,
@@ -173,6 +179,35 @@ const FalconAgent: React.FC = () => {
         element.removeAttribute("inert");
       });
       window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isMounted]);
+
+  useEffect(() => {
+    if (!isMounted) {
+      return;
+    }
+
+    const root = document.documentElement;
+    const updateViewportVars = () => {
+      const viewport = window.visualViewport;
+      const height = viewport?.height ?? window.innerHeight;
+      const offsetTop = viewport?.offsetTop ?? 0;
+
+      root.style.setProperty("--falcon-agent-viewport-height", `${height}px`);
+      root.style.setProperty("--falcon-agent-viewport-offset-top", `${offsetTop}px`);
+    };
+
+    updateViewportVars();
+    window.addEventListener("resize", updateViewportVars);
+    window.visualViewport?.addEventListener("resize", updateViewportVars);
+    window.visualViewport?.addEventListener("scroll", updateViewportVars);
+
+    return () => {
+      window.removeEventListener("resize", updateViewportVars);
+      window.visualViewport?.removeEventListener("resize", updateViewportVars);
+      window.visualViewport?.removeEventListener("scroll", updateViewportVars);
+      root.style.removeProperty("--falcon-agent-viewport-height");
+      root.style.removeProperty("--falcon-agent-viewport-offset-top");
     };
   }, [isMounted]);
 
@@ -413,23 +448,27 @@ const FalconAgent: React.FC = () => {
     <>
       {isMounted && (
         <div
-          className={`fixed inset-0 z-[70] flex items-stretch justify-center bg-slate-950/40 backdrop-blur-sm transition-opacity duration-200 ease-out sm:items-center sm:p-6 ${
+          className={`fixed left-0 right-0 z-[70] flex items-stretch justify-center bg-slate-950/40 backdrop-blur-sm transition-opacity duration-200 ease-out sm:items-center sm:p-6 ${
             isOpen
               ? "pointer-events-auto opacity-100"
               : "pointer-events-none opacity-0"
           }`}
+          style={{
+            top: "var(--falcon-agent-viewport-offset-top, 0px)",
+            height: "var(--falcon-agent-viewport-height, 100dvh)",
+          }}
         >
           <section
             role="dialog"
             aria-modal="true"
             aria-labelledby="falcon-agent-title"
-            className={`flex h-[100dvh] w-full flex-col overflow-hidden border border-gray-200 bg-white shadow-2xl transition-all duration-200 ease-out dark:border-slate-700 dark:bg-slate-950 sm:h-[min(48rem,calc(100dvh-3rem))] sm:w-[min(58rem,calc(100vw-3rem))] sm:rounded-xl ${
+            className={`flex h-full max-h-full w-full flex-col overflow-hidden border border-gray-200 bg-white shadow-2xl transition-all duration-200 ease-out dark:border-slate-700 dark:bg-slate-950 sm:h-[min(48rem,calc(var(--falcon-agent-viewport-height,100dvh)-3rem))] sm:w-[min(58rem,calc(100vw-3rem))] sm:rounded-xl ${
               isOpen
                 ? "translate-y-0 scale-100 opacity-100"
                 : "translate-y-4 scale-[0.98] opacity-0"
             }`}
           >
-            <div className="flex shrink-0 items-center justify-between gap-3 border-b border-gray-200 px-4 py-3 dark:border-slate-800 sm:px-5">
+            <div className="flex shrink-0 items-center justify-between gap-3 border-b border-gray-200 px-3 py-2.5 dark:border-slate-800 sm:px-5 sm:py-3">
             <div className="flex min-w-0 items-center gap-3">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary-600 text-xl text-white">
                 🦅
@@ -468,7 +507,7 @@ const FalconAgent: React.FC = () => {
             </div>
           </div>
 
-          <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-4 py-4 sm:px-5">
+          <div className="min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain px-3 py-3 sm:px-5 sm:py-4">
             {messages.map((message) => (
               <div
                 key={message.id}
@@ -488,9 +527,28 @@ const FalconAgent: React.FC = () => {
                         ))}
                       </div>
                     )}
-                    <div className="whitespace-pre-wrap break-words rounded-lg bg-gray-100 px-3 py-2 text-sm leading-6 text-gray-900 dark:bg-slate-800 dark:text-slate-100">
-                      {message.content ||
-                        (message.toolCalls?.length ? "Working..." : "Thinking...")}
+                    <div className="break-words rounded-lg bg-gray-100 px-3 py-2 text-sm leading-6 text-gray-900 dark:bg-slate-800 dark:text-slate-100">
+                      {message.content ? (
+                        <React.Suspense
+                          fallback={
+                            <span className="whitespace-pre-wrap">
+                              {message.content}
+                            </span>
+                          }
+                        >
+                          <Streamdown
+                            className="falcon-agent-markdown"
+                            isAnimating={
+                              isStreaming &&
+                              message.id === messages[messages.length - 1]?.id
+                            }
+                          >
+                            {message.content}
+                          </Streamdown>
+                        </React.Suspense>
+                      ) : (
+                        message.toolCalls?.length ? "Working..." : "Thinking..."
+                      )}
                     </div>
                   </div>
                 ) : (
@@ -505,9 +563,9 @@ const FalconAgent: React.FC = () => {
 
           <form
             onSubmit={handleSubmit}
-            className="shrink-0 border-t border-gray-200 p-3 dark:border-slate-800 sm:p-4"
+            className="shrink-0 border-t border-gray-200 bg-white p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] dark:border-slate-800 dark:bg-slate-950 sm:p-4"
           >
-            <div className="mb-2 flex items-center justify-between gap-2">
+            <div className="mb-2 grid grid-cols-[auto_minmax(0,1fr)] items-center gap-2">
               <label
                 htmlFor="falcon-agent-model"
                 className="text-xs font-medium uppercase text-gray-500"
@@ -520,7 +578,7 @@ const FalconAgent: React.FC = () => {
                 onChange={(event) =>
                   setSelectedModelId(event.target.value as ChatModelId)
                 }
-                className="h-9 rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                className="h-9 min-w-0 justify-self-end rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
               >
                 <optgroup label="OpenAI">
                   {chatModelOptions
@@ -542,14 +600,15 @@ const FalconAgent: React.FC = () => {
                 </optgroup>
               </select>
             </div>
-            <div className="flex items-end gap-2">
+            <div className="grid grid-cols-[minmax(0,1fr)_2.75rem] items-end gap-2">
               <textarea
                 value={input}
                 onChange={(event) => setInput(event.target.value)}
                 disabled={isStreaming}
-                className="max-h-36 min-h-11 min-w-0 flex-1 resize-none rounded-lg border border-gray-300 px-3 py-2 text-sm leading-6 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:cursor-not-allowed disabled:opacity-70 dark:border-slate-700"
+                className="max-h-28 min-h-11 min-w-0 resize-none rounded-lg border border-gray-300 px-3 py-2 text-sm leading-6 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:cursor-not-allowed disabled:opacity-70 dark:border-slate-700 sm:max-h-36"
                 placeholder="Ask a question or paste free-form race notes..."
                 rows={1}
+                enterKeyHint="send"
                 onKeyDown={(event) => {
                   if (event.key === "Enter" && !event.shiftKey) {
                     event.preventDefault();
@@ -560,7 +619,7 @@ const FalconAgent: React.FC = () => {
               <button
                 type="submit"
                 disabled={isStreaming || !input.trim()}
-                className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary-600 text-white transition-colors hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:bg-gray-300 dark:focus:ring-offset-slate-950"
+                className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-primary-600 text-white transition-colors hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:bg-gray-300 dark:focus:ring-offset-slate-950"
                 aria-label="Send message"
                 title="Send"
               >

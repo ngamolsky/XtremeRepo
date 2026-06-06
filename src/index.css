@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @config "../tailwind.config.js";
+@source "../node_modules/streamdown/dist/*.js";
 @custom-variant dark (&:where(.dark, .dark *));
 
 @layer base {
@@ -52,6 +53,64 @@
 
   .theme-toggle {
     @apply inline-flex h-10 w-10 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-600 transition-all duration-200 hover:bg-gray-50 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white dark:focus:ring-offset-slate-950;
+  }
+
+  .falcon-agent-markdown {
+    @apply space-y-2 whitespace-normal break-words text-sm leading-6;
+  }
+
+  .falcon-agent-markdown p {
+    @apply m-0;
+  }
+
+  .falcon-agent-markdown ul,
+  .falcon-agent-markdown ol {
+    @apply my-1 pl-5;
+  }
+
+  .falcon-agent-markdown ul {
+    @apply list-disc;
+  }
+
+  .falcon-agent-markdown ol {
+    @apply list-decimal;
+  }
+
+  .falcon-agent-markdown li {
+    @apply my-0.5 pl-0.5;
+  }
+
+  .falcon-agent-markdown a {
+    @apply font-medium text-primary-700 underline underline-offset-2 dark:text-primary-200;
+  }
+
+  .falcon-agent-markdown blockquote {
+    @apply my-2 border-l-2 border-gray-300 pl-3 text-gray-600 dark:border-slate-600 dark:text-slate-300;
+  }
+
+  .falcon-agent-markdown code {
+    @apply rounded bg-white px-1 py-0.5 font-mono text-[0.85em] text-gray-900 dark:bg-slate-900 dark:text-slate-100;
+  }
+
+  .falcon-agent-markdown pre {
+    @apply my-2 max-w-full overflow-x-auto rounded-md border border-gray-200 bg-white p-3 text-xs leading-5 dark:border-slate-700 dark:bg-slate-900;
+  }
+
+  .falcon-agent-markdown pre code {
+    @apply bg-transparent p-0 text-xs;
+  }
+
+  .falcon-agent-markdown table {
+    @apply my-2 w-full border-collapse text-left text-xs;
+  }
+
+  .falcon-agent-markdown th,
+  .falcon-agent-markdown td {
+    @apply border border-gray-200 px-2 py-1 align-top dark:border-slate-700;
+  }
+
+  .falcon-agent-markdown th {
+    @apply bg-gray-50 font-semibold dark:bg-slate-900;
   }
 }
 
