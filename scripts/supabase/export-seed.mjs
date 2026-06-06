@@ -17,6 +17,7 @@ const [
   placements,
   results,
   raceParticipations,
+  racePhotos,
 ] = await Promise.all([
   fetchAll("runners", "id,name,email", "name"),
   fetchAll("leg_definitions", "number,version,distance,elevation_gain", "number"),
@@ -27,6 +28,30 @@ const [
   ),
   fetchAll("results", "year,leg_number,leg_version,lap_time,user_id,notes", "year"),
   fetchAll("race_participations", "year,runner_id,status,notes", "year"),
+  fetchOptionalAll(
+    "race_photos",
+    [
+      "storage_bucket",
+      "storage_path",
+      "year",
+      "event_name",
+      "race",
+      "caption",
+      "alt_text",
+      "category",
+      "tags",
+      "taken_on",
+      "sort_order",
+      "featured",
+      "source",
+      "original_filename",
+      "width",
+      "height",
+      "size_bytes",
+      "content_type",
+    ].join(","),
+    "year"
+  ),
 ]);
 
 const runnerById = new Map(runners.map((runner) => [runner.id, runner]));
@@ -43,6 +68,7 @@ const seedSql = renderSeedSql({
   placements,
   results,
   raceParticipations,
+  racePhotos,
   runnerById,
 });
 
@@ -63,6 +89,7 @@ if (args.backup) {
       placements,
       results,
       raceParticipations,
+      racePhotos,
     },
     authUsers: await listRunnerAuthUsers(client),
   };
@@ -99,6 +126,21 @@ async function fetchAll(table, columns, orderColumn) {
   }
 
   return rows;
+}
+
+async function fetchOptionalAll(table, columns, orderColumn) {
+  try {
+    return await fetchAll(table, columns, orderColumn);
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      error.message.includes(`Could not find the table 'public.${table}'`)
+    ) {
+      return null;
+    }
+
+    throw error;
+  }
 }
 
 async function listRunnerAuthUsers(adminClient) {
@@ -153,6 +195,7 @@ function renderSeedSql({
   placements,
   results,
   raceParticipations,
+  racePhotos,
   runnerById,
 }) {
   const lines = [
@@ -163,6 +206,7 @@ function renderSeedSql({
     "BEGIN;",
     "",
     "TRUNCATE TABLE",
+    ...(racePhotos ? ["  public.race_photos,"] : []),
     "  public.race_participations,",
     "  public.results,",
     "  public.placements,",
@@ -216,11 +260,91 @@ function renderSeedSql({
     "",
     renderRaceParticipationsInsert(raceParticipations, runnerById),
     "",
+    ...(racePhotos ? [renderRacePhotosInsert(racePhotos), ""] : []),
     "COMMIT;",
     "",
   ];
 
   return lines.join("\n");
+}
+
+function renderRacePhotosInsert(racePhotos) {
+  if (racePhotos.length === 0) {
+    return "-- No rows for public.race_photos.";
+  }
+
+  const columns = [
+    "storage_bucket",
+    "storage_path",
+    "year",
+    "event_name",
+    "race",
+    "caption",
+    "alt_text",
+    "category",
+    "tags",
+    "taken_on",
+    "sort_order",
+    "featured",
+    "source",
+    "original_filename",
+    "width",
+    "height",
+    "size_bytes",
+    "content_type",
+  ];
+
+  const rows = racePhotos
+    .slice()
+    .sort(
+      (a, b) =>
+        a.year - b.year ||
+        a.sort_order - b.sort_order ||
+        a.storage_path.localeCompare(b.storage_path)
+    )
+    .map((photo) => [
+      sqlValue(photo.storage_bucket),
+      sqlValue(photo.storage_path),
+      sqlValue(photo.year),
+      sqlValue(photo.event_name),
+      sqlValue(photo.race),
+      sqlValue(photo.caption),
+      sqlValue(photo.alt_text),
+      sqlValue(photo.category),
+      sqlTextArray(photo.tags),
+      sqlValue(photo.taken_on),
+      sqlValue(photo.sort_order),
+      sqlValue(photo.featured),
+      sqlValue(photo.source),
+      sqlValue(photo.original_filename),
+      sqlValue(photo.width),
+      sqlValue(photo.height),
+      sqlValue(photo.size_bytes),
+      sqlValue(photo.content_type),
+    ]);
+
+  return [
+    `INSERT INTO public.race_photos (${columns.join(", ")}) VALUES`,
+    rows.map((row) => `  (${row.join(", ")})`).join(",\n"),
+    "ON CONFLICT (storage_bucket, storage_path) DO UPDATE",
+    "SET year = EXCLUDED.year,",
+    "    event_name = EXCLUDED.event_name,",
+    "    race = EXCLUDED.race,",
+    "    caption = EXCLUDED.caption,",
+    "    alt_text = EXCLUDED.alt_text,",
+    "    category = EXCLUDED.category,",
+    "    tags = EXCLUDED.tags,",
+    "    taken_on = EXCLUDED.taken_on,",
+    "    sort_order = EXCLUDED.sort_order,",
+    "    featured = EXCLUDED.featured,",
+    "    source = EXCLUDED.source,",
+    "    original_filename = EXCLUDED.original_filename,",
+    "    width = EXCLUDED.width,",
+    "    height = EXCLUDED.height,",
+    "    size_bytes = EXCLUDED.size_bytes,",
+    "    content_type = EXCLUDED.content_type,",
+    "    updated_at = now();",
+  ].join("\n");
 }
 
 function renderValuesInsert(table, columns, rows) {
@@ -340,7 +464,19 @@ function sqlValue(value) {
     return Number.isFinite(value) ? String(value) : "NULL";
   }
 
+  if (typeof value === "boolean") {
+    return value ? "true" : "false";
+  }
+
   return `'${String(value).replaceAll("'", "''")}'`;
+}
+
+function sqlTextArray(values) {
+  if (!Array.isArray(values) || values.length === 0) {
+    return "'{}'::text[]";
+  }
+
+  return `ARRAY[${values.map(sqlValue).join(", ")}]::text[]`;
 }
 
 function sqlInterval(value) {

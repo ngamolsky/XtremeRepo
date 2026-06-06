@@ -14,7 +14,8 @@
     "db:auth:ensure:local": "node scripts/supabase/ensure-runner-auth.mjs --local",
     "db:auth:ensure:prod": "node scripts/supabase/ensure-runner-auth.mjs --prod",
     "db:compare-local-prod": "node scripts/supabase/compare-local-prod.mjs",
-    "db:refresh-local": "npm run db:dump-seed:prod && npx supabase db reset && npm run db:auth:ensure:local"
+    "db:refresh-local": "npm run db:dump-seed:prod && npx supabase db reset && npm run db:auth:ensure:local",
+    "photos:import": "node scripts/supabase/import-photos.mjs"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.81",

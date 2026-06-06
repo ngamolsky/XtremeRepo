@@ -124,6 +124,48 @@ To confirm local and production have the same app data and runner Auth coverage:
 npm run db:compare-local-prod
 ```
 
+### Photo Archive Workflow
+
+Photos are stored as original files in the `race-photos` Supabase Storage bucket.
+The `public.race_photos` table stores searchable metadata such as year, race,
+category, tags, dimensions, source, and storage path. Organize incoming batches
+by year so imports stay predictable:
+
+```text
+photos/
+  2024/
+    tahoe-start.jpg
+    tahoe-finish.jpg
+  2025/
+    ...
+```
+
+Dry-run a batch before uploading:
+
+```bash
+npm run photos:import -- \
+  --dry-run \
+  --dir "/path/to/photos" \
+  --event "Tahoe Relay" \
+  --category team \
+  --tags "tahoe-relay,xtreme-falcons"
+```
+
+Upload to production and upsert metadata:
+
+```bash
+npm run photos:import -- \
+  --prod \
+  --dir "/path/to/photos" \
+  --event "Tahoe Relay" \
+  --category team \
+  --tags "tahoe-relay,xtreme-falcons"
+```
+
+For per-photo captions or tags, pass a TSV manifest with a `file` column. Useful
+columns are `caption`, `alt_text`, `year`, `event_name`, `race`, `category`,
+`tags`, `taken_on`, `sort_order`, `featured`, `source`, and `storage_path`.
+
 ### Development Workflow
 
 1. **Make Schema Changes**:

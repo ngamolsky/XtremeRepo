@@ -130,6 +130,81 @@ export type Database = {
           },
         ]
       }
+      race_photos: {
+        Row: {
+          alt_text: string | null
+          caption: string | null
+          category: string
+          content_type: string | null
+          created_at: string
+          event_name: string
+          featured: boolean
+          height: number | null
+          id: string
+          original_filename: string | null
+          race: string
+          size_bytes: number | null
+          sort_order: number
+          source: string | null
+          storage_bucket: string
+          storage_path: string
+          tags: string[]
+          taken_on: string | null
+          updated_at: string
+          uploaded_by: string | null
+          width: number | null
+          year: number
+        }
+        Insert: {
+          alt_text?: string | null
+          caption?: string | null
+          category?: string
+          content_type?: string | null
+          created_at?: string
+          event_name?: string
+          featured?: boolean
+          height?: number | null
+          id?: string
+          original_filename?: string | null
+          race?: string
+          size_bytes?: number | null
+          sort_order?: number
+          source?: string | null
+          storage_bucket?: string
+          storage_path: string
+          tags?: string[]
+          taken_on?: string | null
+          updated_at?: string
+          uploaded_by?: string | null
+          width?: number | null
+          year: number
+        }
+        Update: {
+          alt_text?: string | null
+          caption?: string | null
+          category?: string
+          content_type?: string | null
+          created_at?: string
+          event_name?: string
+          featured?: boolean
+          height?: number | null
+          id?: string
+          original_filename?: string | null
+          race?: string
+          size_bytes?: number | null
+          sort_order?: number
+          source?: string | null
+          storage_bucket?: string
+          storage_path?: string
+          tags?: string[]
+          taken_on?: string | null
+          updated_at?: string
+          uploaded_by?: string | null
+          width?: number | null
+          year?: number
+        }
+        Relationships: []
+      }
       results: {
         Row: {
           lap_time: unknown | null
