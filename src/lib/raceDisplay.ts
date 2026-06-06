@@ -148,9 +148,9 @@ function toSelfRecordedDisplayLeg(observation: SelfRecordedObservation): Display
       observation.lap_time ??
       observation.elapsed_time ??
       observation.moving_time,
-    pace: observation.pace,
-    distance: observation.display_distance,
-    elevation_gain: observation.display_elevation_gain,
+    pace: observation.observed_distance ? observation.pace : null,
+    distance: observation.observed_distance,
+    elevation_gain: observation.observed_elevation_gain,
     source_type: observation.source_type,
     source_label: observation.source_label,
     observation,
