@@ -6,7 +6,7 @@ INSERT INTO public.runners (email, name) VALUES
 (NULL, 'Chris Badolato'),
 (NULL, 'Damien'),
 (NULL, 'Elias Denny'),
-(NULL, 'Gabe Pannell'),
+('gabe@xtreme-falcons.com', 'Gabe Pannell'),
 (NULL, 'Hayes'),
 (NULL, 'Jonah'),
 (NULL, 'Lisa Brooks'),
