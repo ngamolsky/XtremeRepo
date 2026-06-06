@@ -315,10 +315,10 @@ const RaceDetailView: React.FC = () => {
           {showLiveProjection && liveProjection && (
             <section className="card p-6">
               <div className="mb-5 flex items-center gap-2">
-                <Clock className="h-5 w-5 text-amber-600" />
-                <h2 className="text-lg font-semibold text-gray-900">Live Projection</h2>
+                <Clock className="h-5 w-5 text-primary-600" />
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-slate-100">Live Projection</h2>
               </div>
-              <p className="mb-5 text-sm text-gray-600">
+              <p className="mb-5 text-sm text-gray-600 dark:text-slate-300">
                 Uses self recorded times for reported legs and historical leg averages for legs not yet reported.
               </p>
               <div className="mb-5 grid gap-4 md:grid-cols-3">
@@ -339,8 +339,8 @@ const RaceDetailView: React.FC = () => {
                 />
               </div>
               <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200 text-sm">
-                  <thead className="bg-gray-50">
+                <table className="min-w-full divide-y divide-gray-200 text-sm dark:divide-slate-800">
+                  <thead className="bg-gray-50 dark:bg-slate-800">
                     <tr>
                       <ProjectionHeader label="Leg" />
                       <ProjectionHeader label="Status" />
@@ -348,11 +348,11 @@ const RaceDetailView: React.FC = () => {
                       <ProjectionHeader label="Source" />
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-100 bg-white">
+                  <tbody className="divide-y divide-gray-100 bg-white dark:divide-slate-800 dark:bg-slate-900">
                     {liveProjection.legs.map((leg) => (
                       <tr key={leg.legNumber}>
-                        <td className="px-4 py-3 font-medium text-gray-900">Leg {leg.legNumber}</td>
-                        <td className="px-4 py-3 text-gray-700">
+                        <td className="px-4 py-3 font-medium text-gray-900 dark:text-slate-100">Leg {leg.legNumber}</td>
+                        <td className="px-4 py-3 text-gray-700 dark:text-slate-300">
                           <span
                             className={`rounded-full px-2.5 py-1 text-xs font-medium ${
                               leg.status === "reported"
@@ -369,8 +369,8 @@ const RaceDetailView: React.FC = () => {
                                 : "No estimate"}
                           </span>
                         </td>
-                        <td className="px-4 py-3 font-medium text-gray-900">{leg.displayTime}</td>
-                        <td className="px-4 py-3 text-gray-700">{leg.sourceLabel}</td>
+                        <td className="px-4 py-3 font-medium text-gray-900 dark:text-slate-100">{leg.displayTime}</td>
+                        <td className="px-4 py-3 text-gray-700 dark:text-slate-300">{leg.sourceLabel}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -537,15 +537,15 @@ const ProjectionMetric: React.FC<{ detail: string; label: string; value: string 
   label,
   value,
 }) => (
-  <div className="rounded-lg bg-amber-50 p-4">
-    <p className="text-xs font-medium uppercase tracking-wider text-amber-800">{label}</p>
-    <p className="mt-1 text-2xl font-bold text-gray-900">{value}</p>
-    <p className="mt-1 text-xs text-gray-600">{detail}</p>
+  <div className="rounded-lg bg-gray-50 p-4 dark:bg-slate-800">
+    <p className="text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-slate-400">{label}</p>
+    <p className="mt-1 text-2xl font-bold text-gray-900 dark:text-slate-100">{value}</p>
+    <p className="mt-1 text-xs text-gray-600 dark:text-slate-300">{detail}</p>
   </div>
 );
 
 const ProjectionHeader: React.FC<{ label: string }> = ({ label }) => (
-  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-slate-400">
     {label}
   </th>
 );

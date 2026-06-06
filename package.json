@@ -19,6 +19,7 @@
     "test:observation-null": "node scripts/test-observation-null-handling.mjs",
     "test:race-display-provisional": "node scripts/test-race-display-provisional-metrics.mjs",
     "test:race-live-projection": "node scripts/test-race-live-projection.mjs",
+    "test:race-live-projection-dark-mode": "node scripts/test-race-live-projection-dark-mode.mjs",
     "test:grade-adjusted-pace": "node scripts/test-grade-adjusted-pace.mjs",
     "test:grade-adjusted-pace-ui": "node scripts/test-grade-adjusted-pace-ui.mjs",
     "test:race-detail-assumed-legend": "node scripts/test-race-detail-assumed-legend.mjs",
