@@ -8,6 +8,8 @@ type RunnerResultLike = {
   leg_version: number | null;
 };
 
+export type LegRadarSelection = number | "all";
+
 export type LatestLegRadarDatum = {
   leg: string;
   legNumber: number;
@@ -15,9 +17,14 @@ export type LatestLegRadarDatum = {
 };
 
 export type LatestLegRadarData = {
-  version: number | null;
+  version: LegRadarSelection | null;
   maxCount: number;
   data: LatestLegRadarDatum[];
+};
+
+export type LegRadarVersionOption = {
+  label: string;
+  value: LegRadarSelection;
 };
 
 export type RadarPoint = {
@@ -44,38 +51,71 @@ const latestVersionFromResults = (results: RunnerResultLike[]) => {
   return versions.length > 0 ? Math.max(...versions) : null;
 };
 
-export const buildLatestLegRadarData = (
+const latestAvailableVersion = (
   results: RunnerResultLike[],
   legDefinitions: LegDefinitionLike[]
-): LatestLegRadarData => {
-  const latestVersion =
-    latestVersionFromLegDefinitions(legDefinitions) ?? latestVersionFromResults(results);
+) => latestVersionFromLegDefinitions(legDefinitions) ?? latestVersionFromResults(results);
 
-  if (latestVersion === null) {
-    return { version: null, maxCount: 0, data: [] };
-  }
+const versionNumbers = (
+  results: RunnerResultLike[],
+  legDefinitions: LegDefinitionLike[]
+) =>
+  [...new Set([
+    ...legDefinitions.map((definition) => definition.version).filter(isFiniteNumber),
+    ...results.map((result) => result.leg_version).filter(isFiniteNumber),
+  ])].sort((a, b) => b - a);
 
-  const latestLegNumbers = new Set(
-    legDefinitions
-      .filter((definition) => definition.version === latestVersion)
-      .map((definition) => definition.number)
-      .filter(isFiniteNumber)
-  );
+export const buildLegRadarVersionOptions = (
+  results: RunnerResultLike[],
+  legDefinitions: LegDefinitionLike[]
+): LegRadarVersionOption[] => [
+  { label: "All versions", value: "all" },
+  ...versionNumbers(results, legDefinitions).map((version) => ({
+    label: `v${version}`,
+    value: version,
+  })),
+];
 
-  if (latestLegNumbers.size === 0) {
+const legNumbersForSelection = (
+  results: RunnerResultLike[],
+  legDefinitions: LegDefinitionLike[],
+  selection: LegRadarSelection
+) => {
+  const fromDefinitions = legDefinitions
+    .filter((definition) => selection === "all" || definition.version === selection)
+    .map((definition) => definition.number)
+    .filter(isFiniteNumber);
+  const legNumbers = new Set(fromDefinitions);
+
+  if (legNumbers.size === 0) {
     results
-      .filter((result) => result.leg_version === latestVersion)
+      .filter((result) => selection === "all" || result.leg_version === selection)
       .map((result) => result.leg_number)
       .filter(isFiniteNumber)
-      .forEach((legNumber) => latestLegNumbers.add(legNumber));
+      .forEach((legNumber) => legNumbers.add(legNumber));
+  }
+
+  return legNumbers;
+};
+
+export const buildLegRadarData = (
+  results: RunnerResultLike[],
+  legDefinitions: LegDefinitionLike[],
+  selection: LegRadarSelection
+): LatestLegRadarData => {
+  const legNumbers = legNumbersForSelection(results, legDefinitions, selection);
+
+  if (legNumbers.size === 0) {
+    return { version: selection, maxCount: 0, data: [] };
   }
 
   const counts = new Map<number, number>();
   results.forEach((result) => {
     if (
-      result.leg_version !== latestVersion ||
+      (selection === "all" && !isFiniteNumber(result.leg_version)) ||
+      (selection !== "all" && result.leg_version !== selection) ||
       !isFiniteNumber(result.leg_number) ||
-      !latestLegNumbers.has(result.leg_number)
+      !legNumbers.has(result.leg_number)
     ) {
       return;
     }
@@ -83,7 +123,7 @@ export const buildLatestLegRadarData = (
     counts.set(result.leg_number, (counts.get(result.leg_number) ?? 0) + 1);
   });
 
-  const data = [...latestLegNumbers]
+  const data = [...legNumbers]
     .sort((a, b) => a - b)
     .map((legNumber) => ({
       leg: `Leg ${legNumber}`,
@@ -92,10 +132,23 @@ export const buildLatestLegRadarData = (
     }));
 
   return {
-    version: latestVersion,
+    version: selection,
     maxCount: data.reduce((max, datum) => Math.max(max, datum.count), 0),
     data,
   };
+};
+
+export const buildLatestLegRadarData = (
+  results: RunnerResultLike[],
+  legDefinitions: LegDefinitionLike[]
+): LatestLegRadarData => {
+  const latestVersion = latestAvailableVersion(results, legDefinitions);
+
+  if (latestVersion === null) {
+    return { version: null, maxCount: 0, data: [] };
+  }
+
+  return buildLegRadarData(results, legDefinitions, latestVersion);
 };
 
 export const radarPointForIndex = (

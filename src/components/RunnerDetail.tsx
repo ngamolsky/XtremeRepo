@@ -14,9 +14,11 @@ import { useIsMyProfile } from "../hooks/useIsMyProfile";
 import { useRelayData } from "../hooks/useRelayData";
 import { supabase } from "../lib/supabase";
 import {
-  buildLatestLegRadarData,
+  buildLegRadarData,
+  buildLegRadarVersionOptions,
   formatRadarPoints,
   radarPointForIndex,
+  type LegRadarSelection,
 } from "../lib/runnerLegRadar";
 import { formatPace } from "../lib/utils";
 import CommentsSection from "./CommentsSection";
@@ -40,6 +42,8 @@ const RunnerDetail: React.FC = () => {
     loading,
     error,
   } = useRelayData();
+  const [selectedLegRadarVersion, setSelectedLegRadarVersion] =
+    React.useState("latest");
 
   const runnerStat = runnerStats.find((r) => r.runner_name === runnerName);
   const runnerResults = results.filter((r) => r.runner_name === runnerName);
@@ -125,7 +129,29 @@ const RunnerDetail: React.FC = () => {
       legs: [...legs].sort((a, b) => a - b),
     }))
     .sort((a, b) => b.version - a.version);
-  const latestLegRadar = buildLatestLegRadarData(runnerResults, legDefinitions);
+  const legRadarOptions = buildLegRadarVersionOptions(runnerResults, legDefinitions);
+  const legRadarVersionOptions = legRadarOptions.filter(
+    (option): option is { label: string; value: number } =>
+      typeof option.value === "number"
+  );
+  const selectedNumericVersion = Number(selectedLegRadarVersion);
+  const selectedLegRadarSelection: LegRadarSelection =
+    selectedLegRadarVersion === "all"
+      ? "all"
+      : legRadarVersionOptions.some(
+            (option) => option.value === selectedNumericVersion
+          )
+        ? selectedNumericVersion
+        : (legRadarVersionOptions[0]?.value ?? "all");
+  const latestLegRadar = buildLegRadarData(
+    runnerResults,
+    legDefinitions,
+    selectedLegRadarSelection
+  );
+  const legRadarSelectionLabel =
+    selectedLegRadarSelection === "all"
+      ? "all versions"
+      : `v${selectedLegRadarSelection}`;
 
   // Prepare data for the performance chart
   const performanceData = runnerResults
@@ -439,23 +465,42 @@ const RunnerDetail: React.FC = () => {
       )}
 
       <section className="card p-6">
-        <div className="mb-4 flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between">
-          <h3 className="text-lg font-semibold text-gray-900">
-            Latest Version Leg Frequency
-          </h3>
-          {latestLegRadar.version !== null && (
-            <span className="text-sm text-gray-500">v{latestLegRadar.version}</span>
-          )}
+        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-baseline sm:justify-between">
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900">
+              Leg Frequency
+            </h3>
+            <p className="mt-1 text-sm text-gray-500">
+              Showing {legRadarSelectionLabel}
+            </p>
+          </div>
+          <label className="flex items-center gap-2 text-sm font-medium text-gray-600">
+            <span>Version</span>
+            <select
+              className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-900 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200"
+              onChange={(event) => setSelectedLegRadarVersion(event.target.value)}
+              value={
+                selectedLegRadarSelection === "all"
+                  ? "all"
+                  : String(selectedLegRadarSelection)
+              }
+            >
+              {legRadarOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </label>
         </div>
         {latestLegRadar.data.length > 0 ? (
           <>
             <p className="mb-4 text-sm text-gray-600">
-              How many times {runnerName} has run each leg in the latest course
-              version.
+              How many times {runnerName} has run each leg for {legRadarSelectionLabel}.
             </p>
             <div className="flex justify-center overflow-x-auto">
               <svg
-                aria-label={`Latest version leg frequency radar chart for ${runnerName}`}
+                aria-label={`Leg frequency radar chart for ${runnerName}, ${legRadarSelectionLabel}`}
                 className="h-[360px] min-w-[320px] max-w-full"
                 role="img"
                 viewBox={`0 0 ${radarSize} ${radarSize}`}
@@ -537,7 +582,7 @@ const RunnerDetail: React.FC = () => {
           </>
         ) : (
           <p className="text-sm text-gray-600">
-            No known latest-version leg results yet.
+            No known leg results for {legRadarSelectionLabel} yet.
           </p>
         )}
       </section>

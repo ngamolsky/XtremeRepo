@@ -18,8 +18,20 @@ const compiled = ts.transpileModule(source, {
 const module = { exports: {} };
 vm.runInNewContext(compiled, { exports: module.exports, module }, { filename: "runnerLegRadar.ts" });
 
-const { buildLatestLegRadarData, formatRadarPoints, radarPointForIndex } = module.exports;
+const {
+  buildLegRadarData,
+  buildLegRadarVersionOptions,
+  buildLatestLegRadarData,
+  formatRadarPoints,
+  radarPointForIndex,
+} = module.exports;
 assert.equal(typeof buildLatestLegRadarData, "function", "buildLatestLegRadarData should be exported");
+assert.equal(typeof buildLegRadarData, "function", "buildLegRadarData should be exported");
+assert.equal(
+  typeof buildLegRadarVersionOptions,
+  "function",
+  "buildLegRadarVersionOptions should be exported"
+);
 assert.equal(typeof radarPointForIndex, "function", "radarPointForIndex should be exported");
 assert.equal(typeof formatRadarPoints, "function", "formatRadarPoints should be exported");
 
@@ -33,6 +45,7 @@ const legDefinitions = [
 
 const results = [
   { leg_number: 1, leg_version: 1 },
+  { leg_number: 2, leg_version: 1 },
   { leg_number: 1, leg_version: 2 },
   { leg_number: 1, leg_version: 2 },
   { leg_number: 2, leg_version: 2 },
@@ -49,6 +62,31 @@ assert.deepEqual(normalize(buildLatestLegRadarData(results, legDefinitions)), {
   data: [
     { leg: "Leg 1", legNumber: 1, count: 2 },
     { leg: "Leg 2", legNumber: 2, count: 1 },
+    { leg: "Leg 3", legNumber: 3, count: 0 },
+  ],
+});
+
+assert.deepEqual(normalize(buildLegRadarVersionOptions(results, legDefinitions)), [
+  { label: "All versions", value: "all" },
+  { label: "v2", value: 2 },
+  { label: "v1", value: 1 },
+]);
+
+assert.deepEqual(normalize(buildLegRadarData(results, legDefinitions, 1)), {
+  version: 1,
+  maxCount: 1,
+  data: [
+    { leg: "Leg 1", legNumber: 1, count: 1 },
+    { leg: "Leg 2", legNumber: 2, count: 1 },
+  ],
+});
+
+assert.deepEqual(normalize(buildLegRadarData(results, legDefinitions, "all")), {
+  version: "all",
+  maxCount: 3,
+  data: [
+    { leg: "Leg 1", legNumber: 1, count: 3 },
+    { leg: "Leg 2", legNumber: 2, count: 2 },
     { leg: "Leg 3", legNumber: 3, count: 0 },
   ],
 });
