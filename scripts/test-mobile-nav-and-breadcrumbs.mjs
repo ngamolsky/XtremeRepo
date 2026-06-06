@@ -29,8 +29,16 @@ assert.equal(getActiveNavId("/runs/Nikita/2026/3/2"), "team", "run detail pages 
 
 const navigationSource = readFileSync(new URL("../src/components/Navigation.tsx", import.meta.url), "utf8");
 assert.doesNotMatch(navigationSource, /<select/, "mobile nav should not use the broken dropdown");
-assert.match(navigationSource, /aria-current=\{activeTabId === tab\.id \? "page" : undefined\}/, "mobile nav should mark the selected tab with aria-current");
-assert.match(navigationSource, /activeTabId === tab\.id[\s\S]*bg-primary-600/, "mobile nav selected tab should have highlighted styling");
+assert.doesNotMatch(navigationSource, /overflow-x-auto/, "mobile nav should not be a cramped horizontal scroller");
+assert.match(navigationSource, /mobileMenuOpen/, "mobile nav should track hamburger drawer open state");
+assert.match(navigationSource, /Menu[, }]/, "mobile nav should use a hamburger menu icon");
+assert.match(navigationSource, /X[, }]/, "mobile drawer should include a close icon");
+assert.match(navigationSource, /aria-label="Open menu"/, "mobile nav should expose an open menu button");
+assert.match(navigationSource, /aria-label="Close menu"/, "mobile drawer should expose a close menu button");
+assert.match(navigationSource, /fixed inset-y-0 right-0/, "mobile menu should slide in from the right");
+assert.match(navigationSource, /translate-x-0[\s\S]*translate-x-full/, "mobile drawer should animate between open and closed states");
+assert.match(navigationSource, /aria-current=\{activeTabId === tab\.id \? "page" : undefined\}/, "mobile drawer should mark the selected tab with aria-current");
+assert.match(navigationSource, /activeTabId === tab\.id[\s\S]*bg-primary-600/, "mobile drawer selected item should have highlighted styling");
 
 const breadcrumbSource = readFileSync(new URL("../src/components/Breadcrumbs.tsx", import.meta.url), "utf8");
 assert.match(breadcrumbSource, /aria-label="Breadcrumb"/, "breadcrumbs should expose breadcrumb navigation semantics");
