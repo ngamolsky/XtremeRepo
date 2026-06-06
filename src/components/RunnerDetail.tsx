@@ -146,24 +146,6 @@ const RunnerDetail: React.FC = () => {
         />
       </div>
 
-      {unknownLegYears.length > 0 && (
-        <div className="card p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-3">
-            Years With Unknown Leg
-          </h3>
-          <div className="flex flex-wrap gap-2">
-            {unknownLegYears.map((year) => (
-              <span
-                key={year}
-                className="px-3 py-1 bg-amber-100 text-amber-800 text-sm rounded-full"
-              >
-                {year}
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
-
       {/* Performance Chart */}
       <div className="card p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">
@@ -318,6 +300,24 @@ const RunnerDetail: React.FC = () => {
           </table>
         </div>
       </div>
+
+      {unknownLegYears.length > 0 && (
+        <section className="border-t border-gray-200 pt-5">
+          <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-500 mb-3">
+            Years With Unknown Leg
+          </h3>
+          <div className="flex flex-wrap gap-2">
+            {unknownLegYears.map((year) => (
+              <span
+                key={year}
+                className="px-2.5 py-1 bg-amber-100 text-amber-800 text-xs font-medium rounded-full"
+              >
+                {year}
+              </span>
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 };
