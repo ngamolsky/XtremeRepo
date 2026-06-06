@@ -1,5 +1,13 @@
 import { useRouterState } from "@tanstack/react-router";
-import { CheckCircle2, LoaderCircle, RotateCcw, Send, X, XCircle } from "lucide-react";
+import {
+  CheckCircle2,
+  ImagePlus,
+  LoaderCircle,
+  RotateCcw,
+  Send,
+  X,
+  XCircle,
+} from "lucide-react";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "../lib/supabase";
 
@@ -14,7 +22,16 @@ type ChatMessage = {
   id: string;
   role: "user" | "assistant";
   content: string;
+  attachments?: ChatAttachment[];
   toolCalls?: ToolCallBubble[];
+};
+
+type ChatAttachment = {
+  id: string;
+  name: string;
+  mediaType: string;
+  dataUrl: string;
+  size: number;
 };
 
 type ToolCallStatus = "running" | "done" | "error";
@@ -61,6 +78,29 @@ type ChatModelOption = {
   label: string;
   provider: ChatProvider;
 };
+
+type SerializedChatMessage = {
+  role: "user" | "assistant";
+  content: string;
+  attachments?: Array<{
+    name: string;
+    mediaType: string;
+    dataUrl: string;
+    size: number;
+  }>;
+};
+
+const supportedImageAttachmentTypes = [
+  "image/png",
+  "image/jpeg",
+  "image/webp",
+] as const;
+const supportedImageAttachmentTypeSet = new Set<string>(
+  supportedImageAttachmentTypes
+);
+const maxImageAttachmentSizeBytes = 4 * 1024 * 1024;
+const defaultScreenshotPrompt =
+  "Read this screenshot as non-canonical runner/device data. Extract visible Strava, watch, phone, or app values, then ask me for anything required before saving a provisional observation.";
 
 const chatModelOptions: ChatModelOption[] = [
   {
@@ -109,6 +149,9 @@ const FalconAgent: React.FC = () => {
     useState<ChatModelId>("gpt-5.4-mini");
   const [messages, setMessages] = useState<ChatMessage[]>(starterMessages);
   const [input, setInput] = useState("");
+  const [imageAttachment, setImageAttachment] =
+    useState<ChatAttachment | null>(null);
+  const [attachmentError, setAttachmentError] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
   const [pageContext, setPageContext] = useState<PageContext>(() =>
     getPageContext(pathname)
@@ -117,6 +160,7 @@ const FalconAgent: React.FC = () => {
   const closeTimeoutRef = useRef<number | null>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const openAgent = () => {
     if (closeTimeoutRef.current !== null) {
@@ -275,14 +319,17 @@ const FalconAgent: React.FC = () => {
     event.preventDefault();
 
     const question = input.trim();
-    if (!question || isStreaming) {
+    const pendingAttachment = imageAttachment;
+    if ((!question && !pendingAttachment) || isStreaming) {
       return;
     }
+    const userContent = question || defaultScreenshotPrompt;
 
     const userMessage: ChatMessage = {
       id: createMessageId(),
       role: "user",
-      content: question,
+      content: userContent,
+      attachments: pendingAttachment ? [pendingAttachment] : undefined,
     };
     const assistantMessage: ChatMessage = {
       id: createMessageId(),
@@ -298,6 +345,11 @@ const FalconAgent: React.FC = () => {
       assistantMessage,
     ]);
     setInput("");
+    setImageAttachment(null);
+    setAttachmentError("");
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
     setIsStreaming(true);
 
     const abortController = new AbortController();
@@ -320,10 +372,7 @@ const FalconAgent: React.FC = () => {
         body: JSON.stringify({
           model: selectedModelId,
           pageContext,
-          messages: nextMessages.map(({ role, content }) => ({
-            role,
-            content,
-          })),
+          messages: serializeChatMessages(nextMessages),
         }),
         signal: abortController.signal,
       });
@@ -396,7 +445,74 @@ const FalconAgent: React.FC = () => {
     abortControllerRef.current?.abort();
     setMessages(starterMessages);
     setInput("");
+    setImageAttachment(null);
+    setAttachmentError("");
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
     setIsStreaming(false);
+  };
+
+  const handleAttachmentFile = async (file: File) => {
+    setAttachmentError("");
+
+    if (!supportedImageAttachmentTypeSet.has(file.type)) {
+      setAttachmentError("Attach a PNG, JPG, or WebP screenshot.");
+      return;
+    }
+
+    if (file.size > maxImageAttachmentSizeBytes) {
+      setAttachmentError(
+        `Keep screenshots under ${formatFileSize(maxImageAttachmentSizeBytes)}.`
+      );
+      return;
+    }
+
+    try {
+      const dataUrl = await readFileAsDataUrl(file);
+      setImageAttachment({
+        id: createMessageId(),
+        name: file.name || "screenshot",
+        mediaType: file.type,
+        dataUrl,
+        size: file.size,
+      });
+    } catch {
+      setAttachmentError("The screenshot could not be read.");
+    }
+  };
+
+  const clearImageAttachment = () => {
+    setImageAttachment(null);
+    setAttachmentError("");
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  const handleAttachmentInputChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      void handleAttachmentFile(file);
+    }
+    event.target.value = "";
+  };
+
+  const handleTextareaPaste = (
+    event: React.ClipboardEvent<HTMLTextAreaElement>
+  ) => {
+    const imageFile = Array.from(event.clipboardData.files).find((file) =>
+      file.type.startsWith("image/")
+    );
+
+    if (!imageFile) {
+      return;
+    }
+
+    event.preventDefault();
+    void handleAttachmentFile(imageFile);
   };
 
   const upsertToolCall = (
@@ -570,8 +686,16 @@ const FalconAgent: React.FC = () => {
                     </div>
                   </div>
                 ) : (
-                  <div className="max-w-[92%] whitespace-pre-wrap break-words rounded-lg bg-primary-600 px-3 py-2 text-sm leading-6 text-white sm:max-w-[78%]">
-                    {message.content}
+                  <div className="max-w-[92%] break-words rounded-lg bg-primary-600 px-3 py-2 text-sm leading-6 text-white sm:max-w-[78%]">
+                    {message.attachments?.map((attachment) => (
+                      <img
+                        key={attachment.id}
+                        src={attachment.dataUrl}
+                        alt={attachment.name}
+                        className="mb-2 max-h-48 w-full rounded-md bg-primary-700/40 object-contain"
+                      />
+                    ))}
+                    <div className="whitespace-pre-wrap">{message.content}</div>
                   </div>
                 )}
               </div>
@@ -618,17 +742,71 @@ const FalconAgent: React.FC = () => {
                 </optgroup>
               </select>
             </div>
-            <div className="grid grid-cols-[minmax(0,1fr)_2.75rem] items-end gap-2">
+            {imageAttachment && (
+              <div className="mb-2 flex min-w-0 items-center gap-3 rounded-lg border border-primary-200 bg-primary-50 p-2 dark:border-primary-900/60 dark:bg-primary-950/30">
+                <img
+                  src={imageAttachment.dataUrl}
+                  alt={imageAttachment.name}
+                  className="h-14 w-14 shrink-0 rounded-md bg-white object-cover dark:bg-slate-900"
+                />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium text-gray-900 dark:text-slate-100">
+                    {imageAttachment.name}
+                  </p>
+                  <p className="text-xs text-gray-500 dark:text-slate-400">
+                    {formatFileSize(imageAttachment.size)}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={clearImageAttachment}
+                  className="theme-toggle h-8 w-8 shrink-0"
+                  aria-label="Remove screenshot"
+                  title="Remove screenshot"
+                  disabled={isStreaming}
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            )}
+            {attachmentError && (
+              <p
+                role="alert"
+                className="mb-2 text-sm text-red-600 dark:text-red-300"
+              >
+                {attachmentError}
+              </p>
+            )}
+            <div className="grid grid-cols-[2.75rem_minmax(0,1fr)_2.75rem] items-end gap-2">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept={supportedImageAttachmentTypes.join(",")}
+                className="sr-only"
+                onChange={handleAttachmentInputChange}
+                disabled={isStreaming}
+              />
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isStreaming}
+                className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-700 transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800 dark:focus:ring-offset-slate-950"
+                aria-label="Attach screenshot"
+                title="Attach screenshot"
+              >
+                <ImagePlus className="h-4 w-4" />
+              </button>
               <textarea
                 ref={inputRef}
                 value={input}
                 onChange={(event) => setInput(event.target.value)}
                 disabled={isStreaming}
                 className="falcon-agent-input max-h-28 min-h-11 min-w-0 resize-none rounded-lg border border-gray-300 px-3 py-2 text-base leading-7 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:cursor-not-allowed disabled:opacity-70 dark:border-slate-700 sm:max-h-36 sm:text-sm sm:leading-6"
-                placeholder="Ask Falcon..."
-                aria-label="Ask a question or paste free-form race notes"
+                placeholder="Ask Falcon or paste a screenshot..."
+                aria-label="Ask a question, paste race notes, or paste a screenshot"
                 rows={1}
                 enterKeyHint="send"
+                onPaste={handleTextareaPaste}
                 onKeyDown={(event) => {
                   if (event.key === "Enter" && !event.shiftKey) {
                     event.preventDefault();
@@ -638,7 +816,7 @@ const FalconAgent: React.FC = () => {
               />
               <button
                 type="submit"
-                disabled={isStreaming || !input.trim()}
+                disabled={isStreaming || (!input.trim() && !imageAttachment)}
                 className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-primary-600 text-white transition-colors hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:bg-gray-300 dark:focus:ring-offset-slate-950"
                 aria-label="Send message"
                 title="Send"
@@ -677,6 +855,50 @@ async function readErrorMessage(response: Response): Promise<string> {
   }
 
   return response.text();
+}
+
+function serializeChatMessages(
+  messages: ChatMessage[]
+): SerializedChatMessage[] {
+  return messages.map(({ role, content, attachments }) => ({
+    role,
+    content,
+    ...(role === "user" && attachments?.length
+      ? {
+          attachments: attachments.map(({ name, mediaType, dataUrl, size }) => ({
+            name,
+            mediaType,
+            dataUrl,
+            size,
+          })),
+        }
+      : {}),
+  }));
+}
+
+function readFileAsDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.addEventListener("load", () => {
+      if (typeof reader.result === "string") {
+        resolve(reader.result);
+        return;
+      }
+
+      reject(new Error("FileReader did not return a data URL."));
+    });
+    reader.addEventListener("error", () => reject(reader.error));
+    reader.readAsDataURL(file);
+  });
+}
+
+function formatFileSize(size: number): string {
+  if (size < 1024 * 1024) {
+    return `${Math.ceil(size / 1024)} KB`;
+  }
+
+  return `${(size / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 function getPageContext(pathname: string): PageContext {
