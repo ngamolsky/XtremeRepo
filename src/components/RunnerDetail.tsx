@@ -219,6 +219,7 @@ const RunnerDetail: React.FC = () => {
         />
       </div>
 
+      {/* TODO: Add runner radar/spider chart comparing key dimensions (pace, consistency, experience, elevation/difficulty mix, etc.) once the metric set is finalized. */}
       {/* Performance Chart */}
       <div className="card p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">

@@ -304,16 +304,16 @@ CREATE OR REPLACE VIEW public.v_leg_result_observations_with_pace AS
         END AS primary_time_type,
     o.distance AS observed_distance,
     ld.distance AS canonical_distance,
-    COALESCE(o.distance, ld.distance) AS display_distance,
+    o.distance AS display_distance,
     o.elevation_gain AS observed_elevation_gain,
     ld.elevation_gain AS canonical_elevation_gain,
-    COALESCE(o.elevation_gain, ld.elevation_gain) AS display_elevation_gain,
+    o.elevation_gain AS display_elevation_gain,
     rn.name AS runner_name,
     rn.auth_user_id,
     public.parse_time_to_minutes(COALESCE(o.lap_time, o.elapsed_time, o.moving_time)) AS time_in_minutes,
         CASE
-            WHEN COALESCE(o.distance, ld.distance) > 0::double precision
-              THEN public.parse_time_to_minutes(COALESCE(o.lap_time, o.elapsed_time, o.moving_time)) / COALESCE(o.distance, ld.distance)
+            WHEN o.distance > 0::double precision
+              THEN public.parse_time_to_minutes(COALESCE(o.lap_time, o.elapsed_time, o.moving_time)) / o.distance
             ELSE NULL::double precision
         END AS pace,
     EXISTS (
