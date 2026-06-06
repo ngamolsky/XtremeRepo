@@ -5,6 +5,11 @@ import {
   CartesianGrid,
   Line,
   LineChart,
+  PolarAngleAxis,
+  PolarGrid,
+  PolarRadiusAxis,
+  Radar,
+  RadarChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -13,6 +18,7 @@ import {
 import { useIsMyProfile } from "../hooks/useIsMyProfile";
 import { useRelayData } from "../hooks/useRelayData";
 import { supabase } from "../lib/supabase";
+import { buildLatestLegRadarData } from "../lib/runnerLegRadar";
 import { formatPace } from "../lib/utils";
 import CommentsSection from "./CommentsSection";
 import { LegPill } from "./LegPill";
@@ -31,7 +37,7 @@ const chartTooltipStyle = {
 const RunnerDetail: React.FC = () => {
   const { runnerName } = useParams({ from: "/runners/$runnerName" });
   const {
-    data: { runnerStats, results, participations },
+    data: { legDefinitions, runnerStats, results, participations },
     loading,
     error,
   } = useRelayData();
@@ -120,6 +126,7 @@ const RunnerDetail: React.FC = () => {
       legs: [...legs].sort((a, b) => a - b),
     }))
     .sort((a, b) => b.version - a.version);
+  const latestLegRadar = buildLatestLegRadarData(runnerResults, legDefinitions);
 
   // Prepare data for the performance chart
   const performanceData = runnerResults
@@ -219,7 +226,6 @@ const RunnerDetail: React.FC = () => {
         />
       </div>
 
-      {/* TODO: Add runner radar/spider chart comparing key dimensions (pace, consistency, experience, elevation/difficulty mix, etc.) once the metric set is finalized. */}
       {/* Performance Chart */}
       <div className="card p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">
@@ -403,6 +409,57 @@ const RunnerDetail: React.FC = () => {
           </div>
         </section>
       )}
+
+      <section className="card p-6">
+        <div className="mb-4 flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between">
+          <h3 className="text-lg font-semibold text-gray-900">
+            Latest Version Leg Frequency
+          </h3>
+          {latestLegRadar.version !== null && (
+            <span className="text-sm text-gray-500">v{latestLegRadar.version}</span>
+          )}
+        </div>
+        {latestLegRadar.data.length > 0 ? (
+          <>
+            <p className="mb-4 text-sm text-gray-600">
+              How many times {runnerName} has run each leg in the latest course
+              version.
+            </p>
+            <ResponsiveContainer width="100%" height={360}>
+              <RadarChart data={latestLegRadar.data} outerRadius="72%">
+                <PolarGrid stroke={chartGridColor} />
+                <PolarAngleAxis
+                  dataKey="leg"
+                  stroke={chartAxisColor}
+                  tick={{ fill: chartAxisColor, fontSize: 12 }}
+                />
+                <PolarRadiusAxis
+                  angle={90}
+                  allowDecimals={false}
+                  domain={[0, Math.max(1, latestLegRadar.maxCount)]}
+                  stroke={chartAxisColor}
+                  tick={{ fill: chartAxisColor, fontSize: 11 }}
+                />
+                <Tooltip
+                  contentStyle={chartTooltipStyle}
+                  formatter={(value) => [`${value} runs`, "Times run"]}
+                />
+                <Radar
+                  name="Times run"
+                  dataKey="count"
+                  stroke="#16a34a"
+                  fill="#22c55e"
+                  fillOpacity={0.35}
+                />
+              </RadarChart>
+            </ResponsiveContainer>
+          </>
+        ) : (
+          <p className="text-sm text-gray-600">
+            No known latest-version leg results yet.
+          </p>
+        )}
+      </section>
 
       {runnerId && (
         <CommentsSection

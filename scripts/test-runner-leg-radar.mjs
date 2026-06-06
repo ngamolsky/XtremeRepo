@@ -1,0 +1,76 @@
+import assert from "node:assert/strict";
+import { existsSync, readFileSync } from "node:fs";
+import vm from "node:vm";
+import ts from "typescript";
+
+const helperPath = new URL("../src/lib/runnerLegRadar.ts", import.meta.url);
+assert.ok(existsSync(helperPath), "src/lib/runnerLegRadar.ts should exist");
+
+const source = readFileSync(helperPath, "utf8");
+const compiled = ts.transpileModule(source, {
+  compilerOptions: {
+    module: ts.ModuleKind.CommonJS,
+    target: ts.ScriptTarget.ES2020,
+    esModuleInterop: true,
+  },
+}).outputText;
+
+const module = { exports: {} };
+vm.runInNewContext(compiled, { exports: module.exports, module }, { filename: "runnerLegRadar.ts" });
+
+const { buildLatestLegRadarData } = module.exports;
+assert.equal(typeof buildLatestLegRadarData, "function", "buildLatestLegRadarData should be exported");
+
+const legDefinitions = [
+  { number: 1, version: 1 },
+  { number: 2, version: 1 },
+  { number: 1, version: 2 },
+  { number: 2, version: 2 },
+  { number: 3, version: 2 },
+];
+
+const results = [
+  { leg_number: 1, leg_version: 1 },
+  { leg_number: 1, leg_version: 2 },
+  { leg_number: 1, leg_version: 2 },
+  { leg_number: 2, leg_version: 2 },
+  { leg_number: 99, leg_version: 2 },
+  { leg_number: null, leg_version: 2 },
+  { leg_number: 3, leg_version: null },
+];
+
+const normalize = (value) => JSON.parse(JSON.stringify(value));
+
+assert.deepEqual(normalize(buildLatestLegRadarData(results, legDefinitions)), {
+  version: 2,
+  maxCount: 2,
+  data: [
+    { leg: "Leg 1", legNumber: 1, count: 2 },
+    { leg: "Leg 2", legNumber: 2, count: 1 },
+    { leg: "Leg 3", legNumber: 3, count: 0 },
+  ],
+});
+
+assert.deepEqual(
+  normalize(
+    buildLatestLegRadarData(
+      [
+        { leg_number: 4, leg_version: 3 },
+        { leg_number: 4, leg_version: 3 },
+        { leg_number: 2, leg_version: 3 },
+      ],
+      []
+    )
+  ),
+  {
+    version: 3,
+    maxCount: 2,
+    data: [
+      { leg: "Leg 2", legNumber: 2, count: 1 },
+      { leg: "Leg 4", legNumber: 4, count: 2 },
+    ],
+  },
+  "falls back to latest version present in runner results when leg definitions are unavailable"
+);
+
+console.log("runner leg radar tests passed");
