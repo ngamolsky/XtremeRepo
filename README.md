@@ -83,7 +83,46 @@ VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
    This will:
    - Reset your local database
    - Apply all migrations
-   - Run the seed file (`supabase/seed.sql`)
+   - Run the public app seed file (`supabase/seed.sql`)
+
+6. **Create local Auth users for seeded runners**:
+   ```bash
+   npm run db:auth:ensure:local
+   ```
+   `seed.sql` intentionally excludes Supabase Auth rows and environment-specific `auth_user_id`
+   values. This script creates or repairs Auth accounts for runners with
+   `@xtreme-falcons.com` emails, then links `public.runners.auth_user_id`.
+
+### Production Backup and Local Refresh
+
+For this private site, the recommended workflow is:
+
+```bash
+npm run db:refresh-local
+```
+
+That command:
+- Dumps current production public app data into `supabase/seed.sql`
+- Writes a private JSON backup under `.backups/supabase/`
+- Resets local Supabase from migrations plus `seed.sql`
+- Creates/repairs local Auth accounts for every seeded runner email
+
+`supabase/seed.sql` is safe to commit because it contains public app tables only.
+The private backup directory is gitignored. Auth accounts are managed by script
+instead of committed SQL because Supabase Auth user IDs and password hashes are
+environment-specific.
+
+To repair production runner Auth accounts directly:
+
+```bash
+npm run db:auth:ensure:prod
+```
+
+To confirm local and production have the same app data and runner Auth coverage:
+
+```bash
+npm run db:compare-local-prod
+```
 
 ### Development Workflow
 

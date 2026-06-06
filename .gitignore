@@ -33,6 +33,7 @@ coverage/
 
 # Misc
 *.local
+.backups/
 
 
 .wrangler

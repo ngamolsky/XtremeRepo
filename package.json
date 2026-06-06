@@ -9,7 +9,12 @@
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "deploy": "npm run build && wrangler deploy",
-    "gen-types": "npx supabase gen types typescript --local > src/types/database.generated.ts"
+    "gen-types": "npx supabase gen types typescript --local > src/types/database.generated.ts",
+    "db:dump-seed:prod": "node scripts/supabase/export-seed.mjs --prod --backup",
+    "db:auth:ensure:local": "node scripts/supabase/ensure-runner-auth.mjs --local",
+    "db:auth:ensure:prod": "node scripts/supabase/ensure-runner-auth.mjs --prod",
+    "db:compare-local-prod": "node scripts/supabase/compare-local-prod.mjs",
+    "db:refresh-local": "npm run db:dump-seed:prod && npx supabase db reset && npm run db:auth:ensure:local"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.81",
