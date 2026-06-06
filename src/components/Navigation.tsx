@@ -31,15 +31,16 @@ const Navigation: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <div className="flex items-center space-x-3">
+          <div className="flex min-w-0 items-center space-x-3">
             <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-700 rounded-lg flex items-center justify-center">
               <Trophy className="w-6 h-6 text-white" />
             </div>
-            <div>
-              <h1 className="text-xl font-bold text-gray-900">
-                Xtreme Falcons
+            <div className="min-w-0">
+              <h1 className="text-lg font-bold text-gray-900 whitespace-nowrap sm:text-xl">
+                <span className="sm:hidden">Xtreme</span>
+                <span className="hidden sm:inline">Xtreme Falcons</span>
               </h1>
-              <p className="text-xs text-gray-500">
+              <p className="hidden text-xs text-gray-500 sm:block">
                 Falcon Relay Tracker
               </p>
             </div>
