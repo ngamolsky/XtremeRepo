@@ -131,6 +131,9 @@ The `public.race_photos` table stores searchable metadata such as year, race,
 category, tags, dimensions, source, and storage path. Organize incoming batches
 by year so imports stay predictable:
 
+Per-photo notes are stored in `public.race_photo_notes` so multiple notes can be
+attached to the same image without mutating the archive metadata.
+
 ```text
 photos/
   2024/

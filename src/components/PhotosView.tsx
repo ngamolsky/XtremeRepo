@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import React, { useEffect, useMemo, useState } from "react";
 import { Calendar, Camera, Filter, Image, Search, Tag, Upload } from "lucide-react";
 import { supabase } from "../lib/supabase";
@@ -210,9 +211,11 @@ const PhotosView: React.FC = () => {
             const caption = photo.caption || `${photo.year} ${photo.race}`;
 
             return (
-              <article
+              <Link
                 key={photo.id}
-                className="card overflow-hidden hover:shadow-lg transition-all duration-200 group"
+                to="/photos/$photoId"
+                params={{ photoId: photo.id }}
+                className="card block overflow-hidden hover:shadow-lg transition-all duration-200 group"
               >
                 <div className="relative aspect-[4/3] overflow-hidden bg-gray-100 dark:bg-slate-800">
                   <img
@@ -247,7 +250,7 @@ const PhotosView: React.FC = () => {
                     </div>
                   )}
                 </div>
-              </article>
+              </Link>
             );
           })}
         </div>
