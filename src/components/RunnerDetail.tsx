@@ -1,4 +1,4 @@
-import { useParams } from "@tanstack/react-router";
+import { Link, useParams } from "@tanstack/react-router";
 import { Award, BarChart, Calendar, Clock, LogOut, Map } from "lucide-react";
 import React from "react";
 import {
@@ -254,6 +254,9 @@ const RunnerDetail: React.FC = () => {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Notes
                 </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Details
+                </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -294,12 +297,26 @@ const RunnerDetail: React.FC = () => {
                     <td className="px-6 py-4 text-sm text-gray-900">
                       {result.notes || ""}
                     </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <Link
+                        to="/runs/$runnerName/$year/$legNumber/$version"
+                        params={{
+                          runnerName,
+                          year: String(result.year),
+                          legNumber: String(result.leg_number),
+                          version: String(result.leg_version),
+                        }}
+                        className="text-primary-700 hover:text-primary-800"
+                      >
+                        Open
+                      </Link>
+                    </td>
                   </tr>
                 ))
               ) : (
                 <tr>
                   <td
-                    colSpan={7}
+                    colSpan={8}
                     className="px-6 py-4 text-sm text-gray-600"
                   >
                     This runner is counted for race-year participation, but no
@@ -353,6 +370,9 @@ const RunnerDetail: React.FC = () => {
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Notes
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Details
                   </th>
                 </tr>
               </thead>
@@ -416,6 +436,20 @@ const RunnerDetail: React.FC = () => {
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-900">
                           {observation.notes || ""}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                          <Link
+                            to="/runs/$runnerName/$year/$legNumber/$version"
+                            params={{
+                              runnerName,
+                              year: String(observation.year),
+                              legNumber: String(observation.leg_number),
+                              version: String(observation.leg_version),
+                            }}
+                            className="text-primary-700 hover:text-primary-800"
+                          >
+                            Open
+                          </Link>
                         </td>
                       </tr>
                     );

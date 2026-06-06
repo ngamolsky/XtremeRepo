@@ -247,6 +247,9 @@ const LegDetail: React.FC = () => {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Notes
                 </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Details
+                </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -282,11 +285,29 @@ const LegDetail: React.FC = () => {
                     <td className="px-6 py-4 text-sm text-gray-900">
                       {result.notes || ""}
                     </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      {result.runner_name ? (
+                        <Link
+                          to="/runs/$runnerName/$year/$legNumber/$version"
+                          params={{
+                            runnerName: result.runner_name,
+                            year: String(result.year),
+                            legNumber: String(result.leg_number),
+                            version: String(result.leg_version),
+                          }}
+                          className="text-primary-700 hover:text-primary-800"
+                        >
+                          Open
+                        </Link>
+                      ) : (
+                        "N/A"
+                      )}
+                    </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan={5} className="px-6 py-4 text-sm text-gray-600">
+                  <td colSpan={6} className="px-6 py-4 text-sm text-gray-600">
                     No canonical results yet.
                   </td>
                 </tr>
@@ -337,6 +358,9 @@ const LegDetail: React.FC = () => {
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Notes
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Details
                   </th>
                 </tr>
               </thead>
@@ -399,6 +423,24 @@ const LegDetail: React.FC = () => {
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-900">
                           {observation.notes || ""}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                          {observation.runner_name ? (
+                            <Link
+                              to="/runs/$runnerName/$year/$legNumber/$version"
+                              params={{
+                                runnerName: observation.runner_name,
+                                year: String(observation.year),
+                                legNumber: String(observation.leg_number),
+                                version: String(observation.leg_version),
+                              }}
+                              className="text-primary-700 hover:text-primary-800"
+                            >
+                              Open
+                            </Link>
+                          ) : (
+                            "N/A"
+                          )}
                         </td>
                       </tr>
                     );

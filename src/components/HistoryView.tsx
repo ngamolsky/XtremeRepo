@@ -6,6 +6,7 @@ import {
   Trophy,
   Users,
 } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import React, { useState } from "react";
 import { useRelayData } from "../hooks/useRelayData";
 import { formatPace } from "../lib/utils";
@@ -240,6 +241,9 @@ const HistoryView: React.FC = () => {
                           <th className="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
                             Notes
                           </th>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
+                            Details
+                          </th>
                         </tr>
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
@@ -268,6 +272,25 @@ const HistoryView: React.FC = () => {
                               </td>
                               <td className="px-4 py-2 text-sm text-gray-800">
                                 {leg.notes || ""}
+                              </td>
+                              <td className="px-4 py-2 whitespace-nowrap text-sm font-medium">
+                                {leg.runner_name ? (
+                                  <Link
+                                    to="/runs/$runnerName/$year/$legNumber/$version"
+                                    params={{
+                                      runnerName: leg.runner_name,
+                                      year: String(leg.year),
+                                      legNumber: String(leg.leg_number),
+                                      version: String(leg.leg_version),
+                                    }}
+                                    className="text-primary-700 hover:text-primary-800"
+                                    onClick={(event) => event.stopPropagation()}
+                                  >
+                                    Open
+                                  </Link>
+                                ) : (
+                                  "N/A"
+                                )}
                               </td>
                             </tr>
                           )
