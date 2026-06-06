@@ -61,6 +61,7 @@ export type Database = {
           division: string | null
           division_place: number | null
           division_teams: number | null
+          notes: string | null
           overall_place: number | null
           overall_teams: number | null
           year: number
@@ -70,6 +71,7 @@ export type Database = {
           division?: string | null
           division_place?: number | null
           division_teams?: number | null
+          notes?: string | null
           overall_place?: number | null
           overall_teams?: number | null
           year: number
@@ -79,6 +81,7 @@ export type Database = {
           division?: string | null
           division_place?: number | null
           division_teams?: number | null
+          notes?: string | null
           overall_place?: number | null
           overall_teams?: number | null
           year?: number
@@ -90,6 +93,7 @@ export type Database = {
           lap_time: unknown | null
           leg_number: number
           leg_version: number
+          notes: string | null
           user_id: string | null
           year: number
         }
@@ -97,6 +101,7 @@ export type Database = {
           lap_time?: unknown | null
           leg_number: number
           leg_version: number
+          notes?: string | null
           user_id?: string | null
           year: number
         }
@@ -104,6 +109,7 @@ export type Database = {
           lap_time?: unknown | null
           leg_number?: number
           leg_version?: number
+          notes?: string | null
           user_id?: string | null
           year?: number
         }
@@ -213,6 +219,7 @@ export type Database = {
           lap_time: unknown | null
           leg_number: number | null
           leg_version: number | null
+          notes: string | null
           pace: number | null
           runner_id: string | null
           runner_name: string | null
@@ -278,6 +285,7 @@ export type Database = {
           division_place: number | null
           division_teams: number | null
           improvement: number | null
+          notes: string | null
           overall_percentile: number | null
           overall_place: number | null
           overall_teams: number | null
@@ -423,4 +431,3 @@ export const Constants = {
     Enums: {},
   },
 } as const
-

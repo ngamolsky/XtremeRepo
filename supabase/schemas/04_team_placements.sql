@@ -8,7 +8,8 @@ CREATE TABLE IF NOT EXISTS "public"."placements" (
     "division_teams" smallint,
     "overall_place" smallint,
     "overall_teams" smallint,
-    "bib" smallint
+    "bib" smallint,
+    "notes" "text"
 );
 
 -- Primary key constraint

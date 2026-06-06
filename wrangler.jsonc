@@ -1,13 +1,15 @@
 {
   "name": "xtreme-falcons",
+  "account_id": "21b3fa9cad66fa719d5f92c25bbc3d5c",
   "compatibility_date": "2025-06-19",
   "assets": {
     "directory": "./dist/client/",
-    "not_found_handling": "single-page-application"
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*"]
   },
   "vars": {
-    "VITE_SUPABASE_URL": "https://ztchiqrnmnintpxoofxs.supabase.co",
-    "VITE_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp0Y2hpcXJubW5pbnRweG9vZnhzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk0MzA0ODIsImV4cCI6MjA2NTAwNjQ4Mn0.aGDRykd2w41etf-EQEFh-rN2apbd8tk6asBQiNhZlY0"
+    "VITE_SUPABASE_URL": "https://vrorouyfpacxpxkcsleq.supabase.co",
+    "VITE_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZyb3JvdXlmcGFjeHB4a2NzbGVxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2OTIwODQsImV4cCI6MjA5NjI2ODA4NH0.f3hxwuO7w7fkUiVX2RfOJie3k0OD8XRt5g5DaBuevRM"
   },
   "main": "src/worker/index.ts"
 }

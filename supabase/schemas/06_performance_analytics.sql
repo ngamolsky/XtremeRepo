@@ -7,6 +7,7 @@ CREATE OR REPLACE VIEW "public"."v_results_with_pace" AS
     "r"."leg_number",
     "r"."leg_version",
     "r"."lap_time",
+    "r"."notes",
     "ld"."distance",
     "ld"."elevation_gain",
     "rn"."name" AS "runner_name",
@@ -135,6 +136,7 @@ CREATE OR REPLACE VIEW "public"."v_yearly_summary" AS
     "tps"."division_teams",
     "p"."division",
     "p"."bib",
+    "p"."notes",
         CASE
             WHEN ("tps"."overall_teams" > 0) THEN ((("tps"."overall_place")::double precision / ("tps"."overall_teams")::double precision) * (100)::double precision)
             ELSE NULL::double precision

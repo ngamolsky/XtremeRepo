@@ -151,6 +151,11 @@ const HistoryView: React.FC = () => {
                         Division: {race.division}{" "}
                         {race.bib && `• Bib #${race.bib}`}
                       </p>
+                      {race.notes && (
+                        <p className="text-sm text-gray-500 mt-1">
+                          {race.notes}
+                        </p>
+                      )}
                     </div>
                   </div>
 
@@ -221,6 +226,9 @@ const HistoryView: React.FC = () => {
                           <th className="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
                             Gain
                           </th>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
+                            Notes
+                          </th>
                         </tr>
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
@@ -246,6 +254,9 @@ const HistoryView: React.FC = () => {
                                 {leg.elevation_gain
                                   ? `+${leg.elevation_gain} ft`
                                   : "N/A"}
+                              </td>
+                              <td className="px-4 py-2 text-sm text-gray-800">
+                                {leg.notes || ""}
                               </td>
                             </tr>
                           )

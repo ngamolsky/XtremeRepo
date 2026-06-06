@@ -53,7 +53,8 @@ INSERT INTO public.placements (year, division, division_place, division_teams, o
 (2019, 'Men''s Open', 10, 10, 57, 70, 2),
 (2022, 'Mixed Open', 6, 12, 19, 26, 24),
 (2023, 'Mixed Open', 8, 17, 20, 41, 29),
-(2024, 'Mixed Open', 10, 19, 29, 43, 16);
+(2024, 'Mixed Open', 10, 19, 29, 43, 16),
+(2025, 'Mixed Open', 20, 28, 37, 54, 37);
 
 -- Insert results (with user_id references)
 INSERT INTO public.results (year, leg_number, leg_version, user_id, lap_time) VALUES
@@ -181,4 +182,13 @@ INSERT INTO public.results (year, leg_number, leg_version, user_id, lap_time) VA
 (2024, 4, 2, (SELECT id FROM public.runners WHERE name = 'Lisa Brooks'), INTERVAL '01:32:37'), -- Lisa Brooks
 (2024, 5, 2, (SELECT id FROM public.runners WHERE name = 'Sean Searle'), INTERVAL '01:47:20'), -- Sean Searle
 (2024, 6, 2, (SELECT id FROM public.runners WHERE name = 'Multiple Runners'), INTERVAL '01:27:42'), -- Multiple Runners
-(2024, 7, 2, (SELECT id FROM public.runners WHERE name = 'Peter Lubbers'), INTERVAL '01:39:44'); -- Peter Lubbers
+(2024, 7, 2, (SELECT id FROM public.runners WHERE name = 'Peter Lubbers'), INTERVAL '01:39:44'), -- Peter Lubbers
+
+-- 2025
+(2025, 1, 2, (SELECT id FROM public.runners WHERE name = 'Peter Lubbers'), INTERVAL '01:26:38'), -- Peter Lubbers
+(2025, 2, 2, (SELECT id FROM public.runners WHERE name = 'Multiple Runners'), INTERVAL '02:17:15'), -- Multiple Runners
+(2025, 3, 2, (SELECT id FROM public.runners WHERE name = 'Sean Lubbers'), INTERVAL '01:38:38'), -- Sean Lubbers
+(2025, 4, 2, (SELECT id FROM public.runners WHERE name = 'Gabe Pannell'), INTERVAL '01:38:37'), -- Gabe Pannell
+(2025, 5, 2, (SELECT id FROM public.runners WHERE name = 'Lisa Brooks'), INTERVAL '01:57:21'), -- Lisa Brooks
+(2025, 6, 2, (SELECT id FROM public.runners WHERE name = 'Nick Searle'), INTERVAL '01:25:24'), -- Nick Searle
+(2025, 7, 2, (SELECT id FROM public.runners WHERE name = 'Nikita Gamolsky'), INTERVAL '01:29:48'); -- Nikita Gamolsky

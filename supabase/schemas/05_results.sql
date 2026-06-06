@@ -19,7 +19,8 @@ CREATE TABLE IF NOT EXISTS "public"."results" (
     "leg_number" smallint NOT NULL,
     "leg_version" smallint NOT NULL,
     "lap_time" interval,
-    "user_id" "uuid"
+    "user_id" "uuid",
+    "notes" "text"
 );
 
 -- Primary key constraint

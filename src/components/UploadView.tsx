@@ -9,6 +9,7 @@ const defaultPlacement = {
   overall_place: "",
   overall_teams: "",
   bib: "",
+  notes: "",
 };
 const defaultResult = {
   year: "",
@@ -16,48 +17,76 @@ const defaultResult = {
   leg_version: "",
   runner: "",
   lap_time: "",
+  notes: "",
 };
 
+type PlacementForm = typeof defaultPlacement;
+type ResultForm = typeof defaultResult;
+type ParsedPlacement = Partial<Record<keyof PlacementForm, string | number>>;
+type ParsedResult = Partial<Record<keyof ResultForm, string | number>>;
+type ParsedRaceData = {
+  placements: ParsedPlacement[];
+  results: ParsedResult[];
+};
+
+const createEmptyResults = (): ResultForm[] =>
+  Array.from({ length: 7 }, () => ({ ...defaultResult }));
+
+const toPlacementForm = (parsed: ParsedPlacement): PlacementForm => ({
+  year: String(parsed.year ?? defaultPlacement.year),
+  division: String(parsed.division ?? defaultPlacement.division),
+  division_place: String(parsed.division_place ?? defaultPlacement.division_place),
+  division_teams: String(parsed.division_teams ?? defaultPlacement.division_teams),
+  overall_place: String(parsed.overall_place ?? defaultPlacement.overall_place),
+  overall_teams: String(parsed.overall_teams ?? defaultPlacement.overall_teams),
+  bib: String(parsed.bib ?? defaultPlacement.bib),
+  notes: String(parsed.notes ?? defaultPlacement.notes),
+});
+
+const toResultForm = (parsed: ParsedResult): ResultForm => ({
+  year: String(parsed.year ?? defaultResult.year),
+  leg_number: String(parsed.leg_number ?? defaultResult.leg_number),
+  leg_version: String(parsed.leg_version ?? defaultResult.leg_version),
+  runner: String(parsed.runner ?? defaultResult.runner),
+  lap_time: String(parsed.lap_time ?? defaultResult.lap_time),
+  notes: String(parsed.notes ?? defaultResult.notes),
+});
+
 const UploadView: React.FC = () => {
-  const [placement, setPlacement] = useState({ ...defaultPlacement });
-  const [results, setResults] = useState(Array(7).fill(null).map(() => ({ ...defaultResult })));
+  const [placement, setPlacement] = useState<PlacementForm>({ ...defaultPlacement });
+  const [results, setResults] = useState<ResultForm[]>(createEmptyResults);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [fileLoading, setFileLoading] = useState(false);
   const [fileError, setFileError] = useState<string | null>(null);
-  const [parsedData, setParsedData] = useState<{
-    placements: any[];
-    results: any[];
-  } | null>(null);
+  const [parsedData, setParsedData] = useState<ParsedRaceData | null>(null);
 
   // Placement field change
   const handlePlacementChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setPlacement({ ...placement, [e.target.name]: e.target.value });
+    const field = e.target.name as keyof PlacementForm;
+    setPlacement({ ...placement, [field]: e.target.value });
   };
 
   // Results field change
   const handleResultChange = (idx: number, e: React.ChangeEvent<HTMLInputElement>) => {
+    const field = e.target.name as keyof ResultForm;
     const newResults = results.slice();
-    newResults[idx] = { ...newResults[idx], [e.target.name]: e.target.value };
+    newResults[idx] = { ...newResults[idx], [field]: e.target.value };
     setResults(newResults);
   };
 
-  // Populate form fields from parsedData
-  React.useEffect(() => {
-    if (parsedData) {
-      if (parsedData.placements && parsedData.placements.length > 0) {
-        setPlacement({ ...defaultPlacement, ...parsedData.placements[0] });
-      }
-      if (parsedData.results && parsedData.results.length > 0) {
-        // Fill up to 7, pad with defaults if less
-        const filled = parsedData.results.slice(0, 7).map(r => ({ ...defaultResult, ...r }));
-        while (filled.length < 7) filled.push({ ...defaultResult });
-        setResults(filled);
-      }
+  const populateFormFromParsedData = (data: ParsedRaceData) => {
+    if (data.placements.length > 0) {
+      setPlacement(toPlacementForm(data.placements[0]));
     }
-  }, [parsedData]);
+    if (data.results.length > 0) {
+      const filled = data.results.slice(0, 7).map(toResultForm);
+      while (filled.length < 7) filled.push({ ...defaultResult });
+      setResults(filled);
+    }
+  };
 
   // Helper function to get runner ID by name
   const getRunnerIdByName = async (runnerName: string): Promise<string | null> => {
@@ -83,6 +112,9 @@ const UploadView: React.FC = () => {
     
     // Validate placement
     for (const key of Object.keys(defaultPlacement)) {
+      if (key === "notes") {
+        continue;
+      }
       if (!placement[key as keyof typeof defaultPlacement]) {
         setError("All placement fields are required.");
         setLoading(false);
@@ -93,6 +125,9 @@ const UploadView: React.FC = () => {
     // Validate results
     for (let i = 0; i < 7; ++i) {
       for (const key of Object.keys(defaultResult)) {
+        if (key === "notes") {
+          continue;
+        }
         if (!results[i][key as keyof typeof defaultResult]) {
           setError(`All fields required for result row ${i + 1}.`);
           setLoading(false);
@@ -112,6 +147,7 @@ const UploadView: React.FC = () => {
           overall_place: Number(placement.overall_place),
           overall_teams: Number(placement.overall_teams),
           bib: Number(placement.bib),
+          notes: placement.notes.trim() || null,
         },
       ]);
       
@@ -140,6 +176,7 @@ const UploadView: React.FC = () => {
             leg_version: Number(result.leg_version),
             user_id: runnerId, // Use the runner ID instead of runner name
             lap_time: result.lap_time,
+            notes: result.notes.trim() || null,
           });
         }
       }
@@ -186,11 +223,14 @@ const UploadView: React.FC = () => {
       });
 
       if (response.ok) {
-        const responseData = await response.json();
-        setParsedData({
+        const responseData = (await response.json()) as Partial<ParsedRaceData>;
+        const nextParsedData = {
           placements: responseData.placements || [],
-          results: responseData.results || []
-        });
+          results: responseData.results || [],
+        };
+
+        setParsedData(nextParsedData);
+        populateFormFromParsedData(nextParsedData);
         setFileError(null);
       } else {
         const errorText = await response.text();
@@ -246,16 +286,16 @@ const UploadView: React.FC = () => {
       {/* Placements Form */}
       <form onSubmit={handleSubmit} className="space-y-4">
         <h2 className="text-lg font-semibold mb-2">Placements</h2>
-        {Object.entries(defaultPlacement).map(([key, _]) => (
+        {(Object.keys(defaultPlacement) as Array<keyof PlacementForm>).map((key) => (
           <div key={key}>
             <label className="block text-sm font-medium text-gray-700 capitalize">{key.replace(/_/g, ' ')}</label>
             <input
-              type={key === 'division' ? 'text' : 'number'}
+              type={key === 'division' || key === 'notes' ? 'text' : 'number'}
               name={key}
               value={placement[key as keyof typeof defaultPlacement]}
               onChange={handlePlacementChange}
               className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
-              required
+              required={key !== "notes"}
             />
           </div>
         ))}
@@ -263,16 +303,16 @@ const UploadView: React.FC = () => {
         {results.map((result, idx) => (
           <div key={idx} className="border p-2 mb-2 rounded bg-gray-50">
             <div className="font-semibold mb-1">Leg {idx + 1}</div>
-            {Object.entries(defaultResult).map(([key, _]) => (
+            {(Object.keys(defaultResult) as Array<keyof ResultForm>).map((key) => (
               <div key={key}>
                 <label className="block text-xs font-medium text-gray-700 capitalize">{key.replace(/_/g, ' ')}</label>
                 <input
-                  type={key === 'runner' || key === 'lap_time' ? 'text' : 'number'}
+                  type={key === 'runner' || key === 'lap_time' || key === 'notes' ? 'text' : 'number'}
                   name={key}
                   value={result[key as keyof typeof defaultResult]}
                   onChange={e => handleResultChange(idx, e)}
                   className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-1 text-xs"
-                  required
+                  required={key !== "notes"}
                 />
               </div>
             ))}

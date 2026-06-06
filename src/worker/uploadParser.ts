@@ -6,6 +6,7 @@ export type Placement = {
   overall_place: number;
   overall_teams: number;
   bib: number;
+  notes?: string;
 };
 
 export type Result = {
@@ -14,10 +15,22 @@ export type Result = {
   leg_version: number;
   runner: string;
   lap_time: string; // ISO 8601 duration or HH:MM:SS string
+  notes?: string;
 };
 
+type JwtPayload = {
+  email?: string;
+  exp?: number;
+  iss?: string;
+  sub?: string;
+};
+
+function isJwtPayload(payload: unknown): payload is JwtPayload {
+  return typeof payload === 'object' && payload !== null;
+}
+
 // Simple JWT decoding and validation
-async function verifyJWT(token: string): Promise<any> {
+async function verifyJWT(token: string): Promise<JwtPayload | null> {
   try {
     // Decode the JWT without verification (since we're getting HS256 tokens)
     const parts = token.split('.');
@@ -26,7 +39,10 @@ async function verifyJWT(token: string): Promise<any> {
     }
     
     // Decode the payload
-    const payload = JSON.parse(atob(parts[1]));
+    const payload = JSON.parse(atob(parts[1])) as unknown;
+    if (!isJwtPayload(payload)) {
+      throw new Error('Invalid JWT payload');
+    }
     
     // Basic validation
     const now = Math.floor(Date.now() / 1000);
@@ -80,21 +96,21 @@ export async function handleUpload(request: Request): Promise<Response> {
   }
 
   const fileName = file.name.toLowerCase();
-  let placements: Placement[] = [];
-  let results: Result[] = [];
 
-  if (fileName.endsWith('.csv')) {
-    const text = await file.text();
-    ({ placements, results } = parseRaceCSV(text));
-  } else if (fileName.endsWith('.xls') || fileName.endsWith('.xlsx')) {
+  if (fileName.endsWith('.xls') || fileName.endsWith('.xlsx')) {
     // For now, return an error for XLS files since xlsx library is not compatible with Cloudflare Workers
     return new Response('XLS/XLSX files are not supported in this environment. Please convert to CSV format.', { 
       status: 400,
       headers: { 'Content-Type': 'application/json' }
     });
-  } else {
+  }
+
+  if (!fileName.endsWith('.csv')) {
     return new Response('Unsupported file type. Please use CSV format.', { status: 400 });
   }
+
+  const text = await file.text();
+  const { placements, results } = parseRaceCSV(text);
 
   return new Response(JSON.stringify({ 
     placements, 
@@ -166,6 +182,7 @@ function splitRaceData(data: Record<string, string>[]): { placements: Placement[
         overall_place: Number(row.overall_place),
         overall_teams: Number(row.overall_teams),
         bib: Number(row.bib),
+        notes: row.notes || '',
       });
     } else if ('leg_number' in row) {
       results.push({
@@ -174,6 +191,7 @@ function splitRaceData(data: Record<string, string>[]): { placements: Placement[
         leg_version: Number(row.leg_version),
         runner: row.runner,
         lap_time: row.lap_time,
+        notes: row.notes || '',
       });
     }
   }

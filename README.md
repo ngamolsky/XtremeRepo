@@ -146,6 +146,24 @@ VITE_SUPABASE_ANON_KEY=your-local-anon-key
 
 For production, use the values from your Supabase project settings.
 
+### AI Agent Keys
+
+The Falcons chat agent needs one or both provider keys before it can answer.
+
+For local development, create a gitignored `.dev.vars` file in the project root:
+
+```env
+OPENAI_API_KEY=your-openai-key
+ANTHROPIC_API_KEY=your-anthropic-key
+```
+
+For deployed Cloudflare Workers, store them as secrets:
+
+```bash
+wrangler secret put OPENAI_API_KEY
+wrangler secret put ANTHROPIC_API_KEY
+```
+
 ## 🔧 Troubleshooting
 
 ### Docker/Supabase Issues
