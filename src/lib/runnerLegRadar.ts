@@ -20,6 +20,11 @@ export type LatestLegRadarData = {
   data: LatestLegRadarDatum[];
 };
 
+export type RadarPoint = {
+  x: number;
+  y: number;
+};
+
 const isFiniteNumber = (value: number | null): value is number =>
   typeof value === "number" && Number.isFinite(value);
 
@@ -92,3 +97,22 @@ export const buildLatestLegRadarData = (
     data,
   };
 };
+
+export const radarPointForIndex = (
+  index: number,
+  total: number,
+  radiusRatio: number,
+  centerX: number,
+  centerY: number,
+  radius: number
+): RadarPoint => {
+  const angle = (Math.PI * 2 * index) / total - Math.PI / 2;
+
+  return {
+    x: centerX + Math.cos(angle) * radius * radiusRatio,
+    y: centerY + Math.sin(angle) * radius * radiusRatio,
+  };
+};
+
+export const formatRadarPoints = (points: RadarPoint[]) =>
+  points.map((point) => `${point.x.toFixed(2)},${point.y.toFixed(2)}`).join(" ");

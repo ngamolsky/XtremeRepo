@@ -5,11 +5,6 @@ import {
   CartesianGrid,
   Line,
   LineChart,
-  PolarAngleAxis,
-  PolarGrid,
-  PolarRadiusAxis,
-  Radar,
-  RadarChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -18,7 +13,11 @@ import {
 import { useIsMyProfile } from "../hooks/useIsMyProfile";
 import { useRelayData } from "../hooks/useRelayData";
 import { supabase } from "../lib/supabase";
-import { buildLatestLegRadarData } from "../lib/runnerLegRadar";
+import {
+  buildLatestLegRadarData,
+  formatRadarPoints,
+  radarPointForIndex,
+} from "../lib/runnerLegRadar";
 import { formatPace } from "../lib/utils";
 import CommentsSection from "./CommentsSection";
 import { LegPill } from "./LegPill";
@@ -137,6 +136,35 @@ const RunnerDetail: React.FC = () => {
       time: result.time_in_minutes,
     }))
     .sort((a, b) => (a.year || 0) - (b.year || 0));
+  const radarSize = 320;
+  const radarCenter = radarSize / 2;
+  const radarRadius = 108;
+  const radarLabelRadius = 136;
+  const radarMaxCount = Math.max(1, latestLegRadar.maxCount);
+  const radarTotalLegs = latestLegRadar.data.length;
+  const radarValuePoints = latestLegRadar.data.map((datum, index) =>
+    radarPointForIndex(
+      index,
+      radarTotalLegs,
+      datum.count / radarMaxCount,
+      radarCenter,
+      radarCenter,
+      radarRadius
+    )
+  );
+  const radarAxisPoints = latestLegRadar.data.map((_, index) =>
+    radarPointForIndex(index, radarTotalLegs, 1, radarCenter, radarCenter, radarRadius)
+  );
+  const radarLabelPoints = latestLegRadar.data.map((_, index) =>
+    radarPointForIndex(
+      index,
+      radarTotalLegs,
+      1,
+      radarCenter,
+      radarCenter,
+      radarLabelRadius
+    )
+  );
 
   return (
     <div className="space-y-8 animate-fade-in">
@@ -425,34 +453,87 @@ const RunnerDetail: React.FC = () => {
               How many times {runnerName} has run each leg in the latest course
               version.
             </p>
-            <ResponsiveContainer width="100%" height={360}>
-              <RadarChart data={latestLegRadar.data} outerRadius="72%">
-                <PolarGrid stroke={chartGridColor} />
-                <PolarAngleAxis
-                  dataKey="leg"
-                  stroke={chartAxisColor}
-                  tick={{ fill: chartAxisColor, fontSize: 12 }}
-                />
-                <PolarRadiusAxis
-                  angle={90}
-                  allowDecimals={false}
-                  domain={[0, Math.max(1, latestLegRadar.maxCount)]}
-                  stroke={chartAxisColor}
-                  tick={{ fill: chartAxisColor, fontSize: 11 }}
-                />
-                <Tooltip
-                  contentStyle={chartTooltipStyle}
-                  formatter={(value) => [`${value} runs`, "Times run"]}
-                />
-                <Radar
-                  name="Times run"
-                  dataKey="count"
-                  stroke="#16a34a"
+            <div className="flex justify-center overflow-x-auto">
+              <svg
+                aria-label={`Latest version leg frequency radar chart for ${runnerName}`}
+                className="h-[360px] min-w-[320px] max-w-full"
+                role="img"
+                viewBox={`0 0 ${radarSize} ${radarSize}`}
+              >
+                {[0.25, 0.5, 0.75, 1].map((level) => (
+                  <polygon
+                    key={level}
+                    fill="none"
+                    points={formatRadarPoints(
+                      latestLegRadar.data.map((_, index) =>
+                        radarPointForIndex(
+                          index,
+                          radarTotalLegs,
+                          level,
+                          radarCenter,
+                          radarCenter,
+                          radarRadius
+                        )
+                      )
+                    )}
+                    stroke={chartGridColor}
+                    strokeWidth="1"
+                  />
+                ))}
+                {radarAxisPoints.map((point, index) => (
+                  <line
+                    key={`axis-${latestLegRadar.data[index].legNumber}`}
+                    stroke={chartGridColor}
+                    strokeWidth="1"
+                    x1={radarCenter}
+                    x2={point.x}
+                    y1={radarCenter}
+                    y2={point.y}
+                  />
+                ))}
+                <polygon
                   fill="#22c55e"
-                  fillOpacity={0.35}
+                  fillOpacity="0.35"
+                  points={formatRadarPoints(radarValuePoints)}
+                  stroke="#16a34a"
+                  strokeWidth="2"
                 />
-              </RadarChart>
-            </ResponsiveContainer>
+                {radarValuePoints.map((point, index) => (
+                  <circle
+                    key={`point-${latestLegRadar.data[index].legNumber}`}
+                    cx={point.x}
+                    cy={point.y}
+                    fill="#16a34a"
+                    r="3.5"
+                  />
+                ))}
+                {radarLabelPoints.map((point, index) => {
+                  const datum = latestLegRadar.data[index];
+                  const anchor =
+                    Math.abs(point.x - radarCenter) < 8
+                      ? "middle"
+                      : point.x > radarCenter
+                        ? "start"
+                        : "end";
+
+                  return (
+                    <text
+                      key={`label-${datum.legNumber}`}
+                      fill={chartAxisColor}
+                      fontSize="11"
+                      textAnchor={anchor}
+                      x={point.x}
+                      y={point.y}
+                    >
+                      <tspan x={point.x}>{datum.leg}</tspan>
+                      <tspan dy="13" x={point.x}>
+                        {datum.count}
+                      </tspan>
+                    </text>
+                  );
+                })}
+              </svg>
+            </div>
           </>
         ) : (
           <p className="text-sm text-gray-600">

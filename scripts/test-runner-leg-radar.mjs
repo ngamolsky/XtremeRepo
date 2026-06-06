@@ -18,8 +18,10 @@ const compiled = ts.transpileModule(source, {
 const module = { exports: {} };
 vm.runInNewContext(compiled, { exports: module.exports, module }, { filename: "runnerLegRadar.ts" });
 
-const { buildLatestLegRadarData } = module.exports;
+const { buildLatestLegRadarData, formatRadarPoints, radarPointForIndex } = module.exports;
 assert.equal(typeof buildLatestLegRadarData, "function", "buildLatestLegRadarData should be exported");
+assert.equal(typeof radarPointForIndex, "function", "radarPointForIndex should be exported");
+assert.equal(typeof formatRadarPoints, "function", "formatRadarPoints should be exported");
 
 const legDefinitions = [
   { number: 1, version: 1 },
@@ -71,6 +73,18 @@ assert.deepEqual(
     ],
   },
   "falls back to latest version present in runner results when leg definitions are unavailable"
+);
+
+assert.deepEqual(normalize(radarPointForIndex(0, 4, 1, 100, 100, 80)), {
+  x: 100,
+  y: 20,
+});
+assert.equal(
+  formatRadarPoints([
+    { x: 1 / 3, y: 2 / 3 },
+    { x: 10, y: 20 },
+  ]),
+  "0.33,0.67 10.00,20.00"
 );
 
 console.log("runner leg radar tests passed");
