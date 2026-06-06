@@ -55,6 +55,95 @@ export type Database = {
         }
         Relationships: []
       }
+      leg_result_observations: {
+        Row: {
+          created_at: string
+          distance: number | null
+          elapsed_time: unknown | null
+          elevation_gain: number | null
+          id: string
+          lap_time: unknown | null
+          leg_number: number
+          leg_version: number
+          moving_time: unknown | null
+          notes: string | null
+          raw_metadata: Json
+          runner_id: string | null
+          source_label: string | null
+          source_type: string
+          submitted_by_runner_id: string | null
+          updated_at: string
+          year: number
+        }
+        Insert: {
+          created_at?: string
+          distance?: number | null
+          elapsed_time?: unknown | null
+          elevation_gain?: number | null
+          id?: string
+          lap_time?: unknown | null
+          leg_number: number
+          leg_version: number
+          moving_time?: unknown | null
+          notes?: string | null
+          raw_metadata?: Json
+          runner_id?: string | null
+          source_label?: string | null
+          source_type?: string
+          submitted_by_runner_id?: string | null
+          updated_at?: string
+          year: number
+        }
+        Update: {
+          created_at?: string
+          distance?: number | null
+          elapsed_time?: unknown | null
+          elevation_gain?: number | null
+          id?: string
+          lap_time?: unknown | null
+          leg_number?: number
+          leg_version?: number
+          moving_time?: unknown | null
+          notes?: string | null
+          raw_metadata?: Json
+          runner_id?: string | null
+          source_label?: string | null
+          source_type?: string
+          submitted_by_runner_id?: string | null
+          updated_at?: string
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leg_result_observations_leg_definitions_fkey"
+            columns: ["leg_number", "leg_version"]
+            isOneToOne: false
+            referencedRelation: "leg_definitions"
+            referencedColumns: ["number", "version"]
+          },
+          {
+            foreignKeyName: "leg_result_observations_runner_id_fkey"
+            columns: ["runner_id"]
+            isOneToOne: false
+            referencedRelation: "runners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leg_result_observations_submitted_by_runner_id_fkey"
+            columns: ["submitted_by_runner_id"]
+            isOneToOne: false
+            referencedRelation: "runners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leg_result_observations_year_fkey"
+            columns: ["year"]
+            isOneToOne: false
+            referencedRelation: "placements"
+            referencedColumns: ["year"]
+          },
+        ]
+      }
       placements: {
         Row: {
           bib: number | null
@@ -249,30 +338,50 @@ export type Database = {
       }
       results: {
         Row: {
+          canonical_observation_id: string | null
           lap_time: unknown | null
           leg_number: number
           leg_version: number
           notes: string | null
+          source_type: string
           user_id: string | null
           year: number
         }
         Insert: {
+          canonical_observation_id?: string | null
           lap_time?: unknown | null
           leg_number: number
           leg_version: number
           notes?: string | null
+          source_type?: string
           user_id?: string | null
           year: number
         }
         Update: {
+          canonical_observation_id?: string | null
           lap_time?: unknown | null
           leg_number?: number
           leg_version?: number
           notes?: string | null
+          source_type?: string
           user_id?: string | null
           year?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "results_canonical_observation_id_fkey"
+            columns: ["canonical_observation_id"]
+            isOneToOne: false
+            referencedRelation: "leg_result_observations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "results_canonical_observation_id_fkey"
+            columns: ["canonical_observation_id"]
+            isOneToOne: false
+            referencedRelation: "v_leg_result_observations_with_pace"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "results_leg_definitions_fkey"
             columns: ["leg_number", "leg_version"]
@@ -370,9 +479,76 @@ export type Database = {
           },
         ]
       }
+      v_leg_result_observations_with_pace: {
+        Row: {
+          auth_user_id: string | null
+          canonical_distance: number | null
+          canonical_elevation_gain: number | null
+          canonical_lap_time: unknown | null
+          canonical_runner_id: string | null
+          canonical_runner_name: string | null
+          created_at: string | null
+          display_distance: number | null
+          display_elevation_gain: number | null
+          elapsed_time: unknown | null
+          has_canonical_result: boolean | null
+          id: string | null
+          lap_time: unknown | null
+          leg_number: number | null
+          leg_version: number | null
+          moving_time: unknown | null
+          notes: string | null
+          observed_distance: number | null
+          observed_elevation_gain: number | null
+          pace: number | null
+          primary_time: unknown | null
+          primary_time_type: string | null
+          raw_metadata: Json | null
+          runner_id: string | null
+          runner_name: string | null
+          source_label: string | null
+          source_type: string | null
+          submitted_by_runner_id: string | null
+          submitted_by_runner_name: string | null
+          time_in_minutes: number | null
+          updated_at: string | null
+          year: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leg_result_observations_leg_definitions_fkey"
+            columns: ["leg_number", "leg_version"]
+            isOneToOne: false
+            referencedRelation: "leg_definitions"
+            referencedColumns: ["number", "version"]
+          },
+          {
+            foreignKeyName: "leg_result_observations_runner_id_fkey"
+            columns: ["runner_id"]
+            isOneToOne: false
+            referencedRelation: "runners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leg_result_observations_submitted_by_runner_id_fkey"
+            columns: ["submitted_by_runner_id"]
+            isOneToOne: false
+            referencedRelation: "runners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leg_result_observations_year_fkey"
+            columns: ["year"]
+            isOneToOne: false
+            referencedRelation: "placements"
+            referencedColumns: ["year"]
+          },
+        ]
+      }
       v_results_with_pace: {
         Row: {
           auth_user_id: string | null
+          canonical_observation_id: string | null
           distance: number | null
           elevation_gain: number | null
           lap_time: unknown | null
@@ -382,10 +558,25 @@ export type Database = {
           pace: number | null
           runner_id: string | null
           runner_name: string | null
+          source_type: string | null
           time_in_minutes: number | null
           year: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "results_canonical_observation_id_fkey"
+            columns: ["canonical_observation_id"]
+            isOneToOne: false
+            referencedRelation: "leg_result_observations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "results_canonical_observation_id_fkey"
+            columns: ["canonical_observation_id"]
+            isOneToOne: false
+            referencedRelation: "v_leg_result_observations_with_pace"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "results_leg_definitions_fkey"
             columns: ["leg_number", "leg_version"]

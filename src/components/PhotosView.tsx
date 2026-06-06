@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import React, { useEffect, useMemo, useState } from "react";
-import { Calendar, Camera, Filter, Image, Search, Tag, Upload } from "lucide-react";
+import { Calendar, Camera, Filter, Image, Search, Tag } from "lucide-react";
 import { supabase } from "../lib/supabase";
 import { Tables } from "../types/database.types";
 
@@ -256,14 +256,6 @@ const PhotosView: React.FC = () => {
         </div>
       )}
 
-      <div className="bg-gradient-to-r from-primary-50 to-purple-50 rounded-xl border border-primary-200 p-8 text-center">
-        <Upload className="w-12 h-12 text-primary-600 mx-auto mb-4" />
-        <h3 className="text-xl font-semibold text-gray-900 mb-2">Have photos to share?</h3>
-        <p className="text-gray-600 mb-4">
-          Help us build our photo collection by sharing your race memories
-        </p>
-        <button className="btn-primary">Upload Photos</button>
-      </div>
     </div>
   );
 };

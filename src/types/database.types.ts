@@ -7,9 +7,32 @@ export type Database = MergeDeep<
   {
     public: {
       Tables: {
+        leg_result_observations: {
+          Row: {
+            elapsed_time: string | null
+            lap_time: string | null
+            moving_time: string | null
+          }
+          Insert: {
+            elapsed_time?: string | null
+            lap_time?: string | null
+            moving_time?: string | null
+          }
+          Update: {
+            elapsed_time?: string | null
+            lap_time?: string | null
+            moving_time?: string | null
+          }
+        }
         results: {
           Row: {
             lap_time: string
+          }
+          Insert: {
+            lap_time?: string | null
+          }
+          Update: {
+            lap_time?: string | null
           }
         }
       },
@@ -23,6 +46,15 @@ export type Database = MergeDeep<
         v_results_with_pace: {
           Row: {
             lap_time: string
+          }
+        }
+        v_leg_result_observations_with_pace: {
+          Row: {
+            canonical_lap_time: string | null
+            elapsed_time: string | null
+            lap_time: string | null
+            moving_time: string | null
+            primary_time: string | null
           }
         }
       }

@@ -18,6 +18,37 @@ export const formatPace = (pace: number): string => {
   return `${mins}:${secs.toString().padStart(2, "0")}/mi`;
 };
 
+export const formatSourceType = (sourceType: string | null | undefined): string => {
+  const sourceLabels: Record<string, string> = {
+    apple_watch: "Apple Watch",
+    garmin: "Garmin",
+    phone: "Phone",
+    strava: "Strava",
+    manual_runner: "Runner",
+    manual_admin: "Manual",
+    official: "Official",
+    other: "Other",
+  };
+
+  return sourceLabels[sourceType || ""] || "Other";
+};
+
+export const formatMiles = (distance: number | null | undefined): string => {
+  if (distance === null || distance === undefined || !Number.isFinite(distance)) {
+    return "N/A";
+  }
+
+  return `${distance.toFixed(2).replace(/\.?0+$/, "")} mi`;
+};
+
+export const formatFeet = (elevationGain: number | null | undefined): string => {
+  if (elevationGain === null || elevationGain === undefined || !Number.isFinite(elevationGain)) {
+    return "N/A";
+  }
+
+  return `${elevationGain} ft`;
+};
+
 export const getInitials = (name: string): string => {
   return name
     .split(" ")

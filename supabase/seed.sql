@@ -5,6 +5,7 @@
 BEGIN;
 
 TRUNCATE TABLE
+  public.leg_result_observations,
   public.race_participations,
   public.results,
   public.placements,
@@ -71,6 +72,8 @@ INSERT INTO public.placements (year, division, division_place, division_teams, o
   (2023, 'Mixed Open', 8, 17, 20, 41, 29, NULL),
   (2024, 'Mixed Open', 10, 19, 29, 43, 16, NULL),
   (2025, 'Mixed Open', 20, 28, 37, 54, 37, NULL);
+
+-- No rows for public.leg_result_observations.
 
 INSERT INTO public.results (year, leg_number, leg_version, user_id, lap_time, notes) VALUES
   (2008, 1, 1, (SELECT id FROM public.runners WHERE name = 'Hayes'), INTERVAL '01:21:28', NULL),

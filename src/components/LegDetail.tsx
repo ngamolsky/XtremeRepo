@@ -1,5 +1,5 @@
 import { Link, useParams } from "@tanstack/react-router";
-import { Award, BarChart, Map, Users } from "lucide-react";
+import { Award, BarChart, Clock, Map, Users } from "lucide-react";
 import React from "react";
 import {
   CartesianGrid,
@@ -11,7 +11,7 @@ import {
   YAxis,
 } from "recharts";
 import { useRelayData } from "../hooks/useRelayData";
-import { formatPace } from "../lib/utils";
+import { formatFeet, formatMiles, formatPace, formatSourceType } from "../lib/utils";
 import { StatCard } from "./StatCard";
 
 const chartAxisColor = "var(--chart-axis)";
@@ -29,7 +29,7 @@ const LegDetail: React.FC = () => {
     from: "/legs/$legNumber/$version",
   });
   const {
-    data: { legVersionStats, results },
+    data: { legDefinitions, legResultObservations, legVersionStats, results },
     loading,
     error,
   } = useRelayData();
@@ -53,19 +53,34 @@ const LegDetail: React.FC = () => {
     );
   }
 
+  const selectedLegNumber = Number(legNumber);
+  const selectedVersion = Number(version);
+
   // Filter results for this specific leg and version
   const legStat = legVersionStats.find(
     (l) =>
-      l.leg_number === Number(legNumber) && l.leg_version === Number(version)
+      l.leg_number === selectedLegNumber && l.leg_version === selectedVersion
+  );
+
+  const legDefinition = legDefinitions.find(
+    (leg) =>
+      leg.number === selectedLegNumber && leg.version === selectedVersion
   );
 
   const legData = results.filter(
     (result) =>
-      result.leg_number === Number(legNumber) &&
-      result.leg_version === Number(version)
+      result.leg_number === selectedLegNumber &&
+      result.leg_version === selectedVersion
   );
 
-  if (!legStat) {
+  const provisionalLegData = legResultObservations.filter(
+    (observation) =>
+      observation.leg_number === selectedLegNumber &&
+      observation.leg_version === selectedVersion &&
+      !observation.has_canonical_result
+  );
+
+  if (!legStat && !legDefinition && provisionalLegData.length === 0) {
     return (
       <div className="text-center py-12">
         <h3 className="text-lg font-medium text-gray-900 mb-2">
@@ -78,6 +93,18 @@ const LegDetail: React.FC = () => {
     );
   }
 
+  const displayDistance =
+    legStat?.distance ??
+    legDefinition?.distance ??
+    provisionalLegData[0]?.canonical_distance ??
+    provisionalLegData[0]?.display_distance;
+  const displayElevation =
+    legStat?.elevation_gain ??
+    legDefinition?.elevation_gain ??
+    provisionalLegData[0]?.canonical_elevation_gain ??
+    provisionalLegData[0]?.display_elevation_gain;
+  const formattedElevation = formatFeet(displayElevation);
+
   // Prepare data for the performance chart
   const performanceData = legData
     .map((result) => ({
@@ -89,7 +116,7 @@ const LegDetail: React.FC = () => {
     .sort((a, b) => (a.year || 0) - (b.year || 0));
 
   const bestPaceRunners =
-    (legStat.best_pace_runner_years as { runner: string; year: number }[]) ||
+    (legStat?.best_pace_runner_years as { runner: string; year: number }[]) ||
     [];
 
   return (
@@ -99,8 +126,8 @@ const LegDetail: React.FC = () => {
           Leg {legNumber} Details
         </h1>
         <p className="text-lg text-gray-600">
-          Version {version} • {legStat.distance} miles • +
-          {legStat.elevation_gain}ft elevation
+          Version {version} • {formatMiles(displayDistance)} •{" "}
+          {formattedElevation === "N/A" ? formattedElevation : `+${formattedElevation} elevation`}
         </p>
       </div>
 
@@ -110,7 +137,7 @@ const LegDetail: React.FC = () => {
           <StatCard
             icon={<Award className="w-6 h-6 text-yellow-600" />}
             label="Best Pace"
-            value={formatPace(legStat.best_pace || 0)}
+            value={legStat?.best_pace ? formatPace(legStat.best_pace) : "N/A"}
           />
           {bestPaceRunners.length > 0 && (
             <p className="text-xs text-gray-500 mt-1">
@@ -122,81 +149,85 @@ const LegDetail: React.FC = () => {
         <StatCard
           icon={<BarChart className="w-6 h-6 text-blue-600" />}
           label="Average Pace"
-          value={formatPace(legStat.average_pace || 0)}
+          value={legStat?.average_pace ? formatPace(legStat.average_pace) : "N/A"}
         />
         <StatCard
           icon={<Map className="w-6 h-6 text-green-600" />}
           label="Total Runs"
-          value={legStat.runs?.toString() || "0"}
+          value={legStat?.runs?.toString() || "0"}
         />
         <StatCard
           icon={<Users className="w-6 h-6 text-indigo-600" />}
           label="Unique Runners"
-          value={legStat.unique_runners?.toString() || "0"}
+          value={legStat?.unique_runners?.toString() || "0"}
         />
       </div>
 
       {/* Performance Chart */}
       <div className="card p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">
-          Historical Performance
+          Canonical Performance
         </h3>
-        <ResponsiveContainer width="100%" height={400}>
-          <LineChart
-            data={performanceData}
-            margin={{ top: 12, right: 24, left: 30, bottom: 8 }}
-          >
-            <CartesianGrid strokeDasharray="3 3" stroke={chartGridColor} />
-            <XAxis
-              dataKey="year"
-              stroke={chartAxisColor}
-              tick={{ fill: chartAxisColor }}
-              tickLine={{ stroke: chartAxisColor }}
-            />
-            <YAxis
-              width={76}
-              tickMargin={8}
-              stroke={chartAxisColor}
-              tick={{ fill: chartAxisColor }}
-              tickLine={{ stroke: chartAxisColor }}
-              reversed
-              tickFormatter={(tick) => formatPace(tick)}
-            />
-            <Tooltip
-              contentStyle={chartTooltipStyle}
-              formatter={(value, name, props) => {
-                const numericValue = typeof value === "number" ? value : Number(value);
+        {performanceData.length > 0 ? (
+          <ResponsiveContainer width="100%" height={400}>
+            <LineChart
+              data={performanceData}
+              margin={{ top: 12, right: 24, left: 30, bottom: 8 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" stroke={chartGridColor} />
+              <XAxis
+                dataKey="year"
+                stroke={chartAxisColor}
+                tick={{ fill: chartAxisColor }}
+                tickLine={{ stroke: chartAxisColor }}
+              />
+              <YAxis
+                width={76}
+                tickMargin={8}
+                stroke={chartAxisColor}
+                tick={{ fill: chartAxisColor }}
+                tickLine={{ stroke: chartAxisColor }}
+                reversed
+                tickFormatter={(tick) => formatPace(tick)}
+              />
+              <Tooltip
+                contentStyle={chartTooltipStyle}
+                formatter={(value, name, props) => {
+                  const numericValue = typeof value === "number" ? value : Number(value);
 
-                if (name === "pace") {
-                  return [
-                    formatPace(Number.isFinite(numericValue) ? numericValue : 0),
-                    `Pace (${props.payload.runner})`,
-                  ];
-                }
+                  if (name === "pace") {
+                    return [
+                      formatPace(Number.isFinite(numericValue) ? numericValue : 0),
+                      `Pace (${props.payload.runner})`,
+                    ];
+                  }
 
-                return [value, name];
-              }}
-            />
-            <Line
-              type="monotone"
-              dataKey="pace"
-              stroke="#3b82f6"
-              strokeWidth={2}
-              dot={{
-                stroke: "#3b82f6",
-                strokeWidth: 2,
-                r: 4,
-                fill: "var(--chart-dot-fill)",
-              }}
-            />
-          </LineChart>
-        </ResponsiveContainer>
+                  return [value, name];
+                }}
+              />
+              <Line
+                type="monotone"
+                dataKey="pace"
+                stroke="#3b82f6"
+                strokeWidth={2}
+                dot={{
+                  stroke: "#3b82f6",
+                  strokeWidth: 2,
+                  r: 4,
+                  fill: "var(--chart-dot-fill)",
+                }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        ) : (
+          <p className="text-sm text-gray-600">No canonical results yet.</p>
+        )}
       </div>
 
       {/* Results Table */}
       <div className="card p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">
-          All Results
+          Canonical Results
         </h3>
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
@@ -220,7 +251,8 @@ const LegDetail: React.FC = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {legData
+              {legData.length > 0 ? (
+                legData
                 .sort((a, b) => (b.year || 0) - (a.year || 0))
                 .map((result, idx) => (
                   <tr
@@ -252,11 +284,111 @@ const LegDetail: React.FC = () => {
                       {result.notes || ""}
                     </td>
                   </tr>
-                ))}
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={5} className="px-6 py-4 text-sm text-gray-600">
+                    No canonical results yet.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
       </div>
+
+      {provisionalLegData.length > 0 && (
+        <div className="card p-6">
+          <div className="mb-4 flex items-center gap-2">
+            <Clock className="h-5 w-5 text-amber-600" />
+            <h3 className="text-lg font-semibold text-gray-900">
+              Provisional Runner Data
+            </h3>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Year
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Runner
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Source
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Time
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Pace
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Distance
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Elevation
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Notes
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {provisionalLegData
+                  .sort((a, b) => (b.year || 0) - (a.year || 0))
+                  .map((observation, idx) => {
+                    const source = observation.source_label
+                      ? `${formatSourceType(observation.source_type)} (${observation.source_label})`
+                      : formatSourceType(observation.source_type);
+
+                    return (
+                      <tr
+                        key={observation.id || `${observation.year}-${observation.runner_id}-${idx}`}
+                        className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}
+                      >
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                          {observation.year}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 hover:text-primary-600">
+                          {observation.runner_name ? (
+                            <Link
+                              to="/runners/$runnerName"
+                              params={{ runnerName: observation.runner_name }}
+                            >
+                              {observation.runner_name}
+                            </Link>
+                          ) : (
+                            "N/A"
+                          )}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {source}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {observation.primary_time || "N/A"}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {formatPace(observation.pace || 0)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {formatMiles(observation.display_distance)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {formatFeet(observation.display_elevation_gain)}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-900">
+                          {observation.notes || ""}
+                        </td>
+                      </tr>
+                    );
+                  })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
