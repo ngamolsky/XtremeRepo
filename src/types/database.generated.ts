@@ -100,6 +100,13 @@ export type Database = {
             referencedRelation: "placements"
             referencedColumns: ["year"]
           },
+          {
+            foreignKeyName: "comments_year_fkey"
+            columns: ["year"]
+            isOneToOne: false
+            referencedRelation: "v_yearly_summary"
+            referencedColumns: ["year"]
+          },
         ]
       }
       leg_definitions: {
@@ -230,6 +237,13 @@ export type Database = {
             referencedRelation: "placements"
             referencedColumns: ["year"]
           },
+          {
+            foreignKeyName: "leg_result_observations_year_fkey"
+            columns: ["year"]
+            isOneToOne: false
+            referencedRelation: "v_yearly_summary"
+            referencedColumns: ["year"]
+          },
         ]
       }
       placements: {
@@ -264,6 +278,78 @@ export type Database = {
           year?: number
         }
         Relationships: []
+      }
+      race_leg_assignments: {
+        Row: {
+          created_at: string
+          id: string
+          leg_number: number
+          leg_version: number
+          notes: string | null
+          runner_id: string
+          status: string
+          updated_at: string
+          year: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          leg_number: number
+          leg_version: number
+          notes?: string | null
+          runner_id: string
+          status?: string
+          updated_at?: string
+          year: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          leg_number?: number
+          leg_version?: number
+          notes?: string | null
+          runner_id?: string
+          status?: string
+          updated_at?: string
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "race_leg_assignments_leg_definitions_fkey"
+            columns: ["leg_number", "leg_version"]
+            isOneToOne: false
+            referencedRelation: "leg_definitions"
+            referencedColumns: ["number", "version"]
+          },
+          {
+            foreignKeyName: "race_leg_assignments_runner_id_fkey"
+            columns: ["runner_id"]
+            isOneToOne: false
+            referencedRelation: "runners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "race_leg_assignments_runner_id_fkey"
+            columns: ["runner_id"]
+            isOneToOne: false
+            referencedRelation: "v_comments_with_author"
+            referencedColumns: ["author_runner_id"]
+          },
+          {
+            foreignKeyName: "race_leg_assignments_year_fkey"
+            columns: ["year"]
+            isOneToOne: false
+            referencedRelation: "placements"
+            referencedColumns: ["year"]
+          },
+          {
+            foreignKeyName: "race_leg_assignments_year_fkey"
+            columns: ["year"]
+            isOneToOne: false
+            referencedRelation: "v_yearly_summary"
+            referencedColumns: ["year"]
+          },
+        ]
       }
       race_participations: {
         Row: {
@@ -310,6 +396,13 @@ export type Database = {
             columns: ["year"]
             isOneToOne: false
             referencedRelation: "placements"
+            referencedColumns: ["year"]
+          },
+          {
+            foreignKeyName: "race_participations_year_fkey"
+            columns: ["year"]
+            isOneToOne: false
+            referencedRelation: "v_yearly_summary"
             referencedColumns: ["year"]
           },
         ]
@@ -495,6 +588,13 @@ export type Database = {
             referencedRelation: "placements"
             referencedColumns: ["year"]
           },
+          {
+            foreignKeyName: "results_year_fkey"
+            columns: ["year"]
+            isOneToOne: false
+            referencedRelation: "v_yearly_summary"
+            referencedColumns: ["year"]
+          },
         ]
       }
       runners: {
@@ -546,6 +646,13 @@ export type Database = {
             referencedRelation: "placements"
             referencedColumns: ["year"]
           },
+          {
+            foreignKeyName: "results_year_fkey"
+            columns: ["year"]
+            isOneToOne: false
+            referencedRelation: "v_yearly_summary"
+            referencedColumns: ["year"]
+          },
         ]
       }
       v_comments_with_author: {
@@ -591,6 +698,13 @@ export type Database = {
             columns: ["year"]
             isOneToOne: false
             referencedRelation: "placements"
+            referencedColumns: ["year"]
+          },
+          {
+            foreignKeyName: "comments_year_fkey"
+            columns: ["year"]
+            isOneToOne: false
+            referencedRelation: "v_yearly_summary"
             referencedColumns: ["year"]
           },
         ]
@@ -675,6 +789,13 @@ export type Database = {
             referencedColumns: ["year"]
           },
           {
+            foreignKeyName: "leg_result_observations_year_fkey"
+            columns: ["year"]
+            isOneToOne: false
+            referencedRelation: "v_yearly_summary"
+            referencedColumns: ["year"]
+          },
+          {
             foreignKeyName: "results_user_id_fkey"
             columns: ["canonical_runner_id"]
             isOneToOne: false
@@ -711,6 +832,78 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "leg_definitions"
             referencedColumns: ["number", "version"]
+          },
+        ]
+      }
+      v_race_leg_assignments: {
+        Row: {
+          auth_user_id: string | null
+          canonical_observation_id: string | null
+          created_at: string | null
+          distance: number | null
+          elevation_gain: number | null
+          has_official_result: boolean | null
+          id: string | null
+          leg_number: number | null
+          leg_version: number | null
+          notes: string | null
+          official_lap_time: string | null
+          official_source_type: string | null
+          runner_id: string | null
+          runner_name: string | null
+          status: string | null
+          updated_at: string | null
+          year: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "race_leg_assignments_leg_definitions_fkey"
+            columns: ["leg_number", "leg_version"]
+            isOneToOne: false
+            referencedRelation: "leg_definitions"
+            referencedColumns: ["number", "version"]
+          },
+          {
+            foreignKeyName: "race_leg_assignments_runner_id_fkey"
+            columns: ["runner_id"]
+            isOneToOne: false
+            referencedRelation: "runners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "race_leg_assignments_runner_id_fkey"
+            columns: ["runner_id"]
+            isOneToOne: false
+            referencedRelation: "v_comments_with_author"
+            referencedColumns: ["author_runner_id"]
+          },
+          {
+            foreignKeyName: "race_leg_assignments_year_fkey"
+            columns: ["year"]
+            isOneToOne: false
+            referencedRelation: "placements"
+            referencedColumns: ["year"]
+          },
+          {
+            foreignKeyName: "race_leg_assignments_year_fkey"
+            columns: ["year"]
+            isOneToOne: false
+            referencedRelation: "v_yearly_summary"
+            referencedColumns: ["year"]
+          },
+          {
+            foreignKeyName: "results_canonical_observation_id_fkey"
+            columns: ["canonical_observation_id"]
+            isOneToOne: false
+            referencedRelation: "leg_result_observations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "results_canonical_observation_id_fkey"
+            columns: ["canonical_observation_id"]
+            isOneToOne: false
+            referencedRelation: "v_leg_result_observations_with_pace"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -789,6 +982,13 @@ export type Database = {
             referencedRelation: "placements"
             referencedColumns: ["year"]
           },
+          {
+            foreignKeyName: "results_year_fkey"
+            columns: ["year"]
+            isOneToOne: false
+            referencedRelation: "v_yearly_summary"
+            referencedColumns: ["year"]
+          },
         ]
       }
       v_runner_participations: {
@@ -822,6 +1022,13 @@ export type Database = {
             columns: ["year"]
             isOneToOne: false
             referencedRelation: "placements"
+            referencedColumns: ["year"]
+          },
+          {
+            foreignKeyName: "race_participations_year_fkey"
+            columns: ["year"]
+            isOneToOne: false
+            referencedRelation: "v_yearly_summary"
             referencedColumns: ["year"]
           },
         ]
@@ -879,15 +1086,7 @@ export type Database = {
           total_time: string | null
           year: number | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "results_year_fkey"
-            columns: ["year"]
-            isOneToOne: false
-            referencedRelation: "placements"
-            referencedColumns: ["year"]
-          },
-        ]
+        Relationships: []
       }
     }
     Functions: {

@@ -132,6 +132,44 @@ CREATE OR REPLACE TRIGGER "ensure_result_participation"
     AFTER INSERT OR UPDATE OF "year", "user_id" ON "public"."results"
     FOR EACH ROW EXECUTE FUNCTION "public"."ensure_result_participation"();
 
+-- Function to mirror official results into race-day leg assignments
+CREATE OR REPLACE FUNCTION "public"."ensure_result_leg_assignment"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    SET "search_path" TO ''
+    AS $$
+BEGIN
+  IF NEW.user_id IS NOT NULL THEN
+    INSERT INTO public.race_leg_assignments (
+      year,
+      leg_number,
+      leg_version,
+      runner_id,
+      status,
+      notes
+    )
+    VALUES (
+      NEW.year,
+      NEW.leg_number,
+      NEW.leg_version,
+      NEW.user_id,
+      'ran',
+      'Created from official result.'
+    )
+    ON CONFLICT (year, leg_number) DO UPDATE
+    SET leg_version = EXCLUDED.leg_version,
+        runner_id = EXCLUDED.runner_id,
+        status = 'ran',
+        updated_at = now();
+  END IF;
+
+  RETURN NEW;
+END;
+$$;
+
+CREATE OR REPLACE TRIGGER "ensure_result_leg_assignment"
+    AFTER INSERT OR UPDATE OF "year", "leg_number", "leg_version", "user_id" ON "public"."results"
+    FOR EACH ROW EXECUTE FUNCTION "public"."ensure_result_leg_assignment"();
+
 -- Row Level Security
 ALTER TABLE "public"."results" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "public"."leg_result_observations" ENABLE ROW LEVEL SECURITY;

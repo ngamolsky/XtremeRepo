@@ -10,18 +10,30 @@ import {
 } from "lucide-react";
 import React, { useEffect, useMemo, useState } from "react";
 import { useRelayData } from "../hooks/useRelayData";
-import { formatPace } from "../lib/utils";
+import {
+  getDisplayLegResults,
+  getRaceDisplaySummary,
+} from "../lib/raceDisplay";
+import type { DisplayLegResult, RaceResultStatus } from "../lib/raceDisplay";
+import { formatFeet, formatMiles, formatPace, formatSourceType } from "../lib/utils";
 import { supabase } from "../lib/supabase";
 import { Tables } from "../types/database.types";
 import CommentsSection from "./CommentsSection";
 
 type AlbumSummary = Tables<"v_race_photo_album_summary">;
+type LegAssignment = Tables<"v_race_leg_assignments">;
 
 const RaceDetailView: React.FC = () => {
   const { year } = useParams({ from: "/races/$year" });
   const raceYear = Number(year);
   const {
-    data: { yearlySummary, results, participations },
+    data: {
+      yearlySummary,
+      results,
+      participations,
+      legResultObservations,
+      raceLegAssignments,
+    },
     loading,
     error,
   } = useRelayData();
@@ -34,12 +46,16 @@ const RaceDetailView: React.FC = () => {
     () => yearlySummary.find((yearlyRace) => yearlyRace.year === raceYear) ?? null,
     [raceYear, yearlySummary]
   );
-  const legResults = useMemo(
+  const displayLegResults = useMemo(
     () =>
-      results
-        .filter((result) => result.year === raceYear)
-        .sort((a, b) => (a.leg_number || 0) - (b.leg_number || 0)),
-    [raceYear, results]
+      Number.isFinite(raceYear)
+        ? getDisplayLegResults(raceYear, results, legResultObservations)
+        : [],
+    [legResultObservations, raceYear, results]
+  );
+  const resultSummary = useMemo(
+    () => (race ? getRaceDisplaySummary(race, displayLegResults) : null),
+    [displayLegResults, race]
   );
   const yearParticipations = useMemo(
     () =>
@@ -50,6 +66,13 @@ const RaceDetailView: React.FC = () => {
   );
   const unknownLegParticipations = yearParticipations.filter(
     (participation) => !participation.has_known_leg
+  );
+  const plannedAssignments = useMemo(
+    () =>
+      raceLegAssignments
+        .filter((assignment) => assignment.year === raceYear)
+        .sort((a, b) => (a.leg_number || 0) - (b.leg_number || 0)),
+    [raceLegAssignments, raceYear]
   );
   const coverUrl =
     albumSummary?.cover_storage_bucket && albumSummary.cover_storage_path
@@ -156,6 +179,7 @@ const RaceDetailView: React.FC = () => {
                 <Calendar className="h-4 w-4" />
                 <span>{raceYear}</span>
                 {race.bib && <span>Bib #{race.bib}</span>}
+                {resultSummary && <RaceStatusBadge status={resultSummary.status} />}
               </div>
               <h1 className="text-4xl font-bold text-gray-900">
                 {raceYear} {raceName}
@@ -169,8 +193,11 @@ const RaceDetailView: React.FC = () => {
               <h2 className="text-lg font-semibold text-gray-900">Leg Results</h2>
             </div>
 
-            {legResults.length === 0 ? (
-              <p className="text-sm text-gray-600">No leg results recorded for this race.</p>
+            {displayLegResults.length === 0 ? (
+              <p className="text-sm text-gray-600">
+                Official results are pending. Self recorded leg data will appear here as it is
+                saved.
+              </p>
             ) : (
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
@@ -183,10 +210,19 @@ const RaceDetailView: React.FC = () => {
                         Runner
                       </th>
                       <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-600">
+                        Source
+                      </th>
+                      <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-600">
                         Time
                       </th>
                       <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-600">
                         Pace
+                      </th>
+                      <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-600">
+                        Distance
+                      </th>
+                      <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-600">
+                        Gain
                       </th>
                       <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-600">
                         Details
@@ -194,13 +230,16 @@ const RaceDetailView: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200 bg-white">
-                    {legResults.map((leg) => (
-                      <tr key={`${leg.leg_number}-${leg.leg_version}`}>
+                    {displayLegResults.map((leg) => (
+                      <tr key={leg.key}>
                         <td className="whitespace-nowrap px-4 py-2 text-sm font-medium text-gray-800">
                           {leg.leg_number} (v{leg.leg_version})
                         </td>
                         <td className="whitespace-nowrap px-4 py-2 text-sm text-gray-800">
-                          {leg.runner_name}
+                          {leg.runner_name || "N/A"}
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-2 text-sm text-gray-800">
+                          <SourceBadge leg={leg} />
                         </td>
                         <td className="whitespace-nowrap px-4 py-2 text-sm text-gray-800">
                           {leg.lap_time || "N/A"}
@@ -208,13 +247,19 @@ const RaceDetailView: React.FC = () => {
                         <td className="whitespace-nowrap px-4 py-2 text-sm text-gray-800">
                           {formatPace(leg.pace || 0)}
                         </td>
+                        <td className="whitespace-nowrap px-4 py-2 text-sm text-gray-800">
+                          {formatMiles(leg.distance)}
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-2 text-sm text-gray-800">
+                          {formatFeet(leg.elevation_gain)}
+                        </td>
                         <td className="whitespace-nowrap px-4 py-2 text-sm font-medium">
-                          {leg.runner_name ? (
+                          {leg.runner_name && leg.leg_number && leg.leg_version ? (
                             <Link
                               to="/runs/$runnerName/$year/$legNumber/$version"
                               params={{
                                 runnerName: leg.runner_name,
-                                year: String(leg.year),
+                                year: String(raceYear),
                                 legNumber: String(leg.leg_number),
                                 version: String(leg.leg_version),
                               }}
@@ -269,8 +314,15 @@ const RaceDetailView: React.FC = () => {
               <h2 className="text-lg font-semibold text-gray-900">Result</h2>
             </div>
             <dl className="space-y-3 text-sm">
-              <StatRow label="Total time" value={race.total_time?.toString() ?? "N/A"} />
-              <StatRow label="Average pace" value={race.average_pace ?? "N/A"} />
+              <StatRow label="Status" value={resultSummary?.status.label ?? "N/A"} />
+              <StatRow
+                label="Total time"
+                value={resultSummary?.displayTotalTime ?? "N/A"}
+              />
+              <StatRow
+                label="Average pace"
+                value={resultSummary?.displayAveragePace ?? "N/A"}
+              />
               <StatRow
                 label="Division"
                 value={
@@ -287,6 +339,12 @@ const RaceDetailView: React.FC = () => {
                     : "N/A"
                 }
               />
+              {resultSummary && resultSummary.selfRecordedResultCount > 0 && (
+                <StatRow
+                  label="Self recorded"
+                  value={`${resultSummary.selfRecordedResultCount} legs`}
+                />
+              )}
             </dl>
           </section>
 
@@ -298,6 +356,22 @@ const RaceDetailView: React.FC = () => {
             <p className="mb-4 text-sm text-gray-600">
               {formatCount(yearParticipations.length || race.participant_count || 0, "runner")}
             </p>
+            {plannedAssignments.length > 0 ? (
+              <div className="mb-5 divide-y divide-gray-100">
+                {plannedAssignments.map((assignment) => (
+                  <AssignmentRow
+                    key={assignment.id ?? `${assignment.year}-${assignment.leg_number}`}
+                    assignment={assignment}
+                  />
+                ))}
+              </div>
+            ) : (
+              resultSummary?.status.tone === "pending" && (
+                <p className="mb-5 text-sm text-gray-600">
+                  No planned leg assignments are saved yet.
+                </p>
+              )
+            )}
             {unknownLegParticipations.length > 0 && (
               <div className="flex flex-wrap gap-2">
                 {unknownLegParticipations.map((participation) => (
@@ -339,6 +413,98 @@ const StatRow: React.FC<{ label: string; value: string }> = ({ label, value }) =
     <dd className="font-medium text-gray-900">{value}</dd>
   </div>
 );
+
+const RaceStatusBadge: React.FC<{ status: RaceResultStatus }> = ({ status }) => (
+  <span
+    className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${getRaceStatusClass(
+      status
+    )}`}
+    title={status.description}
+  >
+    {status.label}
+  </span>
+);
+
+const SourceBadge: React.FC<{ leg: DisplayLegResult }> = ({ leg }) => {
+  const label =
+    leg.kind === "official"
+      ? "Official"
+      : `Self Recorded${leg.source_type ? ` · ${formatSourceType(leg.source_type)}` : ""}${
+          leg.source_label ? ` (${leg.source_label})` : ""
+        }`;
+
+  return (
+    <span
+      className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${
+        leg.kind === "official"
+          ? "bg-emerald-50 text-emerald-700"
+          : "bg-amber-50 text-amber-800"
+      }`}
+    >
+      {label}
+    </span>
+  );
+};
+
+const AssignmentRow: React.FC<{ assignment: LegAssignment }> = ({ assignment }) => (
+  <div className="py-3 first:pt-0 last:pb-0">
+    <div className="flex items-start justify-between gap-3">
+      <div>
+        <p className="text-sm font-medium text-gray-900">
+          Leg {assignment.leg_number} (v{assignment.leg_version})
+        </p>
+        <p className="text-sm text-gray-600">{assignment.runner_name || "Unassigned"}</p>
+      </div>
+      <span
+        className={`inline-flex shrink-0 items-center rounded-full px-2.5 py-1 text-xs font-medium ${getAssignmentStatusClass(
+          assignment.status
+        )}`}
+      >
+        {formatAssignmentStatus(assignment.status)}
+      </span>
+    </div>
+    <p className="mt-1 text-xs text-gray-500">
+      {formatMiles(assignment.distance)} · {formatFeet(assignment.elevation_gain)}
+    </p>
+    {assignment.notes && <p className="mt-1 text-xs text-gray-500">{assignment.notes}</p>}
+  </div>
+);
+
+function getRaceStatusClass(status: RaceResultStatus) {
+  if (status.tone === "official") {
+    return "bg-emerald-50 text-emerald-700";
+  }
+  if (status.tone === "partial") {
+    return "bg-blue-50 text-blue-700";
+  }
+  return "bg-amber-50 text-amber-800";
+}
+
+function formatAssignmentStatus(status: string | null) {
+  if (status === "ran") {
+    return "Ran";
+  }
+  if (status === "changed") {
+    return "Changed";
+  }
+  if (status === "scratched") {
+    return "Scratched";
+  }
+  return "Planned";
+}
+
+function getAssignmentStatusClass(status: string | null) {
+  if (status === "ran") {
+    return "bg-emerald-50 text-emerald-700";
+  }
+  if (status === "changed") {
+    return "bg-blue-50 text-blue-700";
+  }
+  if (status === "scratched") {
+    return "bg-gray-100 text-gray-700";
+  }
+  return "bg-amber-50 text-amber-800";
+}
 
 function formatCount(count: number, singularLabel: string) {
   return `${count} ${singularLabel}${count === 1 ? "" : "s"}`;

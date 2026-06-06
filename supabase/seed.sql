@@ -74,7 +74,8 @@ INSERT INTO public.placements (year, division, division_place, division_teams, o
   (2022, 'Mixed Open', 6, 12, 19, 26, 24, '07:00:00'),
   (2023, 'Mixed Open', 8, 17, 20, 41, 29, '07:00:00'),
   (2024, 'Mixed Open', 10, 19, 29, 43, 16, '06:00:00'),
-  (2025, 'Mixed Open', 20, 28, 37, 54, 37, '07:00:00');
+  (2025, 'Mixed Open', 20, 28, 37, 54, 37, '07:00:00'),
+  (2026, NULL, NULL, NULL, NULL, NULL, NULL, '07:00:00');
 
 INSERT INTO public.comments (id, target_type, year, leg_number, leg_version, runner_id, body, created_at, updated_at)
 SELECT seed.id::uuid, seed.target_type, seed.year, seed.leg_number, seed.leg_version, runners.id, seed.body, seed.created_at::timestamptz, seed.updated_at::timestamptz

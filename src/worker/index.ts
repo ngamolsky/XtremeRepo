@@ -83,6 +83,7 @@ type CurrentRunnerRow = Pick<
 >;
 type ResultWithPaceRow = Database["public"]["Views"]["v_results_with_pace"]["Row"];
 type RunnerParticipationRow = Database["public"]["Views"]["v_runner_participations"]["Row"];
+type RaceLegAssignmentRow = Database["public"]["Views"]["v_race_leg_assignments"]["Row"];
 type LegObservationRow = Database["public"]["Tables"]["leg_result_observations"]["Row"];
 type LegObservationWithPaceRow = Database["public"]["Views"]["v_leg_result_observations_with_pace"]["Row"];
 type LegObservationInsert = Database["public"]["Tables"]["leg_result_observations"]["Insert"];
@@ -102,7 +103,7 @@ type SaveLegObservationInput = {
   year: number;
   legNumber: number;
   legVersion: number;
-  runnerName: string;
+  runnerName?: string;
   sourceType?: LegObservationSourceType;
   sourceLabel?: string;
   sourceTags?: string[];
@@ -1066,7 +1067,7 @@ Answer questions about relay race results, team members, legs, years, paces, and
 
 When a question spans many years, prefer getRaceOverview or another aggregate tool over calling getYearResults once for every year. Only call getYearResults for specific years whose full leg-by-leg details are needed.
 
-Use data terms precisely. A "leg run", "ran leg", "result", or "performance" means a known official row from v_results_with_pace/results with a leg number and lap time. A "self recorded observation", "watch data", "Garmin data", "phone data", "Strava data", or "runner-submitted data" means a self recorded row from v_leg_result_observations_with_pace/leg_result_observations. Self recorded observations can include times, distances, elevation, source labels, source tags, and raw source metadata. User comments live separately in v_comments_with_author/comments and are read-only to you. Self recorded observations can be shown until official data exists for the same year and leg, but they never count as known leg runs, paces, records, aggregate stats, or team totals. A "race-year participation", "race", or "roster year" can include a runner whose leg assignment is unknown. Do not count unknown-leg participation years or self recorded observations as leg runs unless the user explicitly asks about self recorded data. When comparing runners' leg-run counts, use knownLegRuns/results and cite the specific result years and legs that explain the difference. When asked which year one runner ran and another did not, compare known leg years unless the user says roster, participation, or self recorded observation.
+Use data terms precisely. A "leg run", "ran leg", "result", or "performance" means a known official row from v_results_with_pace/results with a leg number and lap time. A "planned assignment" means a pre-race or race-day runner-to-leg row from v_race_leg_assignments/race_leg_assignments. A "self recorded observation", "watch data", "Garmin data", "phone data", "Strava data", or "runner-submitted data" means a self recorded row from v_leg_result_observations_with_pace/leg_result_observations. Self recorded observations can include times, distances, elevation, source labels, source tags, and raw source metadata. User comments live separately in v_comments_with_author/comments and are read-only to you. Planned assignments and self recorded observations can be shown until official data exists for the same year and leg, but they never count as official leg runs, paces, records, aggregate stats, or team totals. A "race-year participation", "race", or "roster year" can include a runner whose leg assignment is unknown. Do not count unknown-leg participation years, planned assignments, or self recorded observations as official leg runs unless the user explicitly asks about planned/self recorded data. When comparing runners' official leg-run counts, use knownLegRuns/results and cite the specific result years and legs that explain the difference. When asked which year one runner ran and another did not, compare known leg years unless the user says roster, participation, planned assignment, or self recorded observation.
 
 Resolve names softly. First names, partial names, lowercase names, and common short forms are acceptable when the runner index makes the match clear. Do not ask for full names just because the user supplied only a first name. If a partial name matches multiple runners and the answer would differ, call findRunner for the likely matches, explain the ambiguity briefly, and ask one short clarifying question.
 
@@ -1074,7 +1075,7 @@ Use the current signed-in user context to resolve first-person references like "
 
 Official data and comments are read-only. You can read official results, placements, participation, runner records, comments, and self recorded observations, but you cannot write, replace, edit, or delete official data or comments. If the user asks you to edit official data, refuse briefly and offer to save the supplied values only as a self recorded observation when they include runner/device/app source data. If the user asks you to add/edit/delete comments, explain that the UI supports comments but you cannot write comments. Do not claim that self recorded data is official, verified, or a replacement for official results.
 
-Your only write capability is adding, updating, or deleting self recorded leg observations with saveLegObservation and deleteLegObservation. For any ad hoc leg data write, use saveLegObservation and label it self recorded. For a self recorded observation, collect race year, leg number, leg version, the existing runner name the observation is about, and at least one observed field such as lap time, moving time, elapsed time, distance, elevation gain, source label, source tags, or metadata. Source type defaults to manual_runner; use apple_watch, garmin, phone, strava, manual_runner, manual_admin, or other when the user gives the source. Source tags are reusable labels such as app names, device names, screenshots, files, or activity titles. Ask short follow-up questions until every required field is known. Do not invent missing fields. If the runner is missing or ambiguous, ask the user to choose an existing runner; do not create new runners. Delete self recorded observations only after the user clearly asks to delete self recorded data and you have a specific observationId or an unambiguous match.
+Your only write capability is adding, updating, or deleting self recorded leg observations with saveLegObservation and deleteLegObservation. For any ad hoc leg data write, use saveLegObservation and label it self recorded. For a self recorded observation, collect race year, leg number, leg version, the existing runner name the observation is about unless a planned assignment for that exact year/leg/version can infer the runner, and at least one observed field such as lap time, moving time, elapsed time, distance, elevation gain, source label, source tags, or metadata. Source type defaults to manual_runner; use apple_watch, garmin, phone, strava, manual_runner, manual_admin, or other when the user gives the source. Source tags are reusable labels such as app names, device names, screenshots, files, or activity titles. Ask short follow-up questions until every required field is known. Do not invent missing fields. If the runner is missing and no planned assignment resolves it, or the runner is ambiguous, ask the user to choose an existing runner; do not create new runners. Delete self recorded observations only after the user clearly asks to delete self recorded data and you have a specific observationId or an unambiguous match.
 
 When the user attaches a screenshot or image from Strava, Garmin, Apple Watch, phone fitness apps, or similar sources, treat visible values as self recorded source evidence. Extract only values visible in the image or supplied by the user. Prefer source_type strava for Strava screenshots, and include useful provenance in sourceLabel, sourceTags, or metadata such as the app name, screenshot filename, visible activity title, and any uncertainty. If required fields like year, leg number, leg version, runner, or the intended source are not visible or supplied, ask for them before saving. Once a write succeeds, summarize the saved row and label it self recorded.
 
@@ -1105,12 +1106,22 @@ function createRelayTools(
         additionalProperties: false,
       }),
       execute: limitToolExecution(async () => {
-        const [yearlySummary, runnerStats, legVersionStats, results, observations, participations, comments] = await Promise.all([
+        const [
+          yearlySummary,
+          runnerStats,
+          legVersionStats,
+          results,
+          observations,
+          assignments,
+          participations,
+          comments,
+        ] = await Promise.all([
           fetchRows(supabase.from("v_yearly_summary").select("*").order("year", { ascending: false })),
           fetchRows(supabase.from("v_runner_stats").select("*").order("total_races", { ascending: false })),
           fetchRows(supabase.from("v_leg_version_stats").select("*")),
           fetchRows(supabase.from("v_results_with_pace").select("*")),
           fetchRowsOrEmptyWhenMissing(supabase.from("v_leg_result_observations_with_pace").select("*")),
+          fetchRowsOrEmptyWhenMissing(supabase.from("v_race_leg_assignments").select("*")),
           fetchRows(supabase.from("v_runner_participations").select("*")),
           fetchRowsOrEmptyWhenMissing(
             supabase
@@ -1127,6 +1138,7 @@ function createRelayTools(
             yearsCompeted: yearlySummary.length,
             legResults: results.length,
             selfRecordedObservations: observations.length,
+            plannedAssignments: assignments.length,
             runnerYearParticipations: participations.length,
             comments: comments.length,
             runners: runnerStats.filter((runner) => runner.runner_name).length,
@@ -1249,7 +1261,15 @@ function createRelayTools(
         additionalProperties: false,
       }),
       execute: limitToolExecution(async ({ year }) => {
-        const [summary, results, observations, participations, raceComments, runComments] = await Promise.all([
+        const [
+          summary,
+          results,
+          observations,
+          assignments,
+          participations,
+          raceComments,
+          runComments,
+        ] = await Promise.all([
           fetchRows(supabase.from("v_yearly_summary").select("*").eq("year", year).limit(1)),
           fetchRows(
             supabase
@@ -1261,6 +1281,13 @@ function createRelayTools(
           fetchRowsOrEmptyWhenMissing(
             supabase
               .from("v_leg_result_observations_with_pace")
+              .select("*")
+              .eq("year", year)
+              .order("leg_number", { ascending: true })
+          ),
+          fetchRowsOrEmptyWhenMissing(
+            supabase
+              .from("v_race_leg_assignments")
               .select("*")
               .eq("year", year)
               .order("leg_number", { ascending: true })
@@ -1295,6 +1322,7 @@ function createRelayTools(
           summary: summary[0] ?? null,
           results,
           observations,
+          assignments,
           participations,
           comments: {
             race: raceComments,
@@ -1327,7 +1355,8 @@ function createRelayTools(
           },
           runnerName: {
             type: "string",
-            description: "Exact runner name.",
+            description:
+              "Exact runner name. May be omitted when a planned assignment exists for this year and leg.",
           },
           sourceType: {
             type: "string",
@@ -1376,7 +1405,7 @@ function createRelayTools(
               "Set true only when the user explicitly confirms updating one matching existing observation if there is ambiguity.",
           },
         },
-        required: ["year", "legNumber", "legVersion", "runnerName"],
+        required: ["year", "legNumber", "legVersion"],
         additionalProperties: false,
       }),
       execute: limitToolExecution(async (input) => saveLegObservation(supabase, input, currentUser)),
@@ -1436,7 +1465,7 @@ async function saveLegObservation(
   const year = normalizeInteger(input.year);
   const legNumber = normalizeInteger(input.legNumber);
   const legVersion = normalizeInteger(input.legVersion);
-  const runnerName = input.runnerName.trim();
+  const runnerName = input.runnerName?.trim() ?? "";
   const sourceType = normalizeObservationSourceType(input.sourceType);
   const sourceLabel = input.sourceLabel === undefined ? undefined : normalizeNotes(input.sourceLabel);
   const sourceTags = input.sourceTags === undefined ? undefined : normalizeSourceTags(input.sourceTags);
@@ -1463,12 +1492,11 @@ async function saveLegObservation(
     };
   }
 
-  if (year === null || legNumber === null || legVersion === null || !runnerName) {
+  if (year === null || legNumber === null || legVersion === null) {
     const missingFields = [
       year === null && "race year",
       legNumber === null && "leg number",
       legVersion === null && "leg version",
-      !runnerName && "runner name",
     ].filter(Boolean);
 
     return {
@@ -1560,7 +1588,13 @@ async function saveLegObservation(
     };
   }
 
-  const runner = await resolveRunner(supabase, runnerName);
+  const runner = await resolveObservationRunner(
+    supabase,
+    runnerName,
+    year,
+    legNumber,
+    legVersion
+  );
 
   if (!runner.ok) {
     return runner;
@@ -1877,6 +1911,45 @@ async function resolveRunner(
       "No exact runner matched. Ask the user to choose an existing runner before saving self recorded data.",
     runnerName,
     possibleMatches,
+  };
+}
+
+async function resolveObservationRunner(
+  supabase: DataClient,
+  runnerName: string,
+  year: number,
+  legNumber: number,
+  legVersion: number
+) {
+  if (runnerName) {
+    return resolveRunner(supabase, runnerName);
+  }
+
+  const assignments = await fetchRowsOrEmptyWhenMissing(
+    supabase
+      .from("v_race_leg_assignments")
+      .select("runner_id,runner_name,status")
+      .eq("year", year)
+      .eq("leg_number", legNumber)
+      .eq("leg_version", legVersion)
+      .neq("status", "scratched")
+      .limit(2)
+  );
+  const assignment = assignments[0] as RaceLegAssignmentRow | undefined;
+
+  if (assignments.length === 1 && assignment?.runner_name) {
+    return resolveRunner(supabase, assignment.runner_name);
+  }
+
+  return {
+    ok: false,
+    action: "ask_for_runner_name",
+    message:
+      assignments.length > 1
+        ? "More than one planned assignment matched this leg. Ask for the runner name before saving self recorded data."
+        : "No runner name was supplied and no planned assignment matched this year, leg, and version. Ask for the runner name before saving self recorded data.",
+    runnerName: "",
+    possibleMatches: [] as RunnerRow[],
   };
 }
 

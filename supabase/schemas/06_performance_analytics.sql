@@ -98,6 +98,30 @@ CREATE OR REPLACE VIEW "public"."v_leg_result_observations_with_pace" AS
      LEFT JOIN "public"."results" "canonical_result" ON ((("canonical_result"."year" = "o"."year") AND ("canonical_result"."leg_number" = "o"."leg_number"))))
      LEFT JOIN "public"."runners" "canonical_runner" ON (("canonical_result"."user_id" = "canonical_runner"."id")));
 
+-- Race-day planned/known leg assignments with runner and course context
+CREATE OR REPLACE VIEW "public"."v_race_leg_assignments" AS
+ SELECT "a"."id",
+    "a"."year",
+    "a"."leg_number",
+    "a"."leg_version",
+    "a"."runner_id",
+    "rn"."name" AS "runner_name",
+    "rn"."auth_user_id",
+    "a"."status",
+    "a"."notes",
+    "ld"."distance",
+    "ld"."elevation_gain",
+    "r"."lap_time" AS "official_lap_time",
+    "r"."source_type" AS "official_source_type",
+    "r"."canonical_observation_id",
+    ("r"."lap_time" IS NOT NULL) AS "has_official_result",
+    "a"."created_at",
+    "a"."updated_at"
+   FROM ((("public"."race_leg_assignments" "a"
+     JOIN "public"."runners" "rn" ON (("a"."runner_id" = "rn"."id")))
+     JOIN "public"."leg_definitions" "ld" ON ((("a"."leg_number" = "ld"."number") AND ("a"."leg_version" = "ld"."version"))))
+     LEFT JOIN "public"."results" "r" ON ((("r"."year" = "a"."year") AND ("r"."leg_number" = "a"."leg_number"))));
+
 -- Race-year participation with runner names and known-leg status
 CREATE OR REPLACE VIEW "public"."v_runner_participations" AS
  SELECT "rp"."year",
@@ -106,12 +130,29 @@ CREATE OR REPLACE VIEW "public"."v_runner_participations" AS
     "rn"."auth_user_id",
     "rp"."status",
     "rp"."notes",
-    EXISTS ( SELECT 1
+    ((EXISTS ( SELECT 1
            FROM "public"."results" "r"
-          WHERE (("r"."year" = "rp"."year") AND ("r"."user_id" = "rp"."runner_id"))) AS "has_known_leg",
-    COALESCE(( SELECT "json_agg"("json_build_object"('leg_number', "r"."leg_number", 'leg_version', "r"."leg_version", 'lap_time', "r"."lap_time") ORDER BY "r"."leg_number") AS "json_agg"
-           FROM "public"."results" "r"
-          WHERE (("r"."year" = "rp"."year") AND ("r"."user_id" = "rp"."runner_id"))), '[]'::"json") AS "known_legs"
+          WHERE (("r"."year" = "rp"."year") AND ("r"."user_id" = "rp"."runner_id")))) OR (EXISTS ( SELECT 1
+           FROM "public"."race_leg_assignments" "a"
+          WHERE (("a"."year" = "rp"."year") AND ("a"."runner_id" = "rp"."runner_id") AND ("a"."status" <> 'scratched'::"text"))))) AS "has_known_leg",
+    COALESCE(( SELECT "json_agg"("json_build_object"('leg_number', "known_legs"."leg_number", 'leg_version', "known_legs"."leg_version", 'lap_time', "known_legs"."lap_time", 'source', "known_legs"."source", 'status', "known_legs"."status") ORDER BY "known_legs"."leg_number") AS "json_agg"
+           FROM ( SELECT "r"."leg_number",
+                    "r"."leg_version",
+                    "r"."lap_time",
+                    'official'::"text" AS "source",
+                    'ran'::"text" AS "status"
+                   FROM "public"."results" "r"
+                  WHERE (("r"."year" = "rp"."year") AND ("r"."user_id" = "rp"."runner_id"))
+                UNION ALL
+                 SELECT "a"."leg_number",
+                    "a"."leg_version",
+                    NULL::interval AS "lap_time",
+                    'assignment'::"text" AS "source",
+                    "a"."status"
+                   FROM "public"."race_leg_assignments" "a"
+                  WHERE (("a"."year" = "rp"."year") AND ("a"."runner_id" = "rp"."runner_id") AND ("a"."status" <> 'scratched'::"text") AND (NOT (EXISTS ( SELECT 1
+                           FROM "public"."results" "r"
+                          WHERE (("r"."year" = "a"."year") AND ("r"."leg_number" = "a"."leg_number"))))))) "known_legs"), '[]'::"json") AS "known_legs"
    FROM ("public"."race_participations" "rp"
      JOIN "public"."runners" "rn" ON (("rp"."runner_id" = "rn"."id")));
 
@@ -250,31 +291,32 @@ CREATE OR REPLACE VIEW "public"."v_runner_stats" AS
    FROM ("runner_participation" "p"
      LEFT JOIN "result_stats" "rs" ON (("p"."runner_id" = "rs"."runner_id")));
 
--- Yearly summary with percentiles - comprehensive team performance by year
+-- Yearly summary with percentiles - comprehensive team performance by year.
+-- Starts from placements so pending race shells still appear before official results arrive.
 CREATE OR REPLACE VIEW "public"."v_yearly_summary" AS
- SELECT "tps"."year",
+ SELECT "p"."year",
     "tps"."total_time",
     "tps"."average_pace",
     "tps"."improvement",
-    "tps"."overall_place",
-    "tps"."overall_teams",
-    "tps"."division_place",
-    "tps"."division_teams",
+    COALESCE("tps"."overall_place", "p"."overall_place") AS "overall_place",
+    COALESCE("tps"."overall_teams", "p"."overall_teams") AS "overall_teams",
+    COALESCE("tps"."division_place", "p"."division_place") AS "division_place",
+    COALESCE("tps"."division_teams", "p"."division_teams") AS "division_teams",
     "p"."division",
     "p"."bib",
         CASE
-            WHEN ("tps"."overall_teams" > 0) THEN ((("tps"."overall_place")::double precision / ("tps"."overall_teams")::double precision) * (100)::double precision)
+            WHEN (COALESCE("tps"."overall_teams", "p"."overall_teams") > 0) THEN (((COALESCE("tps"."overall_place", "p"."overall_place"))::double precision / (COALESCE("tps"."overall_teams", "p"."overall_teams"))::double precision) * (100)::double precision)
             ELSE NULL::double precision
         END AS "overall_percentile",
         CASE
-            WHEN ("tps"."division_teams" > 0) THEN ((("tps"."division_place")::double precision / ("tps"."division_teams")::double precision) * (100)::double precision)
+            WHEN (COALESCE("tps"."division_teams", "p"."division_teams") > 0) THEN (((COALESCE("tps"."division_place", "p"."division_place"))::double precision / (COALESCE("tps"."division_teams", "p"."division_teams"))::double precision) * (100)::double precision)
             ELSE NULL::double precision
         END AS "division_percentile",
     COALESCE("yp"."participant_count", (0)::bigint) AS "participant_count",
-    "tps"."race_start_time"
-   FROM ("public"."team_performance_summary" "tps"
-     LEFT JOIN "public"."placements" "p" ON (("tps"."year" = "p"."year")))
+    COALESCE("tps"."race_start_time", "p"."race_start_time") AS "race_start_time"
+   FROM ("public"."placements" "p"
+     LEFT JOIN "public"."team_performance_summary" "tps" ON (("tps"."year" = "p"."year")))
      LEFT JOIN ( SELECT "race_participations"."year",
             "count"(*) AS "participant_count"
            FROM "public"."race_participations"
-          GROUP BY "race_participations"."year") "yp" ON (("tps"."year" = "yp"."year"));
+          GROUP BY "race_participations"."year") "yp" ON (("p"."year" = "yp"."year"));

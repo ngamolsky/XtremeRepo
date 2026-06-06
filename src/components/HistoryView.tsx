@@ -10,12 +10,16 @@ import {
 import { Link } from "@tanstack/react-router";
 import React, { useState } from "react";
 import { useRelayData } from "../hooks/useRelayData";
-import { formatPace } from "../lib/utils";
-import { Tables } from "../types/database.types";
+import {
+  getDisplayLegResults,
+  getRaceDisplaySummary,
+} from "../lib/raceDisplay";
+import type { DisplayLegResult, RaceResultStatus } from "../lib/raceDisplay";
+import { formatFeet, formatMiles, formatPace, formatSourceType } from "../lib/utils";
 
 const HistoryView: React.FC = () => {
   const {
-    data: { yearlySummary, results, participations },
+    data: { yearlySummary, results, participations, legResultObservations },
     loading,
     error,
   } = useRelayData();
@@ -41,15 +45,16 @@ const HistoryView: React.FC = () => {
   }
 
   const raceHistory = yearlySummary.map((race) => {
-    const yearResults = results.filter((r) => r.year === race.year);
+    const displayLegResults = race.year
+      ? getDisplayLegResults(race.year, results, legResultObservations)
+      : [];
     const yearParticipations = participations.filter(
       (participation) => participation.year === race.year
     );
     return {
       ...race,
-      legResults: yearResults.sort(
-        (a, b) => (a.leg_number || 0) - (b.leg_number || 0)
-      ),
+      legResults: displayLegResults,
+      resultSummary: getRaceDisplaySummary(race, displayLegResults),
       participantCount: yearParticipations.length || race.participant_count || 0,
       unknownLegParticipations: yearParticipations
         .filter((participation) => !participation.has_known_leg)
@@ -59,29 +64,22 @@ const HistoryView: React.FC = () => {
     };
   });
 
+  const overallPercentiles = raceHistory
+    .map((race) => race.overall_percentile)
+    .filter((percentile): percentile is number => percentile !== null);
+  const officialTotalTimes = raceHistory
+    .map((race) => race.total_time?.toString())
+    .filter((time): time is string => Boolean(time));
   const bestOverallPercentile =
-    raceHistory.length > 0
-      ? Math.min(
-          ...raceHistory
-            .map((r) => r.overall_percentile)
-            .filter((p): p is number => p !== null)
-        )
-      : null;
+    overallPercentiles.length > 0 ? Math.min(...overallPercentiles) : null;
   const averageOverallPercentile =
-    raceHistory.length > 0
-      ? raceHistory.reduce((sum, r) => sum + (r.overall_percentile || 0), 0) /
-        raceHistory.length
+    overallPercentiles.length > 0
+      ? overallPercentiles.reduce((sum, percentile) => sum + percentile, 0) /
+        overallPercentiles.length
       : null;
-
   const bestTime =
-    raceHistory.length > 0
-      ? (raceHistory
-          .reduce(
-            (min, r) =>
-              r.total_time && r.total_time < min ? r.total_time : min,
-            raceHistory[0].total_time || "99:99:99"
-          )
-          ?.toString() ?? "N/A")
+    officialTotalTimes.length > 0
+      ? officialTotalTimes.reduce((min, time) => (time < min ? time : min))
       : "N/A";
 
   const toggleExpanded = (year: number) => {
@@ -113,7 +111,7 @@ const HistoryView: React.FC = () => {
           <h3 className="text-2xl font-bold text-gray-900">
             {raceHistory.length}
           </h3>
-          <p className="text-gray-600">Years Competed</p>
+          <p className="text-gray-600">Race Years</p>
         </div>
         <div className="card p-6 text-center">
           <Trophy className="w-8 h-8 text-yellow-600 mx-auto mb-3" />
@@ -146,36 +144,45 @@ const HistoryView: React.FC = () => {
           {raceHistory.map((race) => (
             <div key={race.year} className="card overflow-hidden">
               <div
-                className="p-6 cursor-pointer hover:bg-gray-50 transition-colors"
+                className="cursor-pointer p-4 transition-colors hover:bg-gray-50 sm:p-6"
                 onClick={() => toggleExpanded(race.year!)}
               >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-4">
-                    <div className="w-16 h-16 bg-gradient-to-br from-primary-500 to-primary-700 rounded-lg flex items-center justify-center text-white font-bold text-xl">
+                <div className="flex min-w-0 flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                  <div className="flex min-w-0 items-start gap-3 sm:items-center sm:gap-4">
+                    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-primary-500 to-primary-700 text-lg font-bold text-white sm:h-16 sm:w-16 sm:text-xl">
                       {race.year}
                     </div>
-                    <div>
-                      <h3 className="text-xl font-semibold text-gray-900">
-                        {race.year} Tahoe Relay
-                      </h3>
-                      <p className="text-gray-600">
-                        Division: {race.division}{" "}
-                        {race.bib && `• Bib #${race.bib}`}
-                        {race.participantCount > 0 &&
-                          ` • ${race.participantCount} runners`}
-                      </p>
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h3 className="text-lg font-semibold text-gray-900 sm:text-xl">
+                          {race.year} Tahoe Relay
+                        </h3>
+                        <RaceStatusBadge status={race.resultSummary.status} />
+                      </div>
+                      <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-sm text-gray-600">
+                        <span>Division: {race.division || "Pending"}</span>
+                        {race.bib && <span>Bib #{race.bib}</span>}
+                        {race.participantCount > 0 && (
+                          <span>{race.participantCount} runners</span>
+                        )}
+                        {race.resultSummary.selfRecordedResultCount > 0 && (
+                          <span>
+                            {race.resultSummary.selfRecordedResultCount} self recorded
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
 
-                  <div className="flex items-center space-x-6">
-                    <div className="text-center">
-                      <p className="text-2xl font-bold text-gray-900">
-                        {race.total_time?.toString() ?? "N/A"}
+                  <div className="flex flex-wrap items-center gap-3 lg:justify-end">
+                    <div className="min-w-24 rounded-lg bg-gray-50 px-3 py-2 text-center">
+                      <p className="text-lg font-bold text-gray-900 sm:text-2xl">
+                        {race.resultSummary.displayTotalTime ?? "N/A"}
                       </p>
                       <p className="text-sm text-gray-600">Total Time</p>
                     </div>
                     {race.overall_percentile !== null && (
-                      <div className="text-center">
+                      <div className="min-w-24 text-center">
                         <div
                           className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getPlacementColor(
                             race.overall_percentile
@@ -187,7 +194,7 @@ const HistoryView: React.FC = () => {
                       </div>
                     )}
                     {race.division_percentile !== null && (
-                      <div className="text-center">
+                      <div className="min-w-24 text-center">
                         <div
                           className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getPlacementColor(
                             race.division_percentile
@@ -227,46 +234,57 @@ const HistoryView: React.FC = () => {
               </div>
 
               {expandedYear === race.year && (
-                <div className="p-6 bg-gray-50/50">
+                <div className="bg-gray-50/50 p-4 sm:p-6">
                   <h4 className="text-md font-semibold text-gray-900 mb-3">
                     Leg Results
                   </h4>
-                  <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                      <thead className="bg-gray-100">
-                        <tr>
-                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
-                            Leg
-                          </th>
-                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
-                            Runner
-                          </th>
-                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
-                            Time
-                          </th>
-                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
-                            Pace
-                          </th>
-                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
-                            Distance
-                          </th>
-                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
-                            Gain
-                          </th>
-                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
-                            Details
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
-                        {race.legResults.map(
-                          (leg: Tables<"v_results_with_pace">) => (
-                            <tr key={leg.leg_number}>
+                  {race.legResults.length === 0 ? (
+                    <p className="text-sm text-gray-600">
+                      Official results are pending. Self recorded leg data will appear here as
+                      it is saved.
+                    </p>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-100">
+                          <tr>
+                            <th className="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
+                              Leg
+                            </th>
+                            <th className="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
+                              Runner
+                            </th>
+                            <th className="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
+                              Source
+                            </th>
+                            <th className="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
+                              Time
+                            </th>
+                            <th className="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
+                              Pace
+                            </th>
+                            <th className="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
+                              Distance
+                            </th>
+                            <th className="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
+                              Gain
+                            </th>
+                            <th className="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
+                              Details
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                          {race.legResults.map((leg: DisplayLegResult) => (
+                            <tr key={leg.key}>
                               <td className="px-4 py-2 whitespace-nowrap text-sm font-medium text-gray-800">
                                 {leg.leg_number} (v{leg.leg_version})
                               </td>
                               <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-800">
-                                {leg.runner_name}
+                                {leg.runner_name || "N/A"}
+                              </td>
+                              <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-800">
+                                <SourceBadge leg={leg} />
                               </td>
                               <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-800">
                                 {leg.lap_time || "N/A"}
@@ -275,20 +293,18 @@ const HistoryView: React.FC = () => {
                                 {formatPace(leg.pace || 0)}
                               </td>
                               <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-800">
-                                {leg.distance ? `${leg.distance} mi` : "N/A"}
+                                {formatMiles(leg.distance)}
                               </td>
                               <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-800">
-                                {leg.elevation_gain
-                                  ? `+${leg.elevation_gain} ft`
-                                  : "N/A"}
+                                {formatFeet(leg.elevation_gain)}
                               </td>
                               <td className="px-4 py-2 whitespace-nowrap text-sm font-medium">
-                                {leg.runner_name ? (
+                                {leg.runner_name && leg.leg_number && leg.leg_version ? (
                                   <Link
                                     to="/runs/$runnerName/$year/$legNumber/$version"
                                     params={{
                                       runnerName: leg.runner_name,
-                                      year: String(leg.year),
+                                      year: String(race.year),
                                       legNumber: String(leg.leg_number),
                                       version: String(leg.leg_version),
                                     }}
@@ -302,11 +318,11 @@ const HistoryView: React.FC = () => {
                                 )}
                               </td>
                             </tr>
-                          )
-                        )}
-	                      </tbody>
-	                    </table>
-	                  </div>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
                   {race.unknownLegParticipations.length > 0 && (
                     <div className="mt-6">
                       <h4 className="text-md font-semibold text-gray-900 mb-3">
@@ -324,8 +340,8 @@ const HistoryView: React.FC = () => {
                       </div>
                     </div>
                   )}
-	                </div>
-	              )}
+                </div>
+              )}
             </div>
           ))}
         </div>
@@ -343,5 +359,47 @@ const HistoryView: React.FC = () => {
     </div>
   );
 };
+
+const RaceStatusBadge: React.FC<{ status: RaceResultStatus }> = ({ status }) => (
+  <span
+    className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${getRaceStatusClass(
+      status
+    )}`}
+    title={status.description}
+  >
+    {status.label}
+  </span>
+);
+
+const SourceBadge: React.FC<{ leg: DisplayLegResult }> = ({ leg }) => {
+  const label =
+    leg.kind === "official"
+      ? "Official"
+      : `Self Recorded${leg.source_type ? ` · ${formatSourceType(leg.source_type)}` : ""}${
+          leg.source_label ? ` (${leg.source_label})` : ""
+        }`;
+
+  return (
+    <span
+      className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${
+        leg.kind === "official"
+          ? "bg-emerald-50 text-emerald-700"
+          : "bg-amber-50 text-amber-800"
+      }`}
+    >
+      {label}
+    </span>
+  );
+};
+
+function getRaceStatusClass(status: RaceResultStatus) {
+  if (status.tone === "official") {
+    return "bg-emerald-50 text-emerald-700";
+  }
+  if (status.tone === "partial") {
+    return "bg-blue-50 text-blue-700";
+  }
+  return "bg-amber-50 text-amber-800";
+}
 
 export default HistoryView;
