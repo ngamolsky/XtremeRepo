@@ -20,6 +20,7 @@
     "test:race-display-provisional": "node scripts/test-race-display-provisional-metrics.mjs",
     "test:race-detail-assumed-legend": "node scripts/test-race-detail-assumed-legend.mjs",
     "test:run-instance-leg-link": "node scripts/test-run-instance-leg-link.mjs",
+    "test:runner-race-breakdown": "node scripts/test-runner-race-breakdown.mjs",
     "test:xtreme-agent-vibes": "node scripts/test-xtreme-agent-vibes.mjs"
   },
   "dependencies": {

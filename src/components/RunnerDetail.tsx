@@ -20,7 +20,11 @@ import {
   radarPointForIndex,
   type LegRadarSelection,
 } from "../lib/runnerLegRadar";
-import { formatPace } from "../lib/utils";
+import {
+  buildRunnerRaceBreakdown,
+  type RunnerRaceEntry,
+} from "../lib/runnerRaceBreakdown";
+import { formatPace, formatSourceType } from "../lib/utils";
 import CommentsSection from "./CommentsSection";
 import { LegPill } from "./LegPill";
 import { StatCard } from "./StatCard";
@@ -38,7 +42,7 @@ const chartTooltipStyle = {
 const RunnerDetail: React.FC = () => {
   const { runnerName } = useParams({ from: "/runners/$runnerName" });
   const {
-    data: { legDefinitions, runnerStats, results, participations },
+    data: { legDefinitions, legResultObservations, runnerStats, results, participations },
     loading,
     error,
   } = useRelayData();
@@ -47,6 +51,11 @@ const RunnerDetail: React.FC = () => {
 
   const runnerStat = runnerStats.find((r) => r.runner_name === runnerName);
   const runnerResults = results.filter((r) => r.runner_name === runnerName);
+  const runnerRaceBreakdown = buildRunnerRaceBreakdown(
+    runnerName,
+    results,
+    legResultObservations
+  );
   const runnerParticipations = participations.filter(
     (participation) => participation.runner_name === runnerName
   );
@@ -347,103 +356,63 @@ const RunnerDetail: React.FC = () => {
         )}
       </div>
 
-      {/* Results Table */}
+      {/* Race Breakdown */}
       <div className="card p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">
-          Known Leg Results
-        </h3>
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Year
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Leg
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Time
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Pace
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Distance
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Elevation
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Details
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {runnerResults.length > 0 ? (
-                runnerResults
-                .sort((a, b) => (b.year || 0) - (a.year || 0))
-                .map((result, idx) => (
-                  <tr
-                    key={`${result.year}-${result.leg_number}-${result.leg_version}`}
-                    className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}
-                  >
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {result.year}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      <LegPill
-                        leg={result.leg_number || 0}
-                        version={result.leg_version || 0}
-                        className="px-2 py-1 bg-primary-100 text-primary-800 text-xs rounded-full"
-                      >
-                        {result.leg_number} (v{result.leg_version})
-                      </LegPill>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {result.lap_time || "N/A"}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {formatPace(result.pace || 0)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {result.distance ? `${result.distance} mi` : "N/A"}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {result.elevation_gain
-                        ? `${result.elevation_gain} ft`
-                        : "N/A"}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <Link
-                        to="/runs/$runnerName/$year/$legNumber/$version"
-                        params={{
-                          runnerName,
-                          year: String(result.year),
-                          legNumber: String(result.leg_number),
-                          version: String(result.leg_version),
-                        }}
-                        className="text-primary-700 hover:text-primary-800"
-                      >
-                        Open
-                      </Link>
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td
-                    colSpan={7}
-                    className="px-6 py-4 text-sm text-gray-600"
-                  >
-                    This runner is counted for race-year participation, but no
-                    leg assignment is known yet.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+        <div className="mb-5">
+          <h3 className="text-lg font-semibold text-gray-900">
+            Race Results
+          </h3>
+          <p className="mt-1 text-sm text-gray-600">
+            Each race shows official data first, with provisional self recorded data alongside it when available.
+          </p>
         </div>
+        {runnerRaceBreakdown.length > 0 ? (
+          <div className="space-y-5">
+            {runnerRaceBreakdown.map((race) => (
+              <section
+                key={race.year}
+                className="rounded-xl border border-gray-200 bg-white p-4"
+              >
+                <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+                  <h4 className="text-base font-semibold text-gray-900">
+                    {race.year} Race
+                  </h4>
+                  <div className="flex flex-wrap gap-2 text-xs font-medium">
+                    <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-emerald-700">
+                      {race.official.length} official
+                    </span>
+                    <span className="rounded-full bg-amber-50 px-2.5 py-1 text-amber-800">
+                      {race.provisional.length} provisional
+                    </span>
+                  </div>
+                </div>
+
+                <div className="grid gap-4 lg:grid-cols-2">
+                  <RunnerRaceEntryGroup
+                    entries={race.official}
+                    emptyText="No official data yet."
+                    kind="official"
+                    runnerName={runnerName}
+                    title="Official"
+                    year={race.year}
+                  />
+                  <RunnerRaceEntryGroup
+                    entries={race.provisional}
+                    emptyText="No provisional data for this race."
+                    kind="provisional"
+                    runnerName={runnerName}
+                    title="Provisional"
+                    year={race.year}
+                  />
+                </div>
+              </section>
+            ))}
+          </div>
+        ) : (
+          <p className="text-sm text-gray-600">
+            This runner is counted for race-year participation, but no leg assignment is known yet.
+          </p>
+        )}
       </div>
 
       {unknownLegYears.length > 0 && (
@@ -597,5 +566,150 @@ const RunnerDetail: React.FC = () => {
     </div>
   );
 };
+
+const RunnerRaceEntryGroup: React.FC<{
+  emptyText: string;
+  entries: RunnerRaceEntry[];
+  kind: "official" | "provisional";
+  runnerName: string;
+  title: string;
+  year: number;
+}> = ({ emptyText, entries, kind, runnerName, title, year }) => (
+  <div className="rounded-lg border border-gray-100 bg-gray-50 p-4">
+    <h5 className="mb-3 text-sm font-semibold uppercase tracking-wider text-gray-500">
+      {title}
+    </h5>
+    {entries.length > 0 ? (
+      <div className="space-y-3">
+        {entries.map((entry) => (
+          <RunnerRaceEntryCard
+            key={entry.key}
+            entry={entry}
+            kind={kind}
+            runnerName={runnerName}
+            year={year}
+          />
+        ))}
+      </div>
+    ) : (
+      <p className="rounded-lg border border-dashed border-gray-200 bg-white px-4 py-3 text-sm text-gray-500">
+        {emptyText}
+      </p>
+    )}
+  </div>
+);
+
+const RunnerRaceEntryCard: React.FC<{
+  entry: RunnerRaceEntry;
+  kind: "official" | "provisional";
+  runnerName: string;
+  year: number;
+}> = ({ entry, kind, runnerName, year }) => (
+  <div className="rounded-lg border border-gray-200 bg-white p-4">
+    <div className="flex flex-wrap items-start justify-between gap-3">
+      <div>
+        <div className="flex flex-wrap items-center gap-2">
+          {entry.legNumber && entry.legVersion ? (
+            <LegPill
+              leg={entry.legNumber}
+              version={entry.legVersion}
+              className="px-2 py-1 bg-primary-100 text-primary-800 text-xs rounded-full"
+            >
+              {entry.label}
+            </LegPill>
+          ) : (
+            <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full">
+              {entry.label}
+            </span>
+          )}
+          <span
+            className={`rounded-full px-2.5 py-1 text-xs font-medium ${
+              kind === "official"
+                ? "bg-emerald-50 text-emerald-700"
+                : "bg-amber-50 text-amber-800"
+            }`}
+          >
+            {kind === "official" ? "Official" : "Provisional"}
+          </span>
+        </div>
+        {kind === "provisional" && (
+          <p className="mt-2 text-xs text-gray-500">
+            {formatProvisionalSource(entry)}
+          </p>
+        )}
+      </div>
+      {entry.legNumber && entry.legVersion ? (
+        <Link
+          to="/runs/$runnerName/$year/$legNumber/$version"
+          params={{
+            runnerName,
+            year: String(year),
+            legNumber: String(entry.legNumber),
+            version: String(entry.legVersion),
+          }}
+          className="text-sm font-medium text-primary-700 hover:text-primary-800"
+        >
+          Open
+        </Link>
+      ) : null}
+    </div>
+
+    <dl className="mt-4 grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
+      <RunnerRaceMetric label={entry.timeLabel} value={entry.time || "N/A"} />
+      <RunnerRaceMetric
+        assumed={entry.assumedMetrics.pace}
+        label="Pace"
+        value={entry.pace ? formatPace(entry.pace) : "N/A"}
+      />
+      <RunnerRaceMetric
+        assumed={entry.assumedMetrics.distance}
+        label="Distance"
+        value={entry.distance ? `${entry.distance} mi` : "N/A"}
+      />
+      <RunnerRaceMetric
+        assumed={entry.assumedMetrics.elevationGain}
+        label="Elevation"
+        value={entry.elevationGain ? `${entry.elevationGain} ft` : "N/A"}
+      />
+    </dl>
+
+    {entry.sourceTags.length > 0 && (
+      <div className="mt-3 flex flex-wrap gap-1.5">
+        {entry.sourceTags.map((sourceTag) => (
+          <span
+            key={sourceTag}
+            className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600"
+          >
+            {sourceTag}
+          </span>
+        ))}
+      </div>
+    )}
+  </div>
+);
+
+const RunnerRaceMetric: React.FC<{
+  assumed?: boolean;
+  label: string;
+  value: string;
+}> = ({ assumed = false, label, value }) => (
+  <div>
+    <dt className="text-xs font-medium uppercase text-gray-500">{label}</dt>
+    <dd className="mt-1 font-medium text-gray-900">
+      {value}
+      {assumed ? <span aria-label="assumed">*</span> : null}
+    </dd>
+  </div>
+);
+
+function formatProvisionalSource(entry: RunnerRaceEntry) {
+  const sourceType = entry.sourceType ? formatSourceType(entry.sourceType) : null;
+
+  if (sourceType && entry.sourceLabel) {
+    return `${sourceType} · ${entry.sourceLabel}`;
+  }
+
+  return sourceType ?? entry.sourceLabel ?? "Self recorded race-day data";
+}
 
 export default RunnerDetail;
