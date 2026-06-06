@@ -34,6 +34,8 @@ assert.match(navigationSource, /mobileMenuOpen/, "mobile nav should track hambur
 assert.match(navigationSource, /Menu[, }]/, "mobile nav should use a hamburger menu icon");
 assert.match(navigationSource, /X[, }]/, "mobile drawer should include a close icon");
 assert.match(navigationSource, /aria-label="Open menu"/, "mobile nav should expose an open menu button");
+assert.match(navigationSource, /aria-label="Open menu"[\s\S]*bg-white[\s\S]*dark:bg-slate-900/, "mobile hamburger button should have an opaque light and dark background");
+assert.match(navigationSource, /aria-label="Mobile menu"[\s\S]*bg-white[\s\S]*dark:bg-slate-950/, "mobile menu drawer should have an opaque light and dark background");
 assert.match(navigationSource, /aria-label="Close menu"/, "mobile drawer should expose a close menu button");
 assert.match(navigationSource, /fixed inset-y-0 right-0/, "mobile menu should slide in from the right");
 assert.match(navigationSource, /translate-x-0[\s\S]*translate-x-full/, "mobile drawer should animate between open and closed states");
