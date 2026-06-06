@@ -1,21 +1,28 @@
 import { Link, useParams } from "@tanstack/react-router";
-import { ArrowLeft, Calendar, Image, MessageSquare, Save, Tag } from "lucide-react";
+import { ArrowLeft, Calendar, Image, MessageSquare, Save, Star, Tag } from "lucide-react";
 import React, { FormEvent, useEffect, useMemo, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { Tables } from "../types/database.types";
 
 type RacePhoto = Tables<"race_photos">;
 type RacePhotoNote = Tables<"race_photo_notes">;
+type Runner = Pick<Tables<"runners">, "auth_user_id" | "name">;
 type PhotoWithUrl = RacePhoto & { url: string };
+type NoteAuthor = {
+  displayName: string;
+};
 
 const PhotoDetailView: React.FC = () => {
   const { photoId } = useParams({ from: "/photos/$photoId" });
   const [photo, setPhoto] = useState<PhotoWithUrl | null>(null);
   const [notes, setNotes] = useState<RacePhotoNote[]>([]);
+  const [noteAuthors, setNoteAuthors] = useState<Record<string, NoteAuthor>>({});
   const [noteText, setNoteText] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [settingCover, setSettingCover] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [coverError, setCoverError] = useState<string | null>(null);
   const [noteError, setNoteError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -24,6 +31,7 @@ const PhotoDetailView: React.FC = () => {
     async function loadPhoto() {
       setLoading(true);
       setLoadError(null);
+      setCoverError(null);
       setNoteError(null);
 
       const [photoResult, notesResult] = await Promise.all([
@@ -43,23 +51,35 @@ const PhotoDetailView: React.FC = () => {
         setLoadError(photoResult.error.message);
         setPhoto(null);
         setNotes([]);
+        setNoteAuthors({});
       } else if (!photoResult.data) {
         setLoadError("Photo not found");
         setPhoto(null);
         setNotes([]);
+        setNoteAuthors({});
       } else if (notesResult.error) {
         setLoadError(notesResult.error.message);
         setPhoto(null);
         setNotes([]);
+        setNoteAuthors({});
       } else {
         const loadedPhoto = photoResult.data;
+        const loadedNotes = notesResult.data ?? [];
+        const authorIds = getUniqueAuthorIds(loadedNotes);
+        const authorsById = await loadNoteAuthors(authorIds);
+
+        if (cancelled) {
+          return;
+        }
+
         setPhoto({
           ...loadedPhoto,
           url: supabase.storage
             .from(loadedPhoto.storage_bucket)
             .getPublicUrl(loadedPhoto.storage_path).data.publicUrl,
         });
-        setNotes(notesResult.data ?? []);
+        setNotes(loadedNotes);
+        setNoteAuthors(authorsById);
       }
 
       setLoading(false);
@@ -102,10 +122,63 @@ const PhotoDetailView: React.FC = () => {
       setNoteError(error.message);
     } else if (data) {
       setNotes((currentNotes) => [data, ...currentNotes]);
+      if (data.author_id && !noteAuthors[data.author_id]) {
+        const authorsById = await loadNoteAuthors([data.author_id]);
+        setNoteAuthors((currentAuthors) => ({
+          ...currentAuthors,
+          ...authorsById,
+        }));
+      }
       setNoteText("");
     }
 
     setSaving(false);
+  }
+
+  async function handleSetYearCover() {
+    if (!photo || photo.featured) {
+      return;
+    }
+
+    setSettingCover(true);
+    setCoverError(null);
+
+    const clearResult = await supabase
+      .from("race_photos")
+      .update({ featured: false })
+      .eq("year", photo.year)
+      .neq("id", photo.id);
+
+    if (clearResult.error) {
+      setCoverError(clearResult.error.message);
+      setSettingCover(false);
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from("race_photos")
+      .update({ featured: true })
+      .eq("id", photo.id)
+      .select("*")
+      .single();
+
+    if (error) {
+      setCoverError(error.message);
+    } else if (data) {
+      setPhoto((currentPhoto) => {
+        if (!currentPhoto) {
+          return currentPhoto;
+        }
+
+        return {
+          ...currentPhoto,
+          ...data,
+          url: currentPhoto.url,
+        };
+      });
+    }
+
+    setSettingCover(false);
   }
 
   if (loading) {
@@ -185,6 +258,30 @@ const PhotoDetailView: React.FC = () => {
         <aside className="space-y-6">
           <section className="card p-6">
             <div className="mb-4 flex items-center gap-2">
+              <Star className="h-5 w-5 text-primary-600" />
+              <h2 className="text-lg font-semibold text-gray-900">Year Cover</h2>
+            </div>
+
+            {coverError && <p className="mb-3 text-sm text-red-600">{coverError}</p>}
+            <button
+              type="button"
+              onClick={handleSetYearCover}
+              disabled={photo.featured || settingCover}
+              className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-primary-200 bg-primary-50 px-4 py-2 text-sm font-medium text-primary-700 transition-colors hover:border-primary-300 hover:bg-primary-100 disabled:cursor-not-allowed disabled:border-gray-200 disabled:bg-gray-100 disabled:text-gray-500 dark:border-primary-900/60 dark:bg-primary-950/40 dark:text-primary-200 dark:disabled:border-slate-700 dark:disabled:bg-slate-800 dark:disabled:text-slate-400"
+            >
+              <Star className={`h-4 w-4 ${photo.featured ? "fill-current" : ""}`} />
+              <span>
+                {photo.featured
+                  ? "Current year cover"
+                  : settingCover
+                    ? "Setting cover..."
+                    : "Set as year cover"}
+              </span>
+            </button>
+          </section>
+
+          <section className="card p-6">
+            <div className="mb-4 flex items-center gap-2">
               <MessageSquare className="h-5 w-5 text-primary-600" />
               <h2 className="text-lg font-semibold text-gray-900">Notes</h2>
             </div>
@@ -216,7 +313,9 @@ const PhotoDetailView: React.FC = () => {
               notes.map((note) => (
                 <article key={note.id} className="card p-5">
                   <p className="whitespace-pre-wrap text-sm leading-6 text-gray-800">{note.body}</p>
-                  <p className="mt-3 text-xs text-gray-500">{formatDate(note.created_at)}</p>
+                  <p className="mt-3 text-xs text-gray-500">
+                    {formatNoteByline(note, noteAuthors)}
+                  </p>
                 </article>
               ))
             )}
@@ -253,6 +352,50 @@ function formatDate(value: string) {
     hour: "numeric",
     minute: "2-digit",
   }).format(new Date(value));
+}
+
+function getUniqueAuthorIds(notes: RacePhotoNote[]) {
+  return Array.from(
+    new Set(
+      notes
+        .map((note) => note.author_id)
+        .filter((authorId): authorId is string => Boolean(authorId))
+    )
+  );
+}
+
+async function loadNoteAuthors(authorIds: string[]) {
+  if (authorIds.length === 0) {
+    return {};
+  }
+
+  const { data, error } = await supabase
+    .from("runners")
+    .select("auth_user_id,name")
+    .in("auth_user_id", authorIds);
+
+  if (error) {
+    return {};
+  }
+
+  return (data as Runner[]).reduce<Record<string, NoteAuthor>>((authorsById, runner) => {
+    if (runner.auth_user_id) {
+      authorsById[runner.auth_user_id] = { displayName: runner.name };
+    }
+
+    return authorsById;
+  }, {});
+}
+
+function formatNoteByline(
+  note: RacePhotoNote,
+  noteAuthors: Record<string, NoteAuthor>
+) {
+  const authorName = note.author_id
+    ? noteAuthors[note.author_id]?.displayName ?? `User ${note.author_id.slice(0, 8)}`
+    : "Unknown author";
+
+  return `${authorName} recorded ${formatDate(note.created_at)}`;
 }
 
 export default PhotoDetailView;

@@ -1,6 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
-import PhotosView from "../components/PhotosView";
+import { Outlet, createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/photos")({
-  component: PhotosView,
+  component: () => <Outlet />,
 });

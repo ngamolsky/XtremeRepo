@@ -1,15 +1,33 @@
 import { Link } from "@tanstack/react-router";
 import React, { useEffect, useMemo, useState } from "react";
-import { Calendar, Camera, Filter, Image, Search, Tag } from "lucide-react";
+import {
+  ArrowLeft,
+  Calendar,
+  Camera,
+  Filter,
+  Folder,
+  FolderOpen,
+  Image,
+  Search,
+  Star,
+  Tag,
+} from "lucide-react";
 import { supabase } from "../lib/supabase";
 import { Tables } from "../types/database.types";
 
 type RacePhoto = Tables<"race_photos">;
 type PhotoWithUrl = RacePhoto & { url: string };
+type PhotoFolder = {
+  categories: string[];
+  coverPhoto: PhotoWithUrl;
+  photos: PhotoWithUrl[];
+  races: string[];
+  year: number;
+};
 
 const PhotosView: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
-  const [selectedYear, setSelectedYear] = useState<string>("all");
+  const [selectedYear, setSelectedYear] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [photos, setPhotos] = useState<PhotoWithUrl[]>([]);
   const [loading, setLoading] = useState(true);
@@ -56,29 +74,52 @@ const PhotosView: React.FC = () => {
     };
   }, []);
 
-  const categories = useMemo(
-    () => ["all", ...Array.from(new Set(photos.map((photo) => photo.category))).sort()],
-    [photos]
-  );
+  const folders = useMemo<PhotoFolder[]>(() => {
+    const photosByYear = new Map<number, PhotoWithUrl[]>();
 
-  const years = useMemo(
+    photos.forEach((photo) => {
+      const currentPhotos = photosByYear.get(photo.year) ?? [];
+      currentPhotos.push(photo);
+      photosByYear.set(photo.year, currentPhotos);
+    });
+
+    return Array.from(photosByYear.entries())
+      .sort(([yearA], [yearB]) => yearB - yearA)
+      .map(([year, yearPhotos]) => ({
+        categories: Array.from(new Set(yearPhotos.map((photo) => photo.category))).sort(),
+        coverPhoto:
+          yearPhotos.find((photo) => photo.featured) ??
+          yearPhotos[0],
+        photos: yearPhotos,
+        races: Array.from(new Set(yearPhotos.map((photo) => photo.race))).sort(),
+        year,
+      }));
+  }, [photos]);
+
+  const photosForSelectedYear = useMemo(() => {
+    if (selectedYear === null) {
+      return photos;
+    }
+
+    return photos.filter((photo) => photo.year === selectedYear);
+  }, [photos, selectedYear]);
+
+  const categories = useMemo(
     () => [
       "all",
-      ...Array.from(new Set(photos.map((photo) => photo.year.toString()))).sort((a, b) =>
-        b.localeCompare(a)
-      ),
+      ...Array.from(new Set(photosForSelectedYear.map((photo) => photo.category))).sort(),
     ],
-    [photos]
+    [photosForSelectedYear]
   );
 
   const filteredPhotos = useMemo(() => {
     const normalizedSearch = searchTerm.trim().toLowerCase();
 
-    return photos.filter((photo) => {
+    return photosForSelectedYear.filter((photo) => {
       const matchesCategory =
         selectedCategory === "all" || photo.category === selectedCategory;
-      const matchesYear = selectedYear === "all" || photo.year.toString() === selectedYear;
       const searchableText = [
+        photo.year,
         photo.caption,
         photo.alt_text,
         photo.race,
@@ -94,15 +135,81 @@ const PhotosView: React.FC = () => {
       const matchesSearch =
         normalizedSearch === "" || searchableText.includes(normalizedSearch);
 
-      return matchesCategory && matchesYear && matchesSearch;
+      return matchesCategory && matchesSearch;
     });
-  }, [photos, searchTerm, selectedCategory, selectedYear]);
+  }, [photosForSelectedYear, searchTerm, selectedCategory]);
+
+  const filteredFolders = useMemo(() => {
+    const normalizedSearch = searchTerm.trim().toLowerCase();
+
+    return folders.filter((folder) => {
+      const matchesCategory =
+        selectedCategory === "all" ||
+        folder.photos.some((photo) => photo.category === selectedCategory);
+      const searchableText = [
+        folder.year,
+        ...folder.races,
+        ...folder.categories,
+        ...folder.photos.flatMap((photo) => [
+          photo.caption,
+          photo.alt_text,
+          photo.event_name,
+          photo.source,
+          photo.original_filename,
+          ...photo.tags,
+        ]),
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+      const matchesSearch =
+        normalizedSearch === "" || searchableText.includes(normalizedSearch);
+
+      return matchesCategory && matchesSearch;
+    });
+  }, [folders, searchTerm, selectedCategory]);
+
+  const summaryPhotos = selectedYear === null
+    ? filteredFolders.flatMap((folder) => folder.photos)
+    : filteredPhotos;
+
+  function handleOpenFolder(year: number) {
+    setSelectedYear(year);
+    setSelectedCategory("all");
+    setSearchTerm("");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function handleBackToFolders() {
+    setSelectedYear(null);
+    setSelectedCategory("all");
+    setSearchTerm("");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
 
   return (
     <div className="space-y-8 animate-fade-in">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold text-gray-900 mb-2">Race Photos</h1>
-        <p className="text-lg text-gray-600">Capturing memories from our relay race adventures</p>
+      <div className="flex flex-col gap-4 text-center sm:text-left md:flex-row md:items-end md:justify-between">
+        <div>
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">
+            {selectedYear === null ? "Race Photos" : `${selectedYear} Race Photos`}
+          </h1>
+          <p className="text-lg text-gray-600">
+            {selectedYear === null
+              ? "Captured memories from our relay race adventures"
+              : `${photosForSelectedYear.length} photos from ${selectedYear}`}
+          </p>
+        </div>
+        {selectedYear !== null && (
+          <button
+            type="button"
+            onClick={handleBackToFolders}
+            className="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:border-primary-300 hover:text-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            <span>Years</span>
+          </button>
+        )}
       </div>
 
       <div className="card p-6">
@@ -137,17 +244,9 @@ const PhotosView: React.FC = () => {
 
           <div className="flex items-center space-x-2">
             <Calendar className="w-5 h-5 text-gray-400" />
-            <select
-              value={selectedYear}
-              onChange={(e) => setSelectedYear(e.target.value)}
-              className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
-            >
-              {years.map((year) => (
-                <option key={year} value={year}>
-                  {year === "all" ? "All Years" : year}
-                </option>
-              ))}
-            </select>
+            <div className="rounded-lg border border-gray-200 px-3 py-2 text-sm font-medium text-gray-700 dark:border-slate-700 dark:text-slate-200">
+              {selectedYear === null ? "All Years" : selectedYear}
+            </div>
           </div>
         </div>
       </div>
@@ -155,27 +254,31 @@ const PhotosView: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div className="card p-6 text-center">
           <Camera className="w-8 h-8 text-primary-600 mx-auto mb-3" />
-          <h3 className="text-2xl font-bold text-gray-900">{filteredPhotos.length}</h3>
-          <p className="text-gray-600">Photos Found</p>
+          <h3 className="text-2xl font-bold text-gray-900">{summaryPhotos.length}</h3>
+          <p className="text-gray-600">Photos</p>
         </div>
         <div className="card p-6 text-center">
-          <Calendar className="w-8 h-8 text-green-600 mx-auto mb-3" />
+          {selectedYear === null ? (
+            <FolderOpen className="w-8 h-8 text-green-600 mx-auto mb-3" />
+          ) : (
+            <Calendar className="w-8 h-8 text-green-600 mx-auto mb-3" />
+          )}
           <h3 className="text-2xl font-bold text-gray-900">
-            {new Set(filteredPhotos.map((photo) => photo.year)).size}
+            {selectedYear === null ? filteredFolders.length : selectedYear}
           </h3>
-          <p className="text-gray-600">Years Covered</p>
+          <p className="text-gray-600">{selectedYear === null ? "Years" : "Year"}</p>
         </div>
         <div className="card p-6 text-center">
           <Tag className="w-8 h-8 text-purple-600 mx-auto mb-3" />
           <h3 className="text-2xl font-bold text-gray-900">
-            {new Set(filteredPhotos.map((photo) => photo.category)).size}
+            {new Set(summaryPhotos.map((photo) => photo.category)).size}
           </h3>
           <p className="text-gray-600">Categories</p>
         </div>
         <div className="card p-6 text-center">
           <Filter className="w-8 h-8 text-orange-600 mx-auto mb-3" />
           <h3 className="text-2xl font-bold text-gray-900">
-            {new Set(filteredPhotos.map((photo) => photo.race)).size}
+            {new Set(summaryPhotos.map((photo) => photo.race)).size}
           </h3>
           <p className="text-gray-600">Races</p>
         </div>
@@ -199,6 +302,61 @@ const PhotosView: React.FC = () => {
           <h3 className="text-lg font-medium text-gray-900 mb-2">Could not load photos</h3>
           <p className="text-gray-600">{loadError}</p>
         </div>
+      ) : selectedYear === null && filteredFolders.length === 0 ? (
+        <div className="text-center py-12">
+          <Image className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">No photos found</h3>
+          <p className="text-gray-600">Try adjusting your filters or search terms</p>
+        </div>
+      ) : selectedYear === null ? (
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {filteredFolders.map((folder) => (
+            <button
+              key={folder.year}
+              type="button"
+              data-testid={`photo-year-folder-${folder.year}`}
+              onClick={() => handleOpenFolder(folder.year)}
+              className="card group overflow-hidden text-left focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+            >
+              <div className="relative aspect-[4/3] overflow-hidden bg-gray-100 dark:bg-slate-800">
+                <img
+                  src={folder.coverPhoto.url}
+                  alt={`${folder.year} ${folder.coverPhoto.race}`}
+                  loading="lazy"
+                  className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+                <div className="absolute inset-x-4 bottom-4 flex items-end justify-between gap-4 text-white">
+                  <div>
+                    <h2 className="text-3xl font-bold leading-none">{folder.year}</h2>
+                    <p className="mt-1 text-sm font-medium text-white/85">
+                      {formatCount(folder.photos.length, "photo")}
+                    </p>
+                  </div>
+                  <span className="rounded-full bg-white/90 p-3 text-primary-700 shadow-sm">
+                    <Folder className="h-6 w-6" />
+                  </span>
+                </div>
+              </div>
+              <div className="space-y-3 p-4">
+                <div className="flex items-center justify-between text-sm text-gray-600">
+                  <span>{formatCount(folder.races.length, "race")}</span>
+                  <span>{formatCount(folder.categories.length, "category")}</span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {folder.categories.slice(0, 4).map((category) => (
+                    <span
+                      key={category}
+                      className={`rounded-full px-2 py-1 text-xs font-medium ${getCategoryClass(category)}`}
+                    >
+                      {formatLabel(category)}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </button>
+          ))}
+        </div>
       ) : filteredPhotos.length === 0 ? (
         <div className="text-center py-12">
           <Image className="w-16 h-16 text-gray-300 mx-auto mb-4" />
@@ -215,7 +373,8 @@ const PhotosView: React.FC = () => {
                 key={photo.id}
                 to="/photos/$photoId"
                 params={{ photoId: photo.id }}
-                className="card block overflow-hidden hover:shadow-lg transition-all duration-200 group"
+                data-testid="photo-card"
+                className="card block overflow-hidden hover:shadow-lg transition-all duration-200 group focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
               >
                 <div className="relative aspect-[4/3] overflow-hidden bg-gray-100 dark:bg-slate-800">
                   <img
@@ -229,6 +388,14 @@ const PhotosView: React.FC = () => {
                       {formatLabel(photo.category)}
                     </span>
                   </div>
+                  {photo.featured && (
+                    <div className="absolute left-4 top-4">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-white/90 px-2 py-1 text-xs font-medium text-primary-700 shadow-sm">
+                        <Star className="h-3 w-3 fill-current" />
+                        Cover
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 <div className="p-4">
@@ -283,6 +450,10 @@ function getCategoryClass(category: string) {
     default:
       return "bg-gray-100 text-gray-800";
   }
+}
+
+function formatCount(count: number, singularLabel: string) {
+  return `${count} ${singularLabel}${count === 1 ? "" : "s"}`;
 }
 
 export default PhotosView;

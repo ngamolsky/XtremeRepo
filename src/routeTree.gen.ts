@@ -17,6 +17,7 @@ import { Route as LegsRouteImport } from './routes/legs'
 import { Route as HistoryRouteImport } from './routes/history'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as PhotosIndexRouteImport } from './routes/photos.index'
 import { Route as LegsIndexRouteImport } from './routes/legs.index'
 import { Route as RunnersRunnerNameRouteImport } from './routes/runners.$runnerName'
 import { Route as PhotosPhotoIdRouteImport } from './routes/photos.$photoId'
@@ -62,6 +63,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PhotosIndexRoute = PhotosIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => PhotosRoute,
+} as any)
 const LegsIndexRoute = LegsIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -95,19 +101,20 @@ export interface FileRoutesByFullPath {
   '/photos/$photoId': typeof PhotosPhotoIdRoute
   '/runners/$runnerName': typeof RunnersRunnerNameRoute
   '/legs/': typeof LegsIndexRoute
+  '/photos/': typeof PhotosIndexRoute
   '/legs/$legNumber/$version': typeof LegsLegNumberVersionRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
   '/history': typeof HistoryRoute
-  '/photos': typeof PhotosRouteWithChildren
   '/profile': typeof ProfileRoute
   '/team': typeof TeamRoute
   '/upload': typeof UploadRoute
   '/photos/$photoId': typeof PhotosPhotoIdRoute
   '/runners/$runnerName': typeof RunnersRunnerNameRoute
   '/legs': typeof LegsIndexRoute
+  '/photos': typeof PhotosIndexRoute
   '/legs/$legNumber/$version': typeof LegsLegNumberVersionRoute
 }
 export interface FileRoutesById {
@@ -123,6 +130,7 @@ export interface FileRoutesById {
   '/photos/$photoId': typeof PhotosPhotoIdRoute
   '/runners/$runnerName': typeof RunnersRunnerNameRoute
   '/legs/': typeof LegsIndexRoute
+  '/photos/': typeof PhotosIndexRoute
   '/legs/$legNumber/$version': typeof LegsLegNumberVersionRoute
 }
 export interface FileRouteTypes {
@@ -139,19 +147,20 @@ export interface FileRouteTypes {
     | '/photos/$photoId'
     | '/runners/$runnerName'
     | '/legs/'
+    | '/photos/'
     | '/legs/$legNumber/$version'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/dashboard'
     | '/history'
-    | '/photos'
     | '/profile'
     | '/team'
     | '/upload'
     | '/photos/$photoId'
     | '/runners/$runnerName'
     | '/legs'
+    | '/photos'
     | '/legs/$legNumber/$version'
   id:
     | '__root__'
@@ -166,6 +175,7 @@ export interface FileRouteTypes {
     | '/photos/$photoId'
     | '/runners/$runnerName'
     | '/legs/'
+    | '/photos/'
     | '/legs/$legNumber/$version'
   fileRoutesById: FileRoutesById
 }
@@ -239,6 +249,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/photos/': {
+      id: '/photos/'
+      path: '/'
+      fullPath: '/photos/'
+      preLoaderRoute: typeof PhotosIndexRouteImport
+      parentRoute: typeof PhotosRoute
+    }
     '/legs/': {
       id: '/legs/'
       path: '/'
@@ -284,10 +301,12 @@ const LegsRouteWithChildren = LegsRoute._addFileChildren(LegsRouteChildren)
 
 interface PhotosRouteChildren {
   PhotosPhotoIdRoute: typeof PhotosPhotoIdRoute
+  PhotosIndexRoute: typeof PhotosIndexRoute
 }
 
 const PhotosRouteChildren: PhotosRouteChildren = {
   PhotosPhotoIdRoute: PhotosPhotoIdRoute,
+  PhotosIndexRoute: PhotosIndexRoute,
 }
 
 const PhotosRouteWithChildren =
