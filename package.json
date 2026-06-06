@@ -18,6 +18,7 @@
     "photos:import": "node scripts/supabase/import-photos.mjs",
     "test:observation-null": "node scripts/test-observation-null-handling.mjs",
     "test:race-display-provisional": "node scripts/test-race-display-provisional-metrics.mjs",
+    "test:race-live-projection": "node scripts/test-race-live-projection.mjs",
     "test:race-detail-assumed-legend": "node scripts/test-race-detail-assumed-legend.mjs",
     "test:run-instance-leg-link": "node scripts/test-run-instance-leg-link.mjs",
     "test:runner-race-breakdown": "node scripts/test-runner-race-breakdown.mjs",

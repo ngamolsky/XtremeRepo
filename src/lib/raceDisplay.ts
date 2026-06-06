@@ -34,6 +34,24 @@ export type RaceResultStatus = {
   description: string;
 };
 
+export type LiveProjectionLeg = {
+  legNumber: number;
+  minutes: number | null;
+  displayTime: string;
+  status: "reported" | "estimated" | "missing_estimate";
+  sourceLabel: string;
+};
+
+export type LiveProjection = {
+  reportedLegCount: number;
+  estimatedLegCount: number;
+  currentRecordedMinutes: number;
+  projectedTotalMinutes: number | null;
+  displayCurrentRecordedTime: string;
+  displayProjectedTotalTime: string;
+  legs: LiveProjectionLeg[];
+};
+
 export function getDisplayLegResults(
   year: number,
   officialResults: OfficialResult[],
@@ -89,6 +107,90 @@ export function getRaceDisplaySummary(
     status: getRaceResultStatus(officialResultCount, selfRecordedResultCount),
     displayTotalTime: race.total_time?.toString() ?? null,
     displayAveragePace: race.average_pace ?? null,
+  };
+}
+
+export function getNaiveLiveProjection(
+  raceYear: number,
+  displayLegResults: DisplayLegResult[],
+  officialResults: OfficialResult[]
+): LiveProjection | null {
+  const reportedLegByNumber = new Map<number, DisplayLegResult>();
+
+  displayLegResults.forEach((leg) => {
+    if (leg.leg_number === null || !leg.lap_time) {
+      return;
+    }
+
+    const current = reportedLegByNumber.get(leg.leg_number);
+    if (!current || leg.kind === "official") {
+      reportedLegByNumber.set(leg.leg_number, leg);
+    }
+  });
+
+  const historicalAveragesByLeg = getHistoricalAverageMinutesByLeg(raceYear, officialResults);
+  const legs: LiveProjectionLeg[] = [];
+  let currentRecordedMinutes = 0;
+  let projectedTotalMinutes = 0;
+  let reportedLegCount = 0;
+  let estimatedLegCount = 0;
+
+  for (let legNumber = 1; legNumber <= EXPECTED_RELAY_LEGS; legNumber += 1) {
+    const reportedLeg = reportedLegByNumber.get(legNumber);
+    const reportedMinutes = reportedLeg?.lap_time ? parseTimeToMinutes(reportedLeg.lap_time) : 0;
+
+    if (reportedLeg && reportedMinutes > 0) {
+      currentRecordedMinutes += reportedMinutes;
+      projectedTotalMinutes += reportedMinutes;
+      reportedLegCount += 1;
+      legs.push({
+        legNumber,
+        minutes: reportedMinutes,
+        displayTime: formatDuration(reportedMinutes),
+        status: "reported",
+        sourceLabel: formatProjectionSource(reportedLeg),
+      });
+      continue;
+    }
+
+    const estimatedMinutes = historicalAveragesByLeg.get(legNumber) ?? null;
+    if (estimatedMinutes !== null) {
+      projectedTotalMinutes += estimatedMinutes;
+      estimatedLegCount += 1;
+      legs.push({
+        legNumber,
+        minutes: estimatedMinutes,
+        displayTime: formatDuration(estimatedMinutes),
+        status: "estimated",
+        sourceLabel: `Historical avg for leg ${legNumber}`,
+      });
+      continue;
+    }
+
+    legs.push({
+      legNumber,
+      minutes: null,
+      displayTime: "N/A",
+      status: "missing_estimate",
+      sourceLabel: "No historical average yet",
+    });
+  }
+
+  if (reportedLegCount === 0) {
+    return null;
+  }
+
+  const hasMissingEstimate = legs.some((leg) => leg.status === "missing_estimate");
+  const totalMinutes = hasMissingEstimate ? null : projectedTotalMinutes;
+
+  return {
+    reportedLegCount,
+    estimatedLegCount,
+    currentRecordedMinutes,
+    projectedTotalMinutes: totalMinutes,
+    displayCurrentRecordedTime: formatDuration(currentRecordedMinutes),
+    displayProjectedTotalTime: totalMinutes === null ? "N/A" : formatDuration(totalMinutes),
+    legs,
   };
 }
 
@@ -207,6 +309,66 @@ function parseTimeToMinutes(time: string) {
   }
 
   return 0;
+}
+
+function formatDuration(minutes: number) {
+  const totalSeconds = Math.round(minutes * 60);
+  const hours = Math.floor(totalSeconds / 3600);
+  const remainingSeconds = totalSeconds % 3600;
+  const mins = Math.floor(remainingSeconds / 60);
+  const secs = remainingSeconds % 60;
+
+  return `${hours}:${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+}
+
+function getHistoricalAverageMinutesByLeg(raceYear: number, officialResults: OfficialResult[]) {
+  const minutesByLeg = new Map<number, number[]>();
+
+  officialResults.forEach((result) => {
+    if (result.year === raceYear || result.leg_number === null || !result.lap_time) {
+      return;
+    }
+
+    const minutes = parseTimeToMinutes(result.lap_time);
+    if (minutes <= 0) {
+      return;
+    }
+
+    const current = minutesByLeg.get(result.leg_number) ?? [];
+    current.push(minutes);
+    minutesByLeg.set(result.leg_number, current);
+  });
+
+  return new Map(
+    Array.from(minutesByLeg.entries()).map(([legNumber, minutes]) => [
+      legNumber,
+      minutes.reduce((sum, value) => sum + value, 0) / minutes.length,
+    ])
+  );
+}
+
+function formatProjectionSource(leg: DisplayLegResult) {
+  if (leg.kind === "official") {
+    return "Official";
+  }
+
+  const sourceType = formatDisplaySourceType(leg.source_type);
+  return leg.source_label ? `${sourceType} · ${leg.source_label}` : sourceType;
+}
+
+function formatDisplaySourceType(sourceType: string | null | undefined) {
+  const labels: Record<string, string> = {
+    apple_watch: "Apple Watch",
+    garmin: "Garmin",
+    phone: "Phone",
+    strava: "Strava",
+    manual_runner: "Runner",
+    manual_admin: "Manual",
+    official: "Official",
+    other: "Other",
+  };
+
+  return labels[sourceType || ""] || "Other";
 }
 
 function hasSelfRecordedData(observation: SelfRecordedObservation) {

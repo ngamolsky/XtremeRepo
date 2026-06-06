@@ -10,6 +10,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useRelayData } from "../hooks/useRelayData";
 import {
   getDisplayLegResults,
+  getNaiveLiveProjection,
   getRaceDisplaySummary,
 } from "../lib/raceDisplay";
 import type { RaceResultStatus } from "../lib/raceDisplay";
@@ -97,6 +98,13 @@ const RaceDetailView: React.FC = () => {
     () => (race ? getRaceDisplaySummary(race, displayLegResults) : null),
     [displayLegResults, race]
   );
+  const liveProjection = useMemo(
+    () =>
+      Number.isFinite(raceYear)
+        ? getNaiveLiveProjection(raceYear, displayLegResults, results)
+        : null,
+    [displayLegResults, raceYear, results]
+  );
   const raceLegGroups = useMemo(
     () =>
       Number.isFinite(raceYear)
@@ -122,6 +130,9 @@ const RaceDetailView: React.FC = () => {
     )
   );
   const hasOfficialResults = officialEntryCount > 0;
+  const showLiveProjection = Boolean(
+    liveProjection && selfRecordedEntryCount > 0 && officialEntryCount < EXPECTED_RELAY_LEGS
+  );
   const legSectionTitle = hasOfficialResults ? "Leg Results" : "Race Day Tracker";
   const legSectionSummary = hasOfficialResults
     ? "Official results are listed first. Self recorded entries remain as supporting race-day evidence."
@@ -296,6 +307,73 @@ const RaceDetailView: React.FC = () => {
             </div>
           </section>
 
+          {showLiveProjection && liveProjection && (
+            <section className="card p-6">
+              <div className="mb-5 flex items-center gap-2">
+                <Clock className="h-5 w-5 text-amber-600" />
+                <h2 className="text-lg font-semibold text-gray-900">Live Projection</h2>
+              </div>
+              <p className="mb-5 text-sm text-gray-600">
+                Uses self recorded times for reported legs and historical leg averages for legs not yet reported.
+              </p>
+              <div className="mb-5 grid gap-4 md:grid-cols-3">
+                <ProjectionMetric
+                  label="Current recorded time"
+                  value={liveProjection.displayCurrentRecordedTime}
+                  detail={`${liveProjection.reportedLegCount} legs reported`}
+                />
+                <ProjectionMetric
+                  label="Projected total"
+                  value={liveProjection.displayProjectedTotalTime}
+                  detail={`${liveProjection.estimatedLegCount} legs estimated`}
+                />
+                <ProjectionMetric
+                  label="Method"
+                  value="Naive average"
+                  detail="Actuals plus historical leg averages"
+                />
+              </div>
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200 text-sm">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <ProjectionHeader label="Leg" />
+                      <ProjectionHeader label="Status" />
+                      <ProjectionHeader label="Time used" />
+                      <ProjectionHeader label="Source" />
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100 bg-white">
+                    {liveProjection.legs.map((leg) => (
+                      <tr key={leg.legNumber}>
+                        <td className="px-4 py-3 font-medium text-gray-900">Leg {leg.legNumber}</td>
+                        <td className="px-4 py-3 text-gray-700">
+                          <span
+                            className={`rounded-full px-2.5 py-1 text-xs font-medium ${
+                              leg.status === "reported"
+                                ? "bg-emerald-50 text-emerald-700"
+                                : leg.status === "estimated"
+                                  ? "bg-blue-50 text-blue-700"
+                                  : "bg-gray-100 text-gray-600"
+                            }`}
+                          >
+                            {leg.status === "reported"
+                              ? "Reported"
+                              : leg.status === "estimated"
+                                ? "Estimated"
+                                : "No estimate"}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 font-medium text-gray-900">{leg.displayTime}</td>
+                        <td className="px-4 py-3 text-gray-700">{leg.sourceLabel}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          )}
+
           <section className="card p-6">
             <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
               <div>
@@ -447,6 +525,24 @@ const StatRow: React.FC<{ label: string; value: string }> = ({ label, value }) =
     <dt className="text-gray-600">{label}</dt>
     <dd className="font-medium text-gray-900">{value}</dd>
   </div>
+);
+
+const ProjectionMetric: React.FC<{ detail: string; label: string; value: string }> = ({
+  detail,
+  label,
+  value,
+}) => (
+  <div className="rounded-lg bg-amber-50 p-4">
+    <p className="text-xs font-medium uppercase tracking-wider text-amber-800">{label}</p>
+    <p className="mt-1 text-2xl font-bold text-gray-900">{value}</p>
+    <p className="mt-1 text-xs text-gray-600">{detail}</p>
+  </div>
+);
+
+const ProjectionHeader: React.FC<{ label: string }> = ({ label }) => (
+  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+    {label}
+  </th>
 );
 
 const ImagePlaceholder: React.FC = () => (
