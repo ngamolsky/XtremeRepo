@@ -156,10 +156,10 @@ const RunnerDetail: React.FC = () => {
         )}
       </div>
 
-      <section className="mx-auto max-w-4xl rounded-lg border border-primary-100 bg-primary-50/60 px-5 py-4">
+      <section className="card mx-auto max-w-4xl px-5 py-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <div className="flex items-center gap-2 text-primary-800">
-            <MapIcon className="h-5 w-5" />
+          <div className="flex items-center gap-2 text-gray-700 dark:text-slate-200">
+            <MapIcon className="h-5 w-5 text-green-600 dark:text-green-300" />
             <h2 className="text-sm font-semibold uppercase tracking-wider">
               Legs Run
             </h2>
@@ -171,7 +171,7 @@ const RunnerDetail: React.FC = () => {
                   key={version}
                   className="flex flex-wrap items-center gap-2 sm:justify-end"
                 >
-                  <span className="text-xs font-semibold uppercase text-gray-500">
+                  <span className="text-xs font-semibold uppercase text-gray-500 dark:text-slate-400">
                     v{version}
                   </span>
                   <div className="flex flex-wrap gap-1.5">
@@ -180,7 +180,7 @@ const RunnerDetail: React.FC = () => {
                         key={`${version}-${leg}`}
                         leg={leg}
                         version={version}
-                        className="rounded-full bg-primary-100 px-2.5 py-1 text-xs font-medium text-primary-800 transition-colors hover:bg-primary-200"
+                        className="rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-200 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
                       >
                         Leg {leg}
                       </LegPill>
@@ -189,7 +189,7 @@ const RunnerDetail: React.FC = () => {
                 </div>
               ))
             ) : (
-              <span className="text-sm text-gray-600">No known legs yet.</span>
+              <span className="text-sm text-gray-600 dark:text-slate-400">No known legs yet.</span>
             )}
           </div>
         </div>
