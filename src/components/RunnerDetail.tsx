@@ -1,5 +1,5 @@
 import { Link, useParams } from "@tanstack/react-router";
-import { Award, BarChart, Calendar, LogOut, Map as MapIcon } from "lucide-react";
+import { Award, BarChart, Calendar, ChevronDown, LogOut, Map as MapIcon } from "lucide-react";
 import React from "react";
 import {
   CartesianGrid,
@@ -49,14 +49,23 @@ const RunnerDetail: React.FC = () => {
   } = useRelayData();
   const [selectedLegRadarVersion, setSelectedLegRadarVersion] =
     React.useState("latest");
+  const [expandedRaceYears, setExpandedRaceYears] = React.useState<Set<number>>(
+    () => new Set()
+  );
 
   const runnerStat = runnerStats.find((r) => r.runner_name === runnerName);
   const runnerResults = results.filter((r) => r.runner_name === runnerName);
-  const runnerRaceBreakdown = buildRunnerRaceBreakdown(
-    runnerName,
-    results,
-    legResultObservations
+  const runnerRaceBreakdown = React.useMemo(
+    () => buildRunnerRaceBreakdown(runnerName, results, legResultObservations),
+    [legResultObservations, results, runnerName]
   );
+  React.useEffect(() => {
+    setExpandedRaceYears(
+      runnerRaceBreakdown.length > 0
+        ? new Set([runnerRaceBreakdown[0].year])
+        : new Set()
+    );
+  }, [runnerName, runnerRaceBreakdown]);
   const runnerParticipations = participations.filter(
     (participation) => participation.runner_name === runnerName
   );
@@ -201,6 +210,19 @@ const RunnerDetail: React.FC = () => {
       radarLabelRadius
     )
   );
+  const toggleRaceYear = (year: number) => {
+    setExpandedRaceYears((current) => {
+      const next = new Set(current);
+
+      if (next.has(year)) {
+        next.delete(year);
+      } else {
+        next.add(year);
+      }
+
+      return next;
+    });
+  };
 
   return (
     <div className="space-y-8 animate-fade-in">
@@ -362,56 +384,71 @@ const RunnerDetail: React.FC = () => {
       </div>
 
       {/* Race Breakdown */}
-      <div className="card p-6">
-        <div className="mb-5">
+      <div className="card p-5 sm:p-6">
+        <div className="mb-4">
           <h3 className="text-lg font-semibold text-gray-900">
             Race Results
           </h3>
           <p className="mt-1 text-sm text-gray-600">
-            Each race shows official data first, with provisional self recorded data alongside it when available.
+            Tap a race to expand official data and any self reported race-day entries.
           </p>
         </div>
         {runnerRaceBreakdown.length > 0 ? (
-          <div className="space-y-5">
-            {runnerRaceBreakdown.map((race) => (
-              <section
-                key={race.year}
-                className="rounded-xl border border-gray-200 bg-white p-4"
-              >
-                <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-                  <h4 className="text-base font-semibold text-gray-900">
-                    {race.year} Race
-                  </h4>
-                  <div className="flex flex-wrap gap-2 text-xs font-medium">
-                    <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-emerald-700">
-                      {race.official.length} official
-                    </span>
-                    <span className="rounded-full bg-amber-50 px-2.5 py-1 text-amber-800">
-                      {race.provisional.length} provisional
-                    </span>
-                  </div>
-                </div>
+          <div className="divide-y divide-gray-200 dark:divide-slate-800">
+            {runnerRaceBreakdown.map((race) => {
+              const isExpanded = expandedRaceYears.has(race.year);
 
-                <div className="grid gap-4 lg:grid-cols-2">
-                  <RunnerRaceEntryGroup
-                    entries={race.official}
-                    emptyText="No official data yet."
-                    kind="official"
-                    runnerName={runnerName}
-                    title="Official"
-                    year={race.year}
-                  />
-                  <RunnerRaceEntryGroup
-                    entries={race.provisional}
-                    emptyText="No provisional data for this race."
-                    kind="provisional"
-                    runnerName={runnerName}
-                    title="Provisional"
-                    year={race.year}
-                  />
-                </div>
-              </section>
-            ))}
+              return (
+                <section key={race.year} className="py-3 first:pt-0 last:pb-0">
+                  <button
+                    type="button"
+                    aria-expanded={isExpanded}
+                    onClick={() => toggleRaceYear(race.year)}
+                    className="flex w-full items-center justify-between gap-3 rounded-lg py-2 text-left transition-colors hover:bg-gray-50 dark:hover:bg-slate-900"
+                  >
+                    <div className="min-w-0">
+                      <h4 className="text-base font-semibold text-gray-900">
+                        {race.year} Race
+                      </h4>
+                      <p className="mt-1 text-xs text-gray-500">
+                        {race.official.length} official
+                        {race.provisional.length > 0
+                          ? ` · ${race.provisional.length} self reported`
+                          : ""}
+                      </p>
+                    </div>
+                    <ChevronDown
+                      className={`h-5 w-5 shrink-0 text-gray-500 transition-transform ${
+                        isExpanded ? "rotate-180" : ""
+                      }`}
+                    />
+                  </button>
+
+                  {isExpanded && (
+                    <div className="mt-3 space-y-5">
+                      <RunnerRaceEntryGroup
+                        entries={race.official}
+                        emptyText="No official data yet."
+                        kind="official"
+                        runnerName={runnerName}
+                        title="Official"
+                        year={race.year}
+                      />
+                      {race.provisional.length > 0 && (
+                        <RunnerRaceEntryGroup
+                          entries={race.provisional}
+                          emptyText=""
+                          kind="provisional"
+                          runnerName={runnerName}
+                          title="Self Reported"
+                          year={race.year}
+                        />
+                      )}
+                    </div>
+                  )}
+                </section>
+              );
+            })}
           </div>
         ) : (
           <p className="text-sm text-gray-600">
@@ -580,12 +617,12 @@ const RunnerRaceEntryGroup: React.FC<{
   title: string;
   year: number;
 }> = ({ emptyText, entries, kind, runnerName, title, year }) => (
-  <div className="rounded-lg border border-gray-100 bg-gray-50 p-4">
-    <h5 className="mb-3 text-sm font-semibold uppercase tracking-wider text-gray-500">
+  <div>
+    <h5 className="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500">
       {title}
     </h5>
     {entries.length > 0 ? (
-      <div className="space-y-3">
+      <div className="divide-y divide-gray-100 dark:divide-slate-800">
         {entries.map((entry) => (
           <RunnerRaceEntryCard
             key={entry.key}
@@ -610,7 +647,7 @@ const RunnerRaceEntryCard: React.FC<{
   runnerName: string;
   year: number;
 }> = ({ entry, kind, runnerName, year }) => (
-  <div className="rounded-lg border border-gray-200 bg-white p-4">
+  <div className="py-4 first:pt-0 last:pb-0">
     <div className="flex flex-wrap items-start justify-between gap-3">
       <div>
         <div className="flex flex-wrap items-center gap-2">
@@ -634,7 +671,7 @@ const RunnerRaceEntryCard: React.FC<{
                 : "bg-amber-50 text-amber-800"
             }`}
           >
-            {kind === "official" ? "Official" : "Provisional"}
+            {kind === "official" ? "Official" : "Self Reported"}
           </span>
         </div>
         {kind === "provisional" && (
@@ -685,7 +722,7 @@ const RunnerRaceEntryCard: React.FC<{
             key={sourceTag}
             className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600"
           >
-            {sourceTag}
+            {formatRaceSourceTag(sourceTag)}
           </span>
         ))}
       </div>
@@ -706,6 +743,10 @@ const RunnerRaceMetric: React.FC<{
     </dd>
   </div>
 );
+
+function formatRaceSourceTag(sourceTag: string) {
+  return sourceTag.toLowerCase() === "provisional" ? "Self Reported" : sourceTag;
+}
 
 function formatProvisionalSource(entry: RunnerRaceEntry) {
   const sourceType = entry.sourceType ? formatSourceType(entry.sourceType) : null;

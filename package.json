@@ -21,6 +21,7 @@
     "test:race-detail-assumed-legend": "node scripts/test-race-detail-assumed-legend.mjs",
     "test:run-instance-leg-link": "node scripts/test-run-instance-leg-link.mjs",
     "test:runner-race-breakdown": "node scripts/test-runner-race-breakdown.mjs",
+    "test:runner-race-profile-ui": "node scripts/test-runner-race-profile-ui.mjs",
     "test:falco-branding": "node scripts/test-falco-branding-and-home-link.mjs",
     "test:mobile-nav-breadcrumbs": "node scripts/test-mobile-nav-and-breadcrumbs.mjs",
     "test:xtreme-agent-vibes": "node scripts/test-xtreme-agent-vibes.mjs"
