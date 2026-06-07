@@ -645,7 +645,7 @@ async function enrichHistoricalResultMatches(
 }
 
 function buildHistoricalPerformance(match: HistoricalResultSearchMatch): HistoricalResultStructuredPerformance {
-  const fields = parseHistoricalChunkFields(match.chunk_text || "");
+  const parsed = parseHistoricalPerformanceText(match.chunk_text || "");
   const normalizedChunkType = match.chunk_type || "";
   const kind: HistoricalResultStructuredPerformance["kind"] =
     normalizedChunkType === "team_result" || normalizedChunkType === "leg_result"
@@ -653,10 +653,11 @@ function buildHistoricalPerformance(match: HistoricalResultSearchMatch): Histori
       : normalizedChunkType === "source_summary"
         ? "source"
         : "row";
-  const teamName = match.team_name || fields[2] || null;
-  const division = match.division || fields[3] || null;
-  const totalTimeText = fields[4] || null;
-  const legPerformances = fields.slice(5, 12).map((timeText, index) => ({
+  const inferredTeamName = normalizeHistoricalTeamName(match.team_name, parsed.teamName);
+  const teamName = inferredTeamName || parsed.teamName || null;
+  const division = match.division || parsed.division || null;
+  const totalTimeText = parsed.totalTimeText || null;
+  const legPerformances = parsed.legTimes.map((timeText, index) => ({
     legNumber: index + 1,
     label: `Leg ${index + 1}`,
     timeText: timeText && timeText !== "-" ? timeText : null,
@@ -673,24 +674,125 @@ function buildHistoricalPerformance(match: HistoricalResultSearchMatch): Histori
     kind,
     teamName,
     runnerName: match.runner_name || null,
-    bib: match.bib || fields[1] || null,
+    bib: match.bib || parsed.bib || null,
     division,
     totalTimeText,
-    leaderboardPlace: match.overall_place ?? parseIntegerText(fields[0]),
+    leaderboardPlace: match.overall_place ?? parsed.place,
     legPerformances,
-    differenceText: fields[12] || null,
-    percentBackText: fields[13] || null,
-    paceText: fields[17] || null,
+    differenceText: parsed.differenceText || null,
+    percentBackText: parsed.percentBackText || null,
+    paceText: parsed.paceText || null,
     summary: summaryParts.length > 0 ? summaryParts.join(" · ") : match.chunk_text || "Historical result match",
   };
 }
 
-function parseHistoricalChunkFields(chunkText: string): string[] {
-  const value = chunkText.replace(/^\d{4}\s+[^:]+:\s*/, "").trim();
+type ParsedHistoricalPerformanceText = {
+  place: number | null;
+  bib: string | null;
+  teamName: string | null;
+  division: string | null;
+  totalTimeText: string | null;
+  legTimes: string[];
+  differenceText: string | null;
+  percentBackText: string | null;
+  paceText: string | null;
+};
+
+function parseHistoricalPerformanceText(chunkText: string): ParsedHistoricalPerformanceText {
+  const fields = parseHistoricalPipeFields(chunkText);
+  if (fields.length > 0) {
+    return {
+      place: parseIntegerText(fields[0]),
+      bib: fields[1] || null,
+      teamName: fields[2] || null,
+      division: fields[3] || null,
+      totalTimeText: fields[4] || null,
+      legTimes: fields.slice(5, 12),
+      differenceText: fields[12] || null,
+      percentBackText: fields[13] || null,
+      paceText: fields[17] || null,
+    };
+  }
+
+  return parseHistoricalWhitespaceFields(chunkText);
+}
+
+function parseHistoricalPipeFields(chunkText: string): string[] {
+  const value = stripHistoricalChunkPrefix(chunkText);
   if (!value.includes("|")) {
     return [];
   }
   return value.split("|").map((field) => field.trim());
+}
+
+function parseHistoricalWhitespaceFields(chunkText: string): ParsedHistoricalPerformanceText {
+  const value = stripHistoricalChunkPrefix(chunkText);
+  const timeMatches = [...value.matchAll(/\b\d{1,2}:\d{2}(?::\d{2})?(?:\.\d+)?\b/g)];
+  const times = timeMatches.map((match) => match[0]);
+  const firstTime = timeMatches[0];
+  const beforeTimes = firstTime ? value.slice(0, firstTime.index).trim() : value;
+  const { division, beforeDivision } = extractHistoricalDivision(beforeTimes);
+  const leading = beforeDivision.match(/^\s*(\d+)\s+(\S+)\s+(.+)$/);
+  const place = leading ? parseIntegerText(leading[1]) : null;
+  const bib = leading?.[2] ?? null;
+  const nameBlob = leading?.[3]?.trim() || beforeDivision.trim() || null;
+  const teamName = nameBlob ? extractRepeatedLeadingPhrase(nameBlob) || nameBlob : null;
+
+  return {
+    place,
+    bib,
+    teamName,
+    division,
+    totalTimeText: times[0] || null,
+    legTimes: times.slice(1, 8),
+    differenceText: null,
+    percentBackText: null,
+    paceText: null,
+  };
+}
+
+function stripHistoricalChunkPrefix(chunkText: string): string {
+  return chunkText.replace(/^\d{4}\s+[^:]+:\s*/, "").trim();
+}
+
+function extractHistoricalDivision(value: string): { division: string | null; beforeDivision: string } {
+  const divisionPattern = /\b((?:Mixed|Men'?s|Women'?s)\s+(?:Open|Masters(?:\s+\d+\+)?|Senior(?:s)?(?:\s+\d+\+)?|Ultra|Corporate|Family|Public Safety))\s*$/i;
+  const match = value.match(divisionPattern);
+  if (!match || match.index == null) {
+    return { division: null, beforeDivision: value.trim() };
+  }
+  return {
+    division: match[1].replace(/\s+/g, " ").trim(),
+    beforeDivision: value.slice(0, match.index).trim(),
+  };
+}
+
+function extractRepeatedLeadingPhrase(value: string): string | null {
+  const words = value.trim().split(/\s+/).filter(Boolean);
+  for (let phraseLength = 1; phraseLength <= Math.min(8, Math.floor(words.length / 2)); phraseLength += 1) {
+    const phrase = words.slice(0, phraseLength).join(" ");
+    let repetitions = 1;
+    while (
+      words.slice(repetitions * phraseLength, (repetitions + 1) * phraseLength).join(" ") === phrase
+    ) {
+      repetitions += 1;
+    }
+    if (repetitions >= 2) {
+      return phrase;
+    }
+  }
+  return null;
+}
+
+function normalizeHistoricalTeamName(rawTeamName: string | null, parsedTeamName: string | null): string | null {
+  const value = rawTeamName?.trim() || "";
+  if (!value) {
+    return null;
+  }
+  if (parsedTeamName && value.length > parsedTeamName.length * 1.5 && value.includes(parsedTeamName)) {
+    return parsedTeamName;
+  }
+  return extractRepeatedLeadingPhrase(value) || value;
 }
 
 function parseIntegerText(value: string | undefined): number | null {
