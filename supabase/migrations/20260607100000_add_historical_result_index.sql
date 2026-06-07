@@ -9,6 +9,10 @@
 CREATE EXTENSION IF NOT EXISTS "pg_trgm" WITH SCHEMA "extensions";
 CREATE EXTENSION IF NOT EXISTS "vector" WITH SCHEMA "extensions";
 
+-- Supabase installs extensions outside public; expose extension operators/opclasses
+-- for unqualified uses like gin_trgm_ops and vector distance operators below.
+SET search_path = public, extensions;
+
 CREATE TABLE IF NOT EXISTS public.raw_result_sources (
   id uuid DEFAULT gen_random_uuid() NOT NULL,
   provider text DEFAULT 'lake_tahoe_relay'::text NOT NULL,
