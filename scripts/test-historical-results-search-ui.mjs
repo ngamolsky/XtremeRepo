@@ -30,6 +30,8 @@ assert.match(componentSource, /\/api\/historical-results\/search/, "search page 
 assert.match(componentSource, /Team total/, "search results should emphasize underlying team total time");
 assert.match(componentSource, /Leg performance/, "search results should show structured leg split performance");
 assert.match(componentSource, /Raw searchable text/, "raw source chunk text should be available but de-emphasized");
+assert.match(componentSource, /Linked canonical Xtreme record/, "linked canonical race data should be shown when search evidence matches an existing race");
+assert.match(componentSource, /canonicalRace/, "search result typing should include joined canonical race payloads");
 
 const workerSource = readFileSync("src/worker/index.ts", "utf8");
 assert.match(workerSource, /\/api\/historical-results\/search/, "worker should expose historical semantic search API route");
@@ -38,5 +40,7 @@ assert.match(workerSource, /match_result_search_chunks/, "worker should call the
 assert.match(workerSource, /text-embedding-3-small/, "worker should embed search queries with the same embedding model");
 assert.match(workerSource, /searchHistoricalResults: tool/, "agent should expose historical result semantic search as a tool");
 assert.match(workerSource, /simplifyHistoricalSearchResults/, "agent tool should return structured performance-oriented search results");
+assert.match(workerSource, /enrichCanonicalRaceLinks/, "search API should join embedded source matches to existing canonical races");
+assert.match(workerSource, /matchMethod: "year_bib"/, "canonical race joins should record the year+bib association method");
 
 console.log("historical results search UI tests passed");

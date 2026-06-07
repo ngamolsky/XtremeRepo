@@ -23,6 +23,33 @@ type StructuredPerformance = {
   summary: string;
 };
 
+type CanonicalRaceLeg = {
+  year: number | null;
+  legNumber: number | null;
+  legVersion: number | null;
+  runnerId: string | null;
+  runnerName: string | null;
+  lapTime: string | null;
+  timeInMinutes: number | null;
+  pace: number | null;
+  sourceType: string | null;
+};
+
+type CanonicalRace = {
+  linked: boolean;
+  matchMethod: "year_bib" | "none";
+  year: number | null;
+  bib: number | null;
+  division: string | null;
+  overallPlace: number | null;
+  overallTeams: number | null;
+  divisionPlace: number | null;
+  divisionTeams: number | null;
+  totalTime: string | null;
+  runners: string[];
+  legs: CanonicalRaceLeg[];
+};
+
 type SearchResult = {
   id: string;
   year: number | null;
@@ -43,6 +70,7 @@ type SearchResult = {
   sheet_index?: number | null;
   row_label: string;
   performance?: StructuredPerformance;
+  canonicalRace?: CanonicalRace;
 };
 
 type SearchResponse = {
@@ -265,6 +293,53 @@ const HistoricalResultsSearchView: React.FC = () => {
                 </div>
               </div>
 
+              {result.canonicalRace?.linked ? (
+                <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 p-4 dark:border-emerald-900/70 dark:bg-emerald-950/30">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                      <div className="text-xs font-semibold uppercase tracking-wide text-emerald-700 dark:text-emerald-300">
+                        Linked canonical Xtreme record
+                      </div>
+                      <div className="mt-1 text-sm text-emerald-950 dark:text-emerald-50">
+                        Matched by year + bib ({result.canonicalRace.year}, bib {result.canonicalRace.bib}).
+                        {result.canonicalRace.overallPlace
+                          ? ` Overall ${result.canonicalRace.overallPlace}/${result.canonicalRace.overallTeams || "?"}`
+                          : ""}
+                        {result.canonicalRace.divisionPlace
+                          ? ` · Division ${result.canonicalRace.divisionPlace}/${result.canonicalRace.divisionTeams || "?"}`
+                          : ""}
+                      </div>
+                    </div>
+                    {result.canonicalRace.runners.length ? (
+                      <div className="text-right text-sm font-semibold text-emerald-900 dark:text-emerald-100">
+                        {result.canonicalRace.runners.join(" · ")}
+                      </div>
+                    ) : null}
+                  </div>
+
+                  {result.canonicalRace.legs.length ? (
+                    <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+                      {result.canonicalRace.legs.map((leg) => (
+                        <div
+                          key={`${leg.legNumber || "leg"}-${leg.legVersion || 1}`}
+                          className="rounded-md bg-white px-3 py-2 text-sm dark:bg-slate-900"
+                        >
+                          <div className="text-[11px] font-semibold uppercase tracking-wide text-emerald-700 dark:text-emerald-300">
+                            Leg {leg.legNumber || "?"}v{leg.legVersion || 1}
+                          </div>
+                          <div className="mt-1 font-semibold text-gray-900 dark:text-slate-50">
+                            {leg.runnerName || "Unknown runner"}
+                          </div>
+                          <div className="mt-1 text-gray-600 dark:text-slate-300">
+                            {leg.lapTime || "—"}{leg.pace ? ` · ${formatPace(leg.pace)}` : ""}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
+              ) : null}
+
               <details className="mt-4">
                 <summary className="cursor-pointer text-sm font-semibold text-gray-700 dark:text-slate-200">
                   Raw searchable text
@@ -306,6 +381,15 @@ function formatSimilarity(value: number | null): string {
     return "—";
   }
   return value.toFixed(3);
+}
+
+function formatPace(value: number | null): string {
+  if (value == null || !Number.isFinite(value) || value <= 0) {
+    return "—";
+  }
+  const minutes = Math.floor(value / 60);
+  const seconds = Math.round(value % 60);
+  return `${minutes}:${String(seconds).padStart(2, "0")}/mi`;
 }
 
 export default HistoricalResultsSearchView;

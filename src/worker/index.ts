@@ -141,11 +141,39 @@ type HistoricalResultStructuredPerformance = {
   summary: string;
 };
 
+type HistoricalResultCanonicalLeg = {
+  year: number | null;
+  legNumber: number | null;
+  legVersion: number | null;
+  runnerId: string | null;
+  runnerName: string | null;
+  lapTime: string | null;
+  timeInMinutes: number | null;
+  pace: number | null;
+  sourceType: string | null;
+};
+
+type HistoricalResultCanonicalRace = {
+  linked: boolean;
+  matchMethod: "year_bib" | "none";
+  year: number | null;
+  bib: number | null;
+  division: string | null;
+  overallPlace: number | null;
+  overallTeams: number | null;
+  divisionPlace: number | null;
+  divisionTeams: number | null;
+  totalTime: string | null;
+  runners: string[];
+  legs: HistoricalResultCanonicalLeg[];
+};
+
 type HistoricalResultSearchResponse = HistoricalResultSearchMatch &
   Partial<HistoricalResultSearchEvidence> & {
     source_filename: string;
     row_label: string;
     performance: HistoricalResultStructuredPerformance;
+    canonicalRace: HistoricalResultCanonicalRace;
   };
 
 type HistoricalSearchRpcClient = {
@@ -180,6 +208,22 @@ type CurrentRunnerRow = Pick<
   "auth_user_id" | "email" | "id" | "name"
 >;
 type ResultWithPaceRow = Database["public"]["Views"]["v_results_with_pace"]["Row"];
+type HistoricalCanonicalPlacementRow = Pick<
+  Database["public"]["Tables"]["placements"]["Row"],
+  "bib" | "division" | "division_place" | "division_teams" | "overall_place" | "overall_teams" | "year"
+>;
+type HistoricalCanonicalResultRow = Pick<
+  ResultWithPaceRow,
+  | "year"
+  | "leg_number"
+  | "leg_version"
+  | "runner_id"
+  | "runner_name"
+  | "lap_time"
+  | "time_in_minutes"
+  | "pace"
+  | "source_type"
+>;
 type RunnerParticipationRow = Database["public"]["Views"]["v_runner_participations"]["Row"];
 type LegObservationRow = Database["public"]["Tables"]["leg_result_observations"]["Row"];
 type LegObservationWithPaceRow = Database["public"]["Views"]["v_leg_result_observations_with_pace"]["Row"];
@@ -512,7 +556,7 @@ async function handleHistoricalResultsSearch(request: Request, env: Env): Promis
 
   try {
     const authorizationHeader = request.headers.get("authorization") ?? undefined;
-    const client = createRelayClient(env, authorizationHeader) as unknown as HistoricalSearchRpcClient;
+    const client = createRelayClient(env, authorizationHeader);
     const search = await searchHistoricalResults(client, env, {
       query,
       matchCount: body.matchCount,
@@ -532,7 +576,7 @@ async function handleHistoricalResultsSearch(request: Request, env: Env): Promis
 }
 
 async function searchHistoricalResults(
-  client: HistoricalSearchRpcClient,
+  client: DataClient,
   env: Env,
   input: HistoricalResultsSearchRequestBody
 ): Promise<{
@@ -552,7 +596,7 @@ async function searchHistoricalResults(
 
   const queryEmbedding = await embedHistoricalResultsQuery(query, env.OPENAI_API_KEY);
   const matchCount = clampInteger(input.matchCount, 10, 1, 50);
-  const { data, error } = await client.rpc("match_result_search_chunks", {
+  const { data, error } = await (client as unknown as HistoricalSearchRpcClient).rpc("match_result_search_chunks", {
     query_embedding: queryEmbedding,
     match_count: matchCount,
     filter_year: nullablePositiveInteger(input.year),
@@ -612,7 +656,7 @@ async function embedHistoricalResultsQuery(query: string, apiKey: string): Promi
 }
 
 async function enrichHistoricalResultMatches(
-  client: HistoricalSearchRpcClient,
+  client: DataClient,
   matches: HistoricalResultSearchMatch[]
 ): Promise<HistoricalResultSearchResponse[]> {
   if (matches.length === 0) {
@@ -632,7 +676,7 @@ async function enrichHistoricalResultMatches(
   }
 
   const evidenceById = new Map((data || []).map((row) => [row.id, row]));
-  return matches.map((match) => {
+  const enriched = matches.map((match) => {
     const evidence = evidenceById.get(match.id);
     return {
       ...match,
@@ -640,8 +684,139 @@ async function enrichHistoricalResultMatches(
       source_filename: evidence?.original_filename || evidence?.local_path || "",
       row_label: evidence?.row_index == null ? "" : String(evidence.row_index + 1),
       performance: buildHistoricalPerformance(match),
+      canonicalRace: createEmptyCanonicalRace(match.year, match.bib),
     };
   });
+
+  return enrichCanonicalRaceLinks(client, enriched);
+}
+
+function createEmptyCanonicalRace(year: number | null, bib: string | null): HistoricalResultCanonicalRace {
+  return {
+    linked: false,
+    matchMethod: "none",
+    year,
+    bib: normalizeHistoricalBibNumber(bib),
+    division: null,
+    overallPlace: null,
+    overallTeams: null,
+    divisionPlace: null,
+    divisionTeams: null,
+    totalTime: null,
+    runners: [],
+    legs: [],
+  };
+}
+
+async function enrichCanonicalRaceLinks(
+  client: DataClient,
+  results: HistoricalResultSearchResponse[]
+): Promise<HistoricalResultSearchResponse[]> {
+  const keys = uniqueStrings(
+    results
+      .map((result) => canonicalRaceKey(result.year, result.performance.bib || result.bib))
+      .filter((key): key is string => Boolean(key))
+  );
+  if (keys.length === 0) {
+    return results;
+  }
+
+  const years = uniqueNumbers(keys.map((key) => Number(key.split(":")[0])));
+  const [placements, canonicalResults] = await Promise.all([
+    fetchRows(
+      client
+        .from("placements")
+        .select("year, bib, division, division_place, division_teams, overall_place, overall_teams")
+        .in("year", years)
+    ) as Promise<HistoricalCanonicalPlacementRow[]>,
+    fetchRows(
+      client
+        .from("v_results_with_pace")
+        .select("year, leg_number, leg_version, runner_id, runner_name, lap_time, time_in_minutes, pace, source_type")
+        .in("year", years)
+        .order("leg_number", { ascending: true })
+    ) as Promise<HistoricalCanonicalResultRow[]>,
+  ]);
+
+  const placementByKey = new Map(
+    placements
+      .map((placement) => [canonicalRaceKey(placement.year, placement.bib), placement] as const)
+      .filter(([key]) => Boolean(key))
+  );
+  const resultsByYear = groupBy(canonicalResults, (result) => String(result.year ?? ""));
+
+  return results.map((result) => {
+    const key = canonicalRaceKey(result.year, result.performance.bib || result.bib);
+    const placement = key ? placementByKey.get(key) : null;
+    if (!placement) {
+      return result;
+    }
+    const yearResults = resultsByYear.get(String(placement.year)) || [];
+    const legs = yearResults.map((leg) => ({
+      year: leg.year,
+      legNumber: leg.leg_number,
+      legVersion: leg.leg_version,
+      runnerId: leg.runner_id,
+      runnerName: leg.runner_name,
+      lapTime: leg.lap_time,
+      timeInMinutes: leg.time_in_minutes,
+      pace: leg.pace,
+      sourceType: leg.source_type,
+    }));
+
+    return {
+      ...result,
+      canonicalRace: {
+        linked: true,
+        matchMethod: "year_bib",
+        year: placement.year,
+        bib: placement.bib,
+        division: placement.division,
+        overallPlace: placement.overall_place,
+        overallTeams: placement.overall_teams,
+        divisionPlace: placement.division_place,
+        divisionTeams: placement.division_teams,
+        totalTime: result.performance.totalTimeText,
+        runners: uniqueStrings(legs.map((leg) => leg.runnerName).filter((name): name is string => Boolean(name))),
+        legs,
+      },
+    };
+  });
+}
+
+function canonicalRaceKey(year: number | null | undefined, bib: string | number | null | undefined): string | null {
+  const normalizedYear = typeof year === "number" && Number.isFinite(year) ? year : null;
+  const normalizedBib = normalizeHistoricalBibNumber(bib);
+  if (!normalizedYear || normalizedBib == null) {
+    return null;
+  }
+  return `${normalizedYear}:${normalizedBib}`;
+}
+
+function normalizeHistoricalBibNumber(value: string | number | null | undefined): number | null {
+  if (value == null || value === "") {
+    return null;
+  }
+  const parsed = Number.parseInt(String(value), 10);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function uniqueNumbers(values: number[]): number[] {
+  return [...new Set(values.filter((value) => Number.isFinite(value)))];
+}
+
+function groupBy<T>(values: T[], keyForValue: (value: T) => string): Map<string, T[]> {
+  const map = new Map<string, T[]>();
+  for (const value of values) {
+    const key = keyForValue(value);
+    const existing = map.get(key);
+    if (existing) {
+      existing.push(value);
+    } else {
+      map.set(key, [value]);
+    }
+  }
+  return map;
 }
 
 function buildHistoricalPerformance(match: HistoricalResultSearchMatch): HistoricalResultStructuredPerformance {
@@ -817,6 +992,7 @@ function simplifyHistoricalSearchResults(
   similarity: number | null;
   row: string;
   evidenceNote: string;
+  canonicalRace: HistoricalResultCanonicalRace;
 }> {
   return results.map((result) => ({
     year: result.year,
@@ -832,6 +1008,7 @@ function simplifyHistoricalSearchResults(
     evidenceNote: [result.document_name, result.row_label ? `row ${result.row_label}` : null]
       .filter(Boolean)
       .join(" "),
+    canonicalRace: result.canonicalRace,
   }));
 }
 
@@ -1823,8 +2000,7 @@ function createRelayTools(
         additionalProperties: false,
       }),
       execute: limitToolExecution(async (input) => {
-        const client = supabase as unknown as HistoricalSearchRpcClient;
-        const search = await searchHistoricalResults(client, env, {
+        const search = await searchHistoricalResults(supabase, env, {
           ...input,
           matchCount: input.matchCount ?? 8,
           chunkType: input.chunkType ?? "team_result",
