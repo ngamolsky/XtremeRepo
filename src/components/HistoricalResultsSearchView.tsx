@@ -2,6 +2,27 @@ import React from "react";
 import { Search } from "lucide-react";
 import { supabase } from "../lib/supabase";
 
+type LegPerformance = {
+  legNumber: number;
+  label: string;
+  timeText: string | null;
+  status: "recorded" | "missing";
+};
+
+type StructuredPerformance = {
+  teamName: string | null;
+  runnerName: string | null;
+  bib: string | null;
+  division: string | null;
+  totalTimeText: string | null;
+  leaderboardPlace: number | null;
+  legPerformances: LegPerformance[];
+  differenceText: string | null;
+  percentBackText: string | null;
+  paceText: string | null;
+  summary: string;
+};
+
 type SearchResult = {
   id: string;
   year: number | null;
@@ -21,6 +42,7 @@ type SearchResult = {
   page_number?: number | null;
   sheet_index?: number | null;
   row_label: string;
+  performance?: StructuredPerformance;
 };
 
 type SearchResponse = {
@@ -210,19 +232,57 @@ const HistoricalResultsSearchView: React.FC = () => {
                 {result.leg_number ? <span>Leg {result.leg_number}v{result.leg_version || 1}</span> : null}
               </div>
 
-              <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-gray-800 dark:text-slate-100">
-                {result.chunk_text}
-              </p>
+              <div className="mt-4 grid gap-3 md:grid-cols-[220px_1fr]">
+                <div className="rounded-lg bg-gray-50 p-3 dark:bg-slate-950/70">
+                  <div className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
+                    Team total
+                  </div>
+                  <div className="mt-1 text-xl font-bold text-gray-900 dark:text-slate-50">
+                    {result.performance?.totalTimeText || "—"}
+                  </div>
+                  <div className="mt-2 text-sm text-gray-600 dark:text-slate-300">
+                    {result.performance?.teamName || result.team_name || "Unknown team"}
+                    {result.performance?.leaderboardPlace ? ` · place ${result.performance.leaderboardPlace}` : ""}
+                  </div>
+                </div>
+
+                <div className="rounded-lg bg-gray-50 p-3 dark:bg-slate-950/70">
+                  <div className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
+                    Leg performance
+                  </div>
+                  <div className="mt-2 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+                    {(result.performance?.legPerformances || []).map((leg) => (
+                      <div key={leg.legNumber} className="rounded-md bg-white px-3 py-2 dark:bg-slate-900">
+                        <div className="text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
+                          {leg.label}
+                        </div>
+                        <div className="mt-1 font-semibold text-gray-900 dark:text-slate-50">
+                          {leg.timeText || "—"}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <details className="mt-4">
+                <summary className="cursor-pointer text-sm font-semibold text-gray-700 dark:text-slate-200">
+                  Raw searchable text
+                </summary>
+                <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-gray-800 dark:text-slate-100">
+                  {result.chunk_text}
+                </p>
+              </details>
 
               <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
-                <Evidence label="Team" value={result.team_name} />
-                <Evidence label="Runner" value={result.runner_name} />
-                <Evidence label="Bib" value={result.bib} />
-                <Evidence label="Division" value={result.division} />
-                <Evidence label="Source" value={result.source_filename} />
-                <Evidence label="Document" value={result.document_name} />
+                <Evidence label="Team" value={result.performance?.teamName || result.team_name} />
+                <Evidence label="Runner" value={result.performance?.runnerName || result.runner_name} />
+                <Evidence label="Bib" value={result.performance?.bib || result.bib} />
+                <Evidence label="Division" value={result.performance?.division || result.division} />
+                <Evidence label="Total time" value={result.performance?.totalTimeText} />
+                <Evidence label="Pace" value={result.performance?.paceText} />
+                <Evidence label="Difference" value={result.performance?.differenceText} />
                 <Evidence label="Row" value={result.row_label} />
-                <Evidence label="Page" value={result.page_number == null ? "" : String(result.page_number)} />
               </dl>
             </article>
           ))}

@@ -119,10 +119,33 @@ type HistoricalResultSearchEvidence = {
   row_index: number | null;
 };
 
+type HistoricalResultLegPerformance = {
+  legNumber: number;
+  label: string;
+  timeText: string | null;
+  status: "recorded" | "missing";
+};
+
+type HistoricalResultStructuredPerformance = {
+  kind: "team_result" | "leg_result" | "row" | "source";
+  teamName: string | null;
+  runnerName: string | null;
+  bib: string | null;
+  division: string | null;
+  totalTimeText: string | null;
+  leaderboardPlace: number | null;
+  legPerformances: HistoricalResultLegPerformance[];
+  differenceText: string | null;
+  percentBackText: string | null;
+  paceText: string | null;
+  summary: string;
+};
+
 type HistoricalResultSearchResponse = HistoricalResultSearchMatch &
   Partial<HistoricalResultSearchEvidence> & {
     source_filename: string;
     row_label: string;
+    performance: HistoricalResultStructuredPerformance;
   };
 
 type HistoricalSearchRpcClient = {
@@ -355,7 +378,7 @@ async function handleChat(request: Request, env: Env): Promise<Response> {
     model,
     messages,
     system: buildSystemPrompt(body.pageContext, runnerIndex, currentUser),
-    tools: createRelayTools(supabase, limitToolExecution, currentUser),
+    tools: createRelayTools(supabase, limitToolExecution, currentUser, env),
     stopWhen: stepCountIs(5),
   });
 
@@ -490,36 +513,65 @@ async function handleHistoricalResultsSearch(request: Request, env: Env): Promis
   try {
     const authorizationHeader = request.headers.get("authorization") ?? undefined;
     const client = createRelayClient(env, authorizationHeader) as unknown as HistoricalSearchRpcClient;
-    const queryEmbedding = await embedHistoricalResultsQuery(query, env.OPENAI_API_KEY);
-    const matchCount = clampInteger(body.matchCount, 10, 1, 50);
-    const { data, error } = await client.rpc("match_result_search_chunks", {
-      query_embedding: queryEmbedding,
-      match_count: matchCount,
-      filter_year: nullablePositiveInteger(body.year),
-      filter_leg_number: nullablePositiveInteger(body.legNumber),
-      filter_leg_version: nullablePositiveInteger(body.legVersion),
-      filter_chunk_type: typeof body.chunkType === "string" && body.chunkType ? body.chunkType : null,
+    const search = await searchHistoricalResults(client, env, {
+      query,
+      matchCount: body.matchCount,
+      year: body.year,
+      legNumber: body.legNumber,
+      legVersion: body.legVersion,
+      chunkType: body.chunkType,
     });
 
-    if (error) {
-      throw new Error(error.message);
-    }
-
-    const results = await enrichHistoricalResultMatches(client, data || []);
-    return Response.json(
-      {
-        query,
-        model: RESULT_SEARCH_EMBEDDING_MODEL,
-        results,
-      },
-      { headers: jsonHeaders }
-    );
+    return Response.json(search, { headers: jsonHeaders });
   } catch (error) {
     return Response.json(
       { error: getErrorMessage(error) },
       { status: 500, headers: jsonHeaders }
     );
   }
+}
+
+async function searchHistoricalResults(
+  client: HistoricalSearchRpcClient,
+  env: Env,
+  input: HistoricalResultsSearchRequestBody
+): Promise<{
+  query: string;
+  model: string;
+  resultCount: number;
+  results: HistoricalResultSearchResponse[];
+}> {
+  if (!env.OPENAI_API_KEY) {
+    throw new Error("Historical semantic search needs OPENAI_API_KEY configured.");
+  }
+
+  const query = typeof input.query === "string" ? input.query.trim() : "";
+  if (!query) {
+    throw new Error("Enter a search query.");
+  }
+
+  const queryEmbedding = await embedHistoricalResultsQuery(query, env.OPENAI_API_KEY);
+  const matchCount = clampInteger(input.matchCount, 10, 1, 50);
+  const { data, error } = await client.rpc("match_result_search_chunks", {
+    query_embedding: queryEmbedding,
+    match_count: matchCount,
+    filter_year: nullablePositiveInteger(input.year),
+    filter_leg_number: nullablePositiveInteger(input.legNumber),
+    filter_leg_version: nullablePositiveInteger(input.legVersion),
+    filter_chunk_type: typeof input.chunkType === "string" && input.chunkType ? input.chunkType : null,
+  });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  const results = await enrichHistoricalResultMatches(client, data || []);
+  return {
+    query,
+    model: RESULT_SEARCH_EMBEDDING_MODEL,
+    resultCount: results.length,
+    results,
+  };
 }
 
 async function readHistoricalResultsSearchRequest(
@@ -587,8 +639,98 @@ async function enrichHistoricalResultMatches(
       ...(evidence || {}),
       source_filename: evidence?.original_filename || evidence?.local_path || "",
       row_label: evidence?.row_index == null ? "" : String(evidence.row_index + 1),
+      performance: buildHistoricalPerformance(match),
     };
   });
+}
+
+function buildHistoricalPerformance(match: HistoricalResultSearchMatch): HistoricalResultStructuredPerformance {
+  const fields = parseHistoricalChunkFields(match.chunk_text || "");
+  const normalizedChunkType = match.chunk_type || "";
+  const kind: HistoricalResultStructuredPerformance["kind"] =
+    normalizedChunkType === "team_result" || normalizedChunkType === "leg_result"
+      ? normalizedChunkType
+      : normalizedChunkType === "source_summary"
+        ? "source"
+        : "row";
+  const teamName = match.team_name || fields[2] || null;
+  const division = match.division || fields[3] || null;
+  const totalTimeText = fields[4] || null;
+  const legPerformances = fields.slice(5, 12).map((timeText, index) => ({
+    legNumber: index + 1,
+    label: `Leg ${index + 1}`,
+    timeText: timeText && timeText !== "-" ? timeText : null,
+    status: timeText && timeText !== "-" ? "recorded" : "missing",
+  })) satisfies HistoricalResultLegPerformance[];
+  const summaryParts = [
+    teamName,
+    match.year ? String(match.year) : null,
+    totalTimeText ? `total ${totalTimeText}` : null,
+    division,
+  ].filter(Boolean);
+
+  return {
+    kind,
+    teamName,
+    runnerName: match.runner_name || null,
+    bib: match.bib || fields[1] || null,
+    division,
+    totalTimeText,
+    leaderboardPlace: match.overall_place ?? parseIntegerText(fields[0]),
+    legPerformances,
+    differenceText: fields[12] || null,
+    percentBackText: fields[13] || null,
+    paceText: fields[17] || null,
+    summary: summaryParts.length > 0 ? summaryParts.join(" · ") : match.chunk_text || "Historical result match",
+  };
+}
+
+function parseHistoricalChunkFields(chunkText: string): string[] {
+  const value = chunkText.replace(/^\d{4}\s+[^:]+:\s*/, "").trim();
+  if (!value.includes("|")) {
+    return [];
+  }
+  return value.split("|").map((field) => field.trim());
+}
+
+function parseIntegerText(value: string | undefined): number | null {
+  if (!value) {
+    return null;
+  }
+  const parsed = Number.parseInt(value, 10);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function simplifyHistoricalSearchResults(
+  results: HistoricalResultSearchResponse[]
+): Array<{
+  year: number | null;
+  teamName: string | null;
+  runnerName: string | null;
+  bib: string | null;
+  division: string | null;
+  totalTime: string | null;
+  legs: HistoricalResultLegPerformance[];
+  place: number | null;
+  similarity: number | null;
+  row: string;
+  evidenceNote: string;
+}> {
+  return results.map((result) => ({
+    year: result.year,
+    teamName: result.performance.teamName,
+    runnerName: result.performance.runnerName,
+    bib: result.performance.bib,
+    division: result.performance.division,
+    totalTime: result.performance.totalTimeText,
+    legs: result.performance.legPerformances,
+    place: result.performance.leaderboardPlace,
+    similarity: result.similarity,
+    row: result.row_label,
+    evidenceNote: [result.document_name, result.row_label ? `row ${result.row_label}` : null]
+      .filter(Boolean)
+      .join(" "),
+  }));
 }
 
 function nullablePositiveInteger(value: unknown): number | null {
@@ -1214,6 +1356,8 @@ function describeToolUse(toolName: string, input: unknown): string {
       return `Reading leg ${stringValue(params.legNumber) || ""}`.trim();
     case "getYearResults":
       return `Reading ${stringValue(params.year) || "year"} results`;
+    case "searchHistoricalResults":
+      return `Searching historical results for ${stringValue(params.query) || "query"}`;
     case "saveLegObservation":
       return "Saving self recorded leg data";
     case "deleteLegObservation":
@@ -1277,7 +1421,7 @@ function buildSystemPrompt(
 
 Answer questions about relay race results, team members, legs, years, paces, and rankings. Use the provided tools before making factual claims about the data. Treat lower pace values as faster, and lower percentile values as better because they mean closer to the top of the field. Use Xtreme Falcons flavor: sound like a sharp race-day crew chief with punchy words like shred, rip, send it, dialed, stoked, hammer, full throttle, and locked in. Keep the vibe fun but never let it blur data quality, uncertainty, safety, or write permissions.
 
-When a question spans many years, prefer getRaceOverview or another aggregate tool over calling getYearResults once for every year. Only call getYearResults for specific years whose full leg-by-leg details are needed.
+When a question spans many years, prefer getRaceOverview or another aggregate tool over calling getYearResults once for every year. Only call getYearResults for specific years whose full leg-by-leg details are needed. Use searchHistoricalResults for questions about archived official source-file rows, fuzzy historical result discovery, team total time, bib/division/place, or per-leg split performance that may not exist in canonical app tables. Its results are structured around the underlying race performance; source row evidence is secondary provenance.
 
 Current open race context: 2026 exists as the current Tahoe Relay race shell but has no official result data yet. Its known setup is race start time 07:00:00, no bib/division/place/team-total fields yet, and current course legs should default to leg version v2 unless the user or source explicitly says otherwise. Treat 2026 as the open race-day tracker: save supplied Garmin/Strava/Apple Watch/manual evidence as self recorded observations, use getYearResults(2026) for current provisional state, and never describe 2026 values as official until official result rows exist.
 
@@ -1308,7 +1452,8 @@ ${runnerContext}`;
 function createRelayTools(
   supabase: DataClient,
   limitToolExecution: ToolExecutionLimiter,
-  currentUser: CurrentUserContext
+  currentUser: CurrentUserContext,
+  env: Env
 ) {
   return {
     getRaceOverview: tool({
@@ -1530,6 +1675,62 @@ function createRelayTools(
             race: raceComments,
             runInstances: runComments,
           },
+        };
+      }),
+    }),
+    searchHistoricalResults: tool({
+      description:
+        "Semantic search over archived historical Lake Tahoe Relay result rows. Use this for questions about old source-file results, team total time, bib/division/place, and per-leg split performance that are not in canonical app result tables.",
+      inputSchema: jsonSchema<{
+        query: string;
+        matchCount?: number;
+        year?: number;
+        legNumber?: number;
+        legVersion?: number;
+        chunkType?: string;
+      }>({
+        type: "object",
+        properties: {
+          query: {
+            type: "string",
+            description: "Natural-language query, team name, runner name, category, bib, or source wording.",
+          },
+          matchCount: {
+            type: "number",
+            description: "Maximum matches to return. Defaults to 8.",
+          },
+          year: {
+            type: "number",
+            description: "Optional race year filter.",
+          },
+          legNumber: {
+            type: "number",
+            description: "Optional relay leg number filter.",
+          },
+          legVersion: {
+            type: "number",
+            description: "Optional relay leg version filter.",
+          },
+          chunkType: {
+            type: "string",
+            enum: ["team_result", "leg_result", "source_summary", "row", "ocr_block"],
+            description: "Optional source chunk type. Use team_result for team totals and leg splits.",
+          },
+        },
+        required: ["query"],
+        additionalProperties: false,
+      }),
+      execute: limitToolExecution(async (input) => {
+        const client = supabase as unknown as HistoricalSearchRpcClient;
+        const search = await searchHistoricalResults(client, env, {
+          ...input,
+          matchCount: input.matchCount ?? 8,
+          chunkType: input.chunkType ?? "team_result",
+        });
+        return {
+          query: search.query,
+          resultCount: search.resultCount,
+          results: simplifyHistoricalSearchResults(search.results),
         };
       }),
     }),
