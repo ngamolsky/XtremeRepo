@@ -506,12 +506,14 @@ const RaceDetailView: React.FC = () => {
               {observedRunnerNames.length > 0 ? (
                 <div className="flex flex-wrap gap-2">
                   {observedRunnerNames.map((runnerName) => (
-                    <span
+                    <Link
                       key={runnerName}
-                      className="rounded-full bg-primary-50 px-3 py-1 text-sm text-primary-700"
+                      to="/runners/$runnerName"
+                      params={{ runnerName }}
+                      className="rounded-full bg-primary-50 px-3 py-1 text-sm text-primary-700 transition-colors hover:bg-primary-100 hover:text-primary-800"
                     >
                       {runnerName}
-                    </span>
+                    </Link>
                   ))}
                 </div>
               ) : (
@@ -656,7 +658,17 @@ const RaceLegEntryRow: React.FC<{ entry: RaceLegEntry; raceYear: number }> = ({
           )}
         </div>
         <p className="mt-2 text-base font-semibold text-gray-900">
-          {entry.runnerName || "Unknown runner"}
+          {entry.runnerName ? (
+            <Link
+              to="/runners/$runnerName"
+              params={{ runnerName: entry.runnerName }}
+              className="text-primary-700 hover:text-primary-800"
+            >
+              {entry.runnerName}
+            </Link>
+          ) : (
+            "Unknown runner"
+          )}
         </p>
       </div>
       {entry.runnerName && entry.legVersion ? (
@@ -670,7 +682,7 @@ const RaceLegEntryRow: React.FC<{ entry: RaceLegEntry; raceYear: number }> = ({
           }}
           className="text-sm font-medium text-primary-700 hover:text-primary-800"
         >
-          Open
+          View performance
         </Link>
       ) : null}
     </div>

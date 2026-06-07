@@ -416,6 +416,14 @@ const RunnerDetail: React.FC = () => {
                           ? ` · ${race.provisional.length} self reported`
                           : ""}
                       </p>
+                      <Link
+                        to="/races/$year"
+                        params={{ year: String(race.year) }}
+                        className="mt-1 inline-flex text-xs font-medium text-primary-700 hover:text-primary-800"
+                        onClick={(event) => event.stopPropagation()}
+                      >
+                        Race page
+                      </Link>
                     </div>
                     <ChevronDown
                       className={`h-5 w-5 shrink-0 text-gray-500 transition-transform ${
@@ -464,12 +472,14 @@ const RunnerDetail: React.FC = () => {
           </h3>
           <div className="flex flex-wrap gap-2">
             {unknownLegYears.map((year) => (
-              <span
+              <Link
                 key={year}
-                className="px-2.5 py-1 bg-amber-100 text-amber-800 text-xs font-medium rounded-full"
+                to="/races/$year"
+                params={{ year: String(year) }}
+                className="px-2.5 py-1 bg-amber-100 text-amber-800 text-xs font-medium rounded-full hover:bg-amber-200"
               >
                 {year}
-              </span>
+              </Link>
             ))}
           </div>
         </section>

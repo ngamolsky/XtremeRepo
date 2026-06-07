@@ -1,8 +1,9 @@
-export type PrimaryNavId = "dashboard" | "team" | "legs" | "races" | "photos" | "profile";
+export type PrimaryNavId = "dashboard" | "team" | "legs" | "races" | "search" | "photos" | "profile";
 
 const nestedRouteParents: Record<string, PrimaryNavId> = {
   runners: "team",
   runs: "team",
+  "historical-results-search": "search",
 };
 
 const directRouteIds = new Set<PrimaryNavId>([
@@ -10,6 +11,7 @@ const directRouteIds = new Set<PrimaryNavId>([
   "team",
   "legs",
   "races",
+  "search",
   "photos",
   "profile",
 ]);

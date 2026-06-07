@@ -16,6 +16,15 @@
     "db:compare-local-prod": "node scripts/supabase/compare-local-prod.mjs",
     "db:refresh-local": "npm run db:dump-seed:prod && npx supabase db reset && npm run db:auth:ensure:local",
     "photos:import": "node scripts/supabase/import-photos.mjs",
+    "results:extract": "node scripts/lake-tahoe-relay/extract-results.mjs",
+    "results:load-extracted": "node scripts/supabase/load-result-extractions.mjs",
+    "results:embed": "node scripts/supabase/embed-result-search-chunks.mjs",
+    "results:search": "node scripts/supabase/search-result-chunks.mjs",
+    "test:result-extraction": "node scripts/test-result-extraction.mjs",
+    "test:result-extraction-loader": "node scripts/test-result-extraction-loader.mjs",
+    "test:result-search-embedding": "node scripts/test-result-search-embedding.mjs",
+    "test:result-semantic-search": "node scripts/test-result-semantic-search.mjs",
+    "test:historical-results-search-ui": "node scripts/test-historical-results-search-ui.mjs",
     "test:observation-null": "node scripts/test-observation-null-handling.mjs",
     "test:race-display-provisional": "node scripts/test-race-display-provisional-metrics.mjs",
     "test:race-live-projection": "node scripts/test-race-live-projection.mjs",
@@ -31,7 +40,8 @@
     "test:xtreme-agent-vibes": "node scripts/test-xtreme-agent-vibes.mjs",
     "test:agent-data-freshness": "node scripts/test-agent-data-freshness.mjs",
     "test:race-detail-leg-links": "node scripts/test-race-detail-leg-links.mjs",
-    "test:leg-historical-average-display": "node scripts/test-leg-historical-average-display.mjs"
+    "test:leg-historical-average-display": "node scripts/test-leg-historical-average-display.mjs",
+    "test:information-hierarchy-links": "node scripts/test-information-hierarchy-links-and-leg-results.mjs"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.81",
@@ -67,6 +77,7 @@
     "type-fest": "^5.7.0",
     "typescript": "^6.0.3",
     "vite": "^8.0.16",
-    "wrangler": "^4.98.0"
+    "wrangler": "^4.98.0",
+    "xlsx": "^0.18.5"
   }
 }

@@ -1,0 +1,1022 @@
+{
+  "schema_version": 1,
+  "extracted_at": "2026-06-07T19:41:57.126Z",
+  "source": {
+    "year": 2025,
+    "label": "2025",
+    "source_url": "https://laketahoerelay.com/wp-content/uploads/2025/06/Lake-Tahoe-Relay-2025-Race-Results.pdf",
+    "final_url": "https://laketahoerelay.com/wp-content/uploads/2025/06/Lake-Tahoe-Relay-2025-Race-Results.pdf",
+    "filename": "data/raw/lake-tahoe-relay/results/2025-Lake-Tahoe-Relay-2025-Race-Results.pdf",
+    "file_type": "pdf",
+    "content_type": "application/pdf",
+    "bytes": 305278,
+    "sha256": "a62842500114ffefb139283da6b5443a407049e8438ff97ebbaf8aae524ef788",
+    "actual_sha256": "a62842500114ffefb139283da6b5443a407049e8438ff97ebbaf8aae524ef788"
+  },
+  "extraction": {
+    "method": "pdftotext-layout",
+    "status": "extracted",
+    "warnings": []
+  },
+  "summary": {
+    "rows": 163,
+    "cells": 0,
+    "characters": 56773
+  },
+  "documents": [
+    {
+      "document_type": "pdf_page",
+      "name": "Page 1",
+      "sheet_index": null,
+      "page_number": 1,
+      "row_count": 163,
+      "column_count": null,
+      "extraction_status": "extracted",
+      "metadata": {
+        "extraction": "pdftotext -layout"
+      },
+      "cells": [],
+      "rows": [
+        {
+          "row_index": 0,
+          "row_label": "1",
+          "raw_text": "              Overall",
+          "cells": {}
+        },
+        {
+          "row_index": 1,
+          "row_label": "2",
+          "raw_text": "Place Bib     Team name                            Leg 1                                Leg 2                                Leg 3                                Leg 4                                Leg 5                                Leg 6                                Leg 7                                Category            Time         Lap 1       Lap 2       Lap 3       Lap 4       Lap 5       Lap 6       Lap 7",
+          "cells": {}
+        },
+        {
+          "row_index": 2,
+          "row_label": "3",
+          "raw_text": "1       1     West Valley Track Club -             West Valley Track Club -             West Valley Track Club -             West Valley Track Club -             West Valley Track Club -             West Valley Track Club -             West Valley Track Club -             West Valley Track Club -             Men's 40+           7:33:34.0    55:28.5     1:19:33.0   1:01:36.3   1:00:15.5   1:07:42.2   59:29.3     1:09:29.2",
+          "cells": {}
+        },
+        {
+          "row_index": 3,
+          "row_label": "4",
+          "raw_text": "2       53    Monache High School                  Monache High School                                                       Monache High School                  Monache High School                  Monache High School                  Monache High School                  Monache High School                  High School Boys    8:20:05.7    5:04:09.9   -           1:16:41.2   1:03:10.6   1:13:40.7   1:00:27.6   2:13:05.2",
+          "cells": {}
+        },
+        {
+          "row_index": 4,
+          "row_label": "5",
+          "raw_text": "3       5     Deportivo Runners                    Deportivo Runners                    Deportivo Runners                    Deportivo Runners                    Deportivo Runners                    Deportivo Runners                    Deportivo Runners                    Deportivo Runners                    Men's Open          8:47:10.7    1:12:29.5   1:23:52.1   1:16:46.8   1:22:09.9   1:15:58.3   1:07:59.9   1:07:54.1",
+          "cells": {}
+        },
+        {
+          "row_index": 5,
+          "row_label": "6",
+          "raw_text": "4       3     Golden Valley Harriers Stirred       Golden Valley Harriers Stirred       Golden Valley Harriers Stirred       Golden Valley Harriers Stirred       Golden Valley Harriers Stirred       Golden Valley Harriers Stirred       Golden Valley Harriers Stirred       Golden Valley Harriers Stirred       Men's Open          8:49:25.8    1:05:19.4   1:19:30.2   1:19:33.4   1:20:23.9   1:20:49.8   1:19:39.7   1:04:09.3",
+          "cells": {}
+        },
+        {
+          "row_index": 6,
+          "row_label": "7",
+          "raw_text": "5       40    Tintinnabulating Transmogrified      Tintinnabulating Transmogrified      Tintinnabulating Transmogrified      Tintinnabulating Transmogrified      Tintinnabulating Transmogrified      Tintinnabulating Transmogrified      Tintinnabulating Transmogrified      Tintinnabulating Transmogrified      Mixed Open          8:53:25.3    1:12:52.2   1:22:59.8   1:13:33.9   1:13:27.7   1:29:33.4   1:02:05.6   1:18:52.6",
+          "cells": {}
+        },
+        {
+          "row_index": 7,
+          "row_label": "8",
+          "raw_text": "6       57    Toads Go To Tahoe                    Toads Go To Tahoe                    Toads Go To Tahoe                    Toads Go To Tahoe                    Toads Go To Tahoe                    Toads Go To Tahoe                    Toads Go To Tahoe                    Toads Go To Tahoe                    High School Mixed   9:30:40.2    1:22:09.9   1:34:39.9   1:18:17.9   1:24:21.2   1:25:35.5   1:09:23.3   1:16:12.6",
+          "cells": {}
+        },
+        {
+          "row_index": 8,
+          "row_label": "9",
+          "raw_text": "7       26    Golden Valley Harriers Shaken        Golden Valley Harriers Shaken        Golden Valley Harriers Shaken        Golden Valley Harriers Shaken        Golden Valley Harriers Shaken        Golden Valley Harriers Shaken        Golden Valley Harriers Shaken        Golden Valley Harriers Shaken        Mixed Open          9:34:35.1    1:19:24.5   1:42:50.4   1:10:25.4   1:17:47.1   1:21:37.1   1:20:56.2   1:21:34.3",
+          "cells": {}
+        },
+        {
+          "row_index": 9,
+          "row_label": "10",
+          "raw_text": "8       39    OCTC                                 OCTC                                 OCTC                                 OCTC                                 OCTC                                 OCTC                                 OCTC                                 OCTC                                 Mixed Open          9:49:05.6    1:14:42.4   2:04:22.1   1:15:15.7   1:26:44.1   1:32:17.2   1:33:24.7   42:19.4",
+          "cells": {}
+        },
+        {
+          "row_index": 10,
+          "row_label": "11",
+          "raw_text": "9       46    Delano Lifehouse Church              Delano Lifehouse Church              Delano Lifehouse Church              Delano Lifehouse Church              Delano Lifehouse Church              Delano Lifehouse Church              Delano Lifehouse Church              Delano Lifehouse Church              Corporate Open      9:59:17.9    1:32:11.1   1:38:43.7   1:12:14.9   1:09:52.6   1:46:20.4   1:13:26.3   1:26:28.9",
+          "cells": {}
+        },
+        {
+          "row_index": 11,
+          "row_label": "12",
+          "raw_text": "10      58    MVXC Boys                            MVXC Boys                            MVXC Boys                            MVXC Boys                            MVXC Boys                            MVXC Boys                            MVXC Boys                            MVXC Boys                            High School Boys    10:01:56.6   1:18:58.7   1:48:44.2   1:22:36.5   1:32:43.8   1:35:45.2   1:09:05.4   1:14:02.9",
+          "cells": {}
+        },
+        {
+          "row_index": 12,
+          "row_label": "13",
+          "raw_text": "11      2     Casual Jogboys                       Casual Jogboys                       Casual Jogboys                       Casual Jogboys                       Casual Jogboys                       Casual Jogboys                       Casual Jogboys                       Casual Jogboys                       Men's 40+           10:02:48.6   1:19:29.5   1:47:13.3   1:23:35.6   1:17:44.2   1:30:08.6   1:21:42.0   1:22:55.5",
+          "cells": {}
+        },
+        {
+          "row_index": 13,
+          "row_label": "14",
+          "raw_text": "12      54    McFarland High School                McFarland High School                McFarland High School                McFarland High School                McFarland High School                McFarland High School                McFarland High School                McFarland High School                High School Boys    10:08:08.5   1:10:36.4   1:54:42.2   1:21:53.6   1:17:32.9   1:34:38.4   1:19:27.7   1:29:17.4",
+          "cells": {}
+        },
+        {
+          "row_index": 14,
+          "row_label": "15",
+          "raw_text": "13      34    Doo Farts                            Doo Farts                            Doo Farts                            Doo Farts                            Doo Farts                            Doo Farts                            Doo Farts                            Doo Farts                            Mixed Open          10:18:44.5   1:27:02.2   2:00:17.5   1:38:20.1   1:27:20.3   1:26:58.0   1:15:12.8   1:03:33.6",
+          "cells": {}
+        },
+        {
+          "row_index": 15,
+          "row_label": "16",
+          "raw_text": "14      33    Endorphinaddicts                     Endorphinaddicts                     Endorphinaddicts                                                                                               Endorphinaddicts                     Endorphinaddicts                                                          Mixed Open          10:30:53.0   45:36.1     4:41:19.0   -           -           1:50:48.0   4:56:13.6   -",
+          "cells": {}
+        },
+        {
+          "row_index": 16,
+          "row_label": "17",
+          "raw_text": "15      38    Sacramento City College              Sacramento City College              Sacramento City College            Sacramento City College                Sacramento City College              Sacramento City College              Sacramento City College              Sacramento City College              Mixed Open          10:32:45.7   1:22:26.9   1:35:03.9   1:20:06.2   1:29:44.6   1:31:27.4   1:15:58.7   1:57:58.0",
+          "cells": {}
+        },
+        {
+          "row_index": 17,
+          "row_label": "18",
+          "raw_text": "16      50    Kiewait Black                        Kiewait Black                                                           Kiewait Black                          Kiewait Black                        Kiewait Black                        Kiewait Black                        Kiewait Black                        Corporate Open      10:36:14.6   5:04:13.0   -           1:34:17.6   1:20:17.4   1:25:15.7   1:20:57.0   2:49:10.1",
+          "cells": {}
+        },
+        {
+          "row_index": 18,
+          "row_label": "19",
+          "raw_text": "17      20    SB Fun Runners                       SB Fun Runners                       SB Fun Runners                     SB Fun Runners                         SB Fun Runners                       SB Fun Runners                       SB Fun Runners                       SB Fun Runners                       Mixed Open          10:36:18.2   1:06:40.1   1:55:51.6   1:40:23.8   1:22:44.9   1:52:41.0   1:28:52.1   1:09:04.6",
+          "cells": {}
+        },
+        {
+          "row_index": 19,
+          "row_label": "20",
+          "raw_text": "18      4     StoupBeerRunners                     StoupBeerRunners                     StoupBeerRunners                   StoupBeerRunners                       StoupBeerRunners                     StoupBeerRunners                     StoupBeerRunners                     StoupBeerRunners                     Men's Open          10:42:28.3   1:19:17.5   2:29:30.4   1:23:13.5   1:02:49.1   1:32:26.8   1:24:29.2   1:30:41.9",
+          "cells": {}
+        },
+        {
+          "row_index": 20,
+          "row_label": "21",
+          "raw_text": "19      22    Chh-Yeah!                            Chh-Yeah!                            Chh-Yeah!                          Chh-Yeah!                              Chh-Yeah!                            Chh-Yeah!                            Chh-Yeah!                            Chh-Yeah!                            Mixed Open          10:43:27.5   1:26:06.7   1:36:26.1   1:09:52.7   1:40:25.1   1:35:43.2   1:33:42.9   1:41:10.8",
+          "cells": {}
+        },
+        {
+          "row_index": 21,
+          "row_label": "22",
+          "raw_text": "20      25    Golden Valley Harriers Straight Up   Golden Valley Harriers Straight Up   Golden Valley Harriers Straight Up Golden Valley Harriers Straight Up     Golden Valley Harriers Straight Up   Golden Valley Harriers Straight Up   Golden Valley Harriers Straight Up   Golden Valley Harriers Straight Up   Mixed Open          10:50:08.2   1:23:14.7   1:59:47.5   1:34:34.1   1:26:24.3   1:27:04.8   1:15:09.5   1:43:53.3",
+          "cells": {}
+        },
+        {
+          "row_index": 22,
+          "row_label": "23",
+          "raw_text": "21      55    Monache High School                  Monache High School                                                     Monache High School                    Monache High School                  Monache High School                  Monache High School                  Monache High School                  High School Girls   11:00:12.0   5:08:12.2   -           1:27:51.1   1:43:54.0   1:39:51.9   1:15:27.6   2:29:00.2",
+          "cells": {}
+        },
+        {
+          "row_index": 23,
+          "row_label": "24",
+          "raw_text": "22      6     Midnight Society                     Midnight Society                     Midnight Society                   Midnight Society                       Midnight Society                     Midnight Society                     Midnight Society                     Midnight Society                     Men's Open          11:01:30.3   1:14:59.6   2:06:11.2   1:00:00.4   1:13:21.1   1:59:57.1   1:30:21.4   1:56:39.6",
+          "cells": {}
+        },
+        {
+          "row_index": 24,
+          "row_label": "25",
+          "raw_text": "23      36    Bear Sharks                          Bear Sharks                          Bear Sharks                        Bear Sharks                            Bear Sharks                          Bear Sharks                          Bear Sharks                          Bear Sharks                          Mixed Open          11:03:40.3   1:30:38.9   1:44:19.5   1:20:03.0   1:48:39.1   1:28:51.8   1:44:12.5   1:26:55.4",
+          "cells": {}
+        },
+        {
+          "row_index": 25,
+          "row_label": "26",
+          "raw_text": "24      32    Go Lytley                            Go Lytley                                                               Go Lytley                              Go Lytley                            Go Lytley                            Go Lytley                            Go Lytley                            Mixed Open          11:09:07.8   5:04:06.4   -           1:14:45.5   1:44:30.9   1:40:19.7   1:27:59.4   2:44:50.9",
+          "cells": {}
+        },
+        {
+          "row_index": 26,
+          "row_label": "27",
+          "raw_text": "25      28    ZRC 1                                ZRC 1                                ZRC 1                              ZRC 1                                  ZRC 1                                ZRC 1                                ZRC 1                                ZRC 1                                Mixed Open          11:10:38.7   1:23:20.3   2:03:29.9   1:42:51.6   1:25:00.9   1:46:59.4   1:31:32.3   1:17:24.3",
+          "cells": {}
+        },
+        {
+          "row_index": 27,
+          "row_label": "28",
+          "raw_text": "26      45    Pisco Sours                          Pisco Sours                                                                                                                                         Pisco Sours                          Pisco Sours                          Pisco Sours                          2 Person Relay      11:16:31.1   5:04:09.0   -           -           -           1:30:25.9   1:23:18.6   2:52:44.2",
+          "cells": {}
+        },
+        {
+          "row_index": 28,
+          "row_label": "29",
+          "raw_text": "27      9     Keep Tahoe Blue                      Keep Tahoe Blue                                                           Keep Tahoe Blue                      Keep Tahoe Blue                      Keep Tahoe Blue                      Keep Tahoe Blue                      Keep Tahoe Blue                      Women's 40+         11:19:10.4   5:03:47.1   -           1:35:37.2   1:36:09.5   1:48:17.7   1:27:37.7   2:26:55.8",
+          "cells": {}
+        },
+        {
+          "row_index": 29,
+          "row_label": "30",
+          "raw_text": "28      23    Nth Degree Athletico                 Nth Degree Athletico                 Nth Degree Athletico                 Nth Degree Athletico                 Nth Degree Athletico                 Nth Degree Athletico                 Nth Degree Athletico                 Nth Degree Athletico                 Mixed Open          11:21:28.0   1:11:58.8   2:06:01.1   1:11:29.3   1:18:46.4   1:59:15.7   1:36:44.8   1:57:11.9",
+          "cells": {}
+        },
+        {
+          "row_index": 30,
+          "row_label": "31",
+          "raw_text": "29      18    Run Fit                              Run Fit                                                                   Run Fit                              Run Fit                              Run Fit                              Run Fit                              Run Fit                              Mixed Open          11:23:43.6   5:09:05.1   -           1:29:15.7   1:23:41.9   1:49:42.9   1:36:35.6   2:41:39.9",
+          "cells": {}
+        },
+        {
+          "row_index": 31,
+          "row_label": "32",
+          "raw_text": "30      24    Chafing the Dream                    Chafing the Dream                    Chafing the Dream                    Chafing the Dream                    Chafing the Dream                    Chafing the Dream                    Chafing the Dream                    Chafing the Dream                    Mixed Open          11:24:14.3   1:16:35.5   1:52:06.3   1:30:34.6   1:25:57.2   1:40:01.0   1:37:44.7   2:01:14.9",
+          "cells": {}
+        },
+        {
+          "row_index": 32,
+          "row_label": "33",
+          "raw_text": "31      59    MVXC Girls                           MVXC Girls                                                                MVXC Girls                           MVXC Girls                           MVXC Girls                           MVXC Girls                           MVXC Girls                           High School Girls   11:36:21.3   5:08:13.2   -           1:58:04.0   1:34:12.9   1:50:31.7   1:09:09.3   2:49:02.1",
+          "cells": {}
+        },
+        {
+          "row_index": 33,
+          "row_label": "34",
+          "raw_text": "32      35    Running on Cafine                    Running on Cafine                    Running on Cafine                    Running on Cafine                    Running on Cafine                    Running on Cafine                    Running on Cafine                    Running on Cafine                    Mixed Open          11:37:41.3   1:39:25.9   2:21:11.4   1:23:35.5   1:16:24.1   1:33:02.3   1:31:58.0   1:52:04.1",
+          "cells": {}
+        },
+        {
+          "row_index": 34,
+          "row_label": "35",
+          "raw_text": "33      27    Boulder Dashers                      Boulder Dashers                      Boulder Dashers                      Boulder Dashers                      Boulder Dashers                      Boulder Dashers                      Boulder Dashers                      Boulder Dashers                      Mixed Open          11:45:39.8   36:37.5     1:38:58.4   1:46:53.4   1:49:41.0   1:18:55.9   1:28:18.9   3:06:14.7",
+          "cells": {}
+        },
+        {
+          "row_index": 35,
+          "row_label": "36",
+          "raw_text": "34      29    ZRC 2                                ZRC 2                                ZRC 2                                ZRC 2                                ZRC 2                                ZRC 2                                ZRC 2                                ZRC 2                                Mixed Open          11:48:06.1   1:28:56.8   1:56:28.1   1:44:42.0   57:45.4     2:39:49.6   1:38:54.2   1:21:30.0",
+          "cells": {}
+        },
+        {
+          "row_index": 36,
+          "row_label": "37",
+          "raw_text": "35      21    Sibling Rivalry                      Sibling Rivalry                                                           Sibling Rivalry                      Sibling Rivalry                      Sibling Rivalry                      Sibling Rivalry                      Sibling Rivalry                      Mixed Open          11:48:51.2   5:07:11.8   -           1:22:24.7   1:40:56.0   1:57:45.0   1:35:36.8   3:09:48.7",
+          "cells": {}
+        },
+        {
+          "row_index": 37,
+          "row_label": "38",
+          "raw_text": "36      49    Kiewait Yellow                       Kiewait Yellow                                                            Kiewait Yellow                       Kiewait Yellow                       Kiewait Yellow                       Kiewait Yellow                                                            Corporate Open      11:51:40.4   5:04:13.5   -           1:24:46.2   1:32:03.9   2:14:35.2   4:36:21.8   -",
+          "cells": {}
+        },
+        {
+          "row_index": 38,
+          "row_label": "39",
+          "raw_text": "37      37    The Xtreme Falcons                   The Xtreme Falcons                   The Xtreme Falcons                   The Xtreme Falcons                   The Xtreme Falcons                   The Xtreme Falcons                   The Xtreme Falcons                   The Xtreme Falcons                   Mixed Open          11:53:41.0   1:26:38.3   2:17:15.4   1:38:37.7   1:38:36.8   1:57:20.8   1:25:24.1   1:29:47.9",
+          "cells": {}
+        },
+        {
+          "row_index": 39,
+          "row_label": "40",
+          "raw_text": "38      19    Banana Cream Thighs                  Banana Cream Thighs                                                       Banana Cream Thighs                  Banana Cream Thighs                  Banana Cream Thighs                  Banana Cream Thighs                  Banana Cream Thighs                  Mixed Open          11:56:27.9   5:03:50.2   -           1:38:20.4   1:43:36.2   1:48:01.6   1:25:34.1   2:38:32.4",
+          "cells": {}
+        },
+        {
+          "row_index": 40,
+          "row_label": "41",
+          "raw_text": "39      44    Texas Tag Team                       Texas Tag Team                                                            Texas Tag Team                       Texas Tag Team                       Texas Tag Team                       Texas Tag Team                       Texas Tag Team                       2 Person Relay      11:58:12.2   5:04:08.2   -           1:19:48.7   1:30:41.0   2:02:03.1   1:37:57.9   3:06:02.5",
+          "cells": {}
+        },
+        {
+          "row_index": 41,
+          "row_label": "42",
+          "raw_text": "40      31    Raiders of the Lost Track            Raiders of the Lost Track                                                 Raiders of the Lost Track            Raiders of the Lost Track            Raiders of the Lost Track            Raiders of the Lost Track            Raiders of the Lost Track            Mixed Open          12:11:46.3   5:04:04.8   -           1:34:19.7   1:54:41.8   1:45:13.4   1:15:47.0   2:52:08.5",
+          "cells": {}
+        },
+        {
+          "row_index": 42,
+          "row_label": "43",
+          "raw_text": "41      30    Tahoe Trotters                       Tahoe Trotters                       Tahoe Trotters                                                                                                 Tahoe Trotters                       Tahoe Trotters                       Tahoe Trotters                       Mixed Open          12:15:29.8   5:04:04.0   22:50.3     -           -           1:57:38.2   2:06:39.3   2:34:00.5",
+          "cells": {}
+        },
+        {
+          "row_index": 43,
+          "row_label": "44",
+          "raw_text": "42      51    LPI Fitness                          LPI Fitness                          LPI Fitness                                                                                                    LPI Fitness                          LPI Fitness                          LPI Fitness                          Corporate Open      12:17:12.8   5:04:12.1   22:44.2     -           -           1:47:28.1   1:18:42.5   2:58:10.8",
+          "cells": {}
+        },
+        {
+          "row_index": 44,
+          "row_label": "45",
+          "raw_text": "43      48    Team Tailgate Party                  Team Tailgate Party                  Team Tailgate Party                  Team Tailgate Party                  Team Tailgate Party                  Team Tailgate Party                  Team Tailgate Party                  Team Tailgate Party                  Corporate Open      12:27:29.6   1:29:12.6   2:04:02.5   1:44:50.9   1:47:57.4   1:49:18.3   1:49:16.3   1:42:51.7",
+          "cells": {}
+        },
+        {
+          "row_index": 45,
+          "row_label": "46",
+          "raw_text": "44      17    Fleet Feet Racing Team D             Fleet Feet Racing Team D                                                  Fleet Feet Racing Team D             Fleet Feet Racing Team D             Fleet Feet Racing Team D             Fleet Feet Racing Team D             Fleet Feet Racing Team D             Mixed Open          12:39:27.7   5:09:17.0   -           1:22:59.0   1:55:41.8   2:31:49.0   1:14:28.4   2:41:13.6",
+          "cells": {}
+        },
+        {
+          "row_index": 46,
+          "row_label": "47",
+          "raw_text": "45      10    Low Maintance                        Low Maintance                        Low Maintance                        Low Maintance                        Low Maintance                        Low Maintance                        Low Maintance                        Low Maintance                        Mixed 40+           12:48:37.3   42:48.1     2:29:52.7   1:50:24.2   1:38:41.6   1:45:55.1   1:30:10.9   2:50:44.6",
+          "cells": {}
+        },
+        {
+          "row_index": 47,
+          "row_label": "48",
+          "raw_text": "46      8     Pick Pack                            Pick Pack                            Pick Pack                            Pick Pack                            Pick Pack                            Pick Pack                            Pick Pack                            Pick Pack                            Women's Open        12:56:49.3   59:31.1     1:54:54.2   1:20:59.9   1:23:12.0   1:53:15.3   1:51:43.6   3:33:13.1",
+          "cells": {}
+        },
+        {
+          "row_index": 48,
+          "row_label": "49",
+          "raw_text": "47      16    Fleet Feet Racing Team C             Fleet Feet Racing Team C             Fleet Feet Racing Team C             Fleet Feet Racing Team C             Fleet Feet Racing Team C             Fleet Feet Racing Team C             Fleet Feet Racing Team C             Fleet Feet Racing Team C             Mixed Open          13:21:20.4   38:37.4     1:59:19.9   2:18:00.9   2:04:09.5   1:55:19.9   1:34:48.2   2:51:04.6",
+          "cells": {}
+        },
+        {
+          "row_index": 49,
+          "row_label": "50",
+          "raw_text": "48      15    Fleet Feet Racing team B             Fleet Feet Racing team B             Fleet Feet Racing team B             Fleet Feet Racing team B             Fleet Feet Racing team B             Fleet Feet Racing team B             Fleet Feet Racing team B             Fleet Feet Racing team B             Mixed Open          13:45:46.1   46:58.7     1:44:21.2   1:13:08.9   3:18:26.5   1:53:42.0   1:57:37.7   2:51:31.1",
+          "cells": {}
+        },
+        {
+          "row_index": 50,
+          "row_label": "51",
+          "raw_text": "49      14    Fleet Feet Racing Team A             Fleet Feet Racing Team A                                                  Fleet Feet Racing Team A             Fleet Feet Racing Team A             Fleet Feet Racing Team A             Fleet Feet Racing Team A             Fleet Feet Racing Team A             Mixed Open          13:51:37.1   5:09:16.4   -           2:16:41.1   2:04:20.4   1:55:07.6   1:58:48.3   2:57:22.1",
+          "cells": {}
+        },
+        {
+          "row_index": 51,
+          "row_label": "52",
+          "raw_text": "50      12    BABS 1                               BABS 1                               BABS 1                               BABS 1                               BABS 1                               BABS 1                               BABS 1                               BABS 1                               Mixed 40+           13:58:53.5   52:32.7     2:44:52.2   2:11:15.7   1:24:31.6   2:38:43.5   2:03:14.3   2:03:43.5",
+          "cells": {}
+        },
+        {
+          "row_index": 52,
+          "row_label": "53",
+          "raw_text": "51      41    BABS 2                               BABS 2                               BABS 2                               BABS 2                               BABS 2                               BABS 2                               BABS 2                               BABS 2                               Mixed Open          13:58:59.1   52:25.0     2:45:00.3   2:11:14.3   1:24:34.6   2:38:42.6   2:03:13.1   2:03:49.1",
+          "cells": {}
+        },
+        {
+          "row_index": 53,
+          "row_label": "54",
+          "raw_text": "52      52    Relay for Rhett                      Relay for Rhett                                                           Relay for Rhett                      Relay for Rhett                      Relay for Rhett                      Relay for Rhett                      Relay for Rhett                      Corporate Open      14:09:45.3   5:04:11.3   -           1:45:51.2   2:37:28.5   2:02:01.2   1:20:12.4   4:14:45.3",
+          "cells": {}
+        },
+        {
+          "row_index": 54,
+          "row_label": "55",
+          "raw_text": "53      60    All Gas No Brakes                    All Gas No Brakes                    All Gas No Brakes                    All Gas No Brakes                    All Gas No Brakes                    All Gas No Brakes                    All Gas No Brakes                    All Gas No Brakes                    2 Person Relay      14:50:11.2   46:19.5     2:30:43.8   2:08:13.3   1:47:43.2   2:45:29.8   1:39:19.6   3:12:22.0",
+          "cells": {}
+        },
+        {
+          "row_index": 55,
+          "row_label": "56",
+          "raw_text": "54      62    Payton Rudnick                       Payton Rudnick                       Payton Rudnick                                                                                                 Payton Rudnick                       Payton Rudnick                       Payton Rudnick                       Solo                15:58:39.7   5:08:11.0   5:40:38.4   -           -           2:24:43.4   3:25:10.0   4:02:09.9",
+          "cells": {}
+        },
+        {
+          "row_index": 56,
+          "row_label": "57",
+          "raw_text": "-       7     Original A Team                                                                                                                                                                                                                                                                                         Men's 60+           DNS",
+          "cells": {}
+        },
+        {
+          "row_index": 57,
+          "row_label": "58",
+          "raw_text": "-       11    It's All Relative                                                                                                                                                                                                                                                                                       Mixed 40+           DNS",
+          "cells": {}
+        },
+        {
+          "row_index": 58,
+          "row_label": "59",
+          "raw_text": "-       13    Heavenly Beer and Bears              Heavenly Beer and Bears              Heavenly Beer and Bears              Heavenly Beer and Bears              Heavenly Beer and Bears              Heavenly Beer and Bears              Heavenly Beer and Bears              Heavenly Beer and Bears              Mixed Open          DNS          50:06.6     2:17:05.2   1:57:23.1   2:00:41.4   1:30:56.9   1:33:05.9   2:02:54.6",
+          "cells": {}
+        },
+        {
+          "row_index": 59,
+          "row_label": "60",
+          "raw_text": "-       42    Sports Basement                                                                                                                                                                                                                                                                                         Mixed Open          DNS",
+          "cells": {}
+        },
+        {
+          "row_index": 60,
+          "row_label": "61",
+          "raw_text": "-       43    MV Sauce                                                                                                                                                                                                                                                                                                2 Person Relay      DNS",
+          "cells": {}
+        },
+        {
+          "row_index": 61,
+          "row_label": "62",
+          "raw_text": "-       47    Novo Construction                                                                                                                                                                                                                                                                                       Corporate Open      DNS",
+          "cells": {}
+        },
+        {
+          "row_index": 62,
+          "row_label": "63",
+          "raw_text": "-       56    South Tahoe High School                                                                                                                                                                                                                                                                                 High School Mixed   DNS",
+          "cells": {}
+        },
+        {
+          "row_index": 63,
+          "row_label": "64",
+          "raw_text": "",
+          "cells": {}
+        },
+        {
+          "row_index": 64,
+          "row_label": "65",
+          "raw_text": "              2 Person Relay",
+          "cells": {}
+        },
+        {
+          "row_index": 65,
+          "row_label": "66",
+          "raw_text": "Place   Bib   Team name                            Leg 1                                Leg 2                                Leg 3                                Leg 4                                Leg 5                                Leg 6                                Leg 7                                Category            Time         Lap 1       Lap 2       Lap 3       Lap 4       Lap 5       Lap 6       Lap 7",
+          "cells": {}
+        },
+        {
+          "row_index": 66,
+          "row_label": "67",
+          "raw_text": "1       45    Pisco Sours                          Pisco Sours                                                                                                                                         Pisco Sours                          Pisco Sours                          Pisco Sours                          2 Person Relay      11:16:31.1   5:04:09.0   -           -           -           1:30:25.9   1:23:18.6   2:52:44.2",
+          "cells": {}
+        },
+        {
+          "row_index": 67,
+          "row_label": "68",
+          "raw_text": "2       44    Texas Tag Team                       Texas Tag Team                                                            Texas Tag Team                       Texas Tag Team                       Texas Tag Team                       Texas Tag Team                       Texas Tag Team                       2 Person Relay      11:58:12.2   5:04:08.2   -           1:19:48.7   1:30:41.0   2:02:03.1   1:37:57.9   3:06:02.5",
+          "cells": {}
+        },
+        {
+          "row_index": 68,
+          "row_label": "69",
+          "raw_text": "3       60    All Gas No Brakes                    All Gas No Brakes                    All Gas No Brakes                    All Gas No Brakes                    All Gas No Brakes                    All Gas No Brakes                    All Gas No Brakes                    All Gas No Brakes                    2 Person Relay      14:50:11.2   46:19.5     2:30:43.8   2:08:13.3   1:47:43.2   2:45:29.8   1:39:19.6   3:12:22.0",
+          "cells": {}
+        },
+        {
+          "row_index": 69,
+          "row_label": "70",
+          "raw_text": "-       43    MV Sauce                                                                                                                                                                                                                                                                                                2 Person Relay      DNS",
+          "cells": {}
+        },
+        {
+          "row_index": 70,
+          "row_label": "71",
+          "raw_text": "",
+          "cells": {}
+        },
+        {
+          "row_index": 71,
+          "row_label": "72",
+          "raw_text": "              Corporate Open",
+          "cells": {}
+        },
+        {
+          "row_index": 72,
+          "row_label": "73",
+          "raw_text": "Place   Bib   Team name                            Leg 1                                Leg 2                                Leg 3                                Leg 4                                Leg 5                                Leg 6                                Leg 7                                Category            Time         Lap 1       Lap 2       Lap 3       Lap 4       Lap 5       Lap 6       Lap 7",
+          "cells": {}
+        },
+        {
+          "row_index": 73,
+          "row_label": "74",
+          "raw_text": "1       46    Delano Lifehouse Church              Delano Lifehouse Church              Delano Lifehouse Church              Delano Lifehouse Church              Delano Lifehouse Church              Delano Lifehouse Church              Delano Lifehouse Church              Delano Lifehouse Church              Corporate Open      9:59:17.9    1:32:11.1   1:38:43.7   1:12:14.9   1:09:52.6   1:46:20.4   1:13:26.3   1:26:28.9",
+          "cells": {}
+        },
+        {
+          "row_index": 74,
+          "row_label": "75",
+          "raw_text": "2       50    Kiewait Black                        Kiewait Black                                                             Kiewait Black                        Kiewait Black                        Kiewait Black                        Kiewait Black                        Kiewait Black                        Corporate Open      10:36:14.6   5:04:13.0   -           1:34:17.6   1:20:17.4   1:25:15.7   1:20:57.0   2:49:10.1",
+          "cells": {}
+        },
+        {
+          "row_index": 75,
+          "row_label": "76",
+          "raw_text": "3       49    Kiewait Yellow                       Kiewait Yellow                                                            Kiewait Yellow                       Kiewait Yellow                       Kiewait Yellow                       Kiewait Yellow                                                            Corporate Open      11:51:40.4   5:04:13.5   -           1:24:46.2   1:32:03.9   2:14:35.2   4:36:21.8   -",
+          "cells": {}
+        },
+        {
+          "row_index": 76,
+          "row_label": "77",
+          "raw_text": "4       51    LPI Fitness                          LPI Fitness                          LPI Fitness                                                                                                    LPI Fitness                          LPI Fitness                          LPI Fitness                          Corporate Open      12:17:12.8   5:04:12.1   22:44.2     -           -           1:47:28.1   1:18:42.5   2:58:10.8",
+          "cells": {}
+        },
+        {
+          "row_index": 77,
+          "row_label": "78",
+          "raw_text": "5       48    Team Tailgate Party                  Team Tailgate Party                  Team Tailgate Party                  Team Tailgate Party                  Team Tailgate Party                  Team Tailgate Party                  Team Tailgate Party                  Team Tailgate Party                  Corporate Open      12:27:29.6   1:29:12.6   2:04:02.5   1:44:50.9   1:47:57.4   1:49:18.3   1:49:16.3   1:42:51.7",
+          "cells": {}
+        },
+        {
+          "row_index": 78,
+          "row_label": "79",
+          "raw_text": "6       52    Relay for Rhett                      Relay for Rhett                                                           Relay for Rhett                      Relay for Rhett                      Relay for Rhett                      Relay for Rhett                      Relay for Rhett                      Corporate Open      14:09:45.3   5:04:11.3   -           1:45:51.2   2:37:28.5   2:02:01.2   1:20:12.4   4:14:45.3",
+          "cells": {}
+        },
+        {
+          "row_index": 79,
+          "row_label": "80",
+          "raw_text": "-       47    Novo Construction                                                                                                                                                                                                                                                                                       Corporate Open      DNS",
+          "cells": {}
+        },
+        {
+          "row_index": 80,
+          "row_label": "81",
+          "raw_text": "",
+          "cells": {}
+        },
+        {
+          "row_index": 81,
+          "row_label": "82",
+          "raw_text": "              High School Boys",
+          "cells": {}
+        },
+        {
+          "row_index": 82,
+          "row_label": "83",
+          "raw_text": "Place   Bib   Team name                            Leg 1                                Leg 2                                Leg 3                                Leg 4                                Leg 5                                Leg 6                                Leg 7                                Category            Time         Lap 1       Lap 2       Lap 3       Lap 4       Lap 5       Lap 6       Lap 7",
+          "cells": {}
+        },
+        {
+          "row_index": 83,
+          "row_label": "84",
+          "raw_text": "1       53    Monache High School                  Monache High School                                                       Monache High School                  Monache High School                  Monache High School                  Monache High School                  Monache High School                  High School Boys    8:20:05.7    5:04:09.9   -           1:16:41.2   1:03:10.6   1:13:40.7   1:00:27.6   2:13:05.2",
+          "cells": {}
+        },
+        {
+          "row_index": 84,
+          "row_label": "85",
+          "raw_text": "2       58    MVXC Boys                            MVXC Boys                            MVXC Boys                            MVXC Boys                            MVXC Boys                            MVXC Boys                            MVXC Boys                            MVXC Boys                            High School Boys    10:01:56.6   1:18:58.7   1:48:44.2   1:22:36.5   1:32:43.8   1:35:45.2   1:09:05.4   1:14:02.9",
+          "cells": {}
+        },
+        {
+          "row_index": 85,
+          "row_label": "86",
+          "raw_text": "3       54    McFarland High School                McFarland High School                McFarland High School                McFarland High School                McFarland High School                McFarland High School                McFarland High School                McFarland High School                High School Boys    10:08:08.5   1:10:36.4   1:54:42.2   1:21:53.6   1:17:32.9   1:34:38.4   1:19:27.7   1:29:17.4",
+          "cells": {}
+        },
+        {
+          "row_index": 86,
+          "row_label": "87",
+          "raw_text": "",
+          "cells": {}
+        },
+        {
+          "row_index": 87,
+          "row_label": "88",
+          "raw_text": "              High School Girls",
+          "cells": {}
+        },
+        {
+          "row_index": 88,
+          "row_label": "89",
+          "raw_text": "Place   Bib   Team name                            Leg 1                                Leg 2                                Leg 3                                Leg 4                                Leg 5                                Leg 6                                Leg 7                                Category            Time         Lap 1       Lap 2       Lap 3       Lap 4       Lap 5       Lap 6       Lap 7",
+          "cells": {}
+        },
+        {
+          "row_index": 89,
+          "row_label": "90",
+          "raw_text": "1       55    Monache High School                  Monache High School                                                       Monache High School                  Monache High School                  Monache High School                  Monache High School                  Monache High School                  High School Girls   11:00:12.0   5:08:12.2   -           1:27:51.1   1:43:54.0   1:39:51.9   1:15:27.6   2:29:00.2",
+          "cells": {}
+        },
+        {
+          "row_index": 90,
+          "row_label": "91",
+          "raw_text": "2       59    MVXC Girls                           MVXC Girls                                                                MVXC Girls                           MVXC Girls                           MVXC Girls                           MVXC Girls                           MVXC Girls                           High School Girls   11:36:21.3   5:08:13.2   -           1:58:04.0   1:34:12.9   1:50:31.7   1:09:09.3   2:49:02.1",
+          "cells": {}
+        },
+        {
+          "row_index": 91,
+          "row_label": "92",
+          "raw_text": "",
+          "cells": {}
+        },
+        {
+          "row_index": 92,
+          "row_label": "93",
+          "raw_text": "              High School Mixed",
+          "cells": {}
+        },
+        {
+          "row_index": 93,
+          "row_label": "94",
+          "raw_text": "Place   Bib   Team name                            Leg 1                                Leg 2                                Leg 3                                Leg 4                                Leg 5                                Leg 6                                Leg 7                                Category          Time           Lap 1       Lap 2       Lap 3       Lap 4       Lap 5       Lap 6       Lap 7",
+          "cells": {}
+        },
+        {
+          "row_index": 94,
+          "row_label": "95",
+          "raw_text": "1       57    Toads Go To Tahoe                    Toads Go To Tahoe                    Toads Go To Tahoe                    Toads Go To Tahoe                    Toads Go To Tahoe                    Toads Go To Tahoe                    Toads Go To Tahoe                    Toads Go To Tahoe                    High School Mixed 9:30:40.2      1:22:09.9   1:34:39.9   1:18:17.9   1:24:21.2   1:25:35.5   1:09:23.3   1:16:12.6",
+          "cells": {}
+        },
+        {
+          "row_index": 95,
+          "row_label": "96",
+          "raw_text": "-       56    South Tahoe High School                                                                                                                                                                                                                                                                                 High School Mixed DNS",
+          "cells": {}
+        },
+        {
+          "row_index": 96,
+          "row_label": "97",
+          "raw_text": "",
+          "cells": {}
+        },
+        {
+          "row_index": 97,
+          "row_label": "98",
+          "raw_text": "              Men's 40+",
+          "cells": {}
+        },
+        {
+          "row_index": 98,
+          "row_label": "99",
+          "raw_text": "Place   Bib   Team name                            Leg 1                                Leg 2                                Leg 3                                Leg 4                                Leg 5                                Leg 6                                Leg 7                                Category            Time         Lap 1       Lap 2       Lap 3       Lap 4       Lap 5       Lap 6       Lap 7",
+          "cells": {}
+        },
+        {
+          "row_index": 99,
+          "row_label": "100",
+          "raw_text": "1       1     West Valley Track Club -             West Valley Track Club -             West Valley Track Club -             West Valley Track Club -             West Valley Track Club -             West Valley Track Club -             West Valley Track Club -             West Valley Track Club -             Men's 40+           7:33:34.0    55:28.5     1:19:33.0   1:01:36.3   1:00:15.5   1:07:42.2   59:29.3     1:09:29.2",
+          "cells": {}
+        },
+        {
+          "row_index": 100,
+          "row_label": "101",
+          "raw_text": "2       2     Casual Jogboys                       Casual Jogboys                       Casual Jogboys                       Casual Jogboys                       Casual Jogboys                       Casual Jogboys                       Casual Jogboys                       Casual Jogboys                       Men's 40+           10:02:48.6   1:19:29.5   1:47:13.3   1:23:35.6   1:17:44.2   1:30:08.6   1:21:42.0   1:22:55.5",
+          "cells": {}
+        },
+        {
+          "row_index": 101,
+          "row_label": "102",
+          "raw_text": "",
+          "cells": {}
+        },
+        {
+          "row_index": 102,
+          "row_label": "103",
+          "raw_text": "              Men's 60+",
+          "cells": {}
+        },
+        {
+          "row_index": 103,
+          "row_label": "104",
+          "raw_text": "Place   Bib   Team name                            Leg 1                                Leg 2                                                                                                                                                                                                                         Category            Time         Lap 1       Lap 2",
+          "cells": {}
+        },
+        {
+          "row_index": 104,
+          "row_label": "105",
+          "raw_text": "-       7     Original A Team                                                                                                                                                                                                                                                                                         Men's 60+           DNS",
+          "cells": {}
+        },
+        {
+          "row_index": 105,
+          "row_label": "106",
+          "raw_text": "",
+          "cells": {}
+        },
+        {
+          "row_index": 106,
+          "row_label": "107",
+          "raw_text": "              Men's Open",
+          "cells": {}
+        },
+        {
+          "row_index": 107,
+          "row_label": "108",
+          "raw_text": "Place   Bib   Team name                            Leg 1                                Leg 2                                Leg 3                                Leg 4                                Leg 5                                Leg 6                                Leg 7                                Category            Time         Lap 1       Lap 2       Lap 3       Lap 4       Lap 5       Lap 6       Lap 7",
+          "cells": {}
+        },
+        {
+          "row_index": 108,
+          "row_label": "109",
+          "raw_text": "1       5     Deportivo Runners                    Deportivo Runners                    Deportivo Runners                    Deportivo Runners                    Deportivo Runners                    Deportivo Runners                    Deportivo Runners                    Deportivo Runners                    Men's Open          8:47:10.7    1:12:29.5   1:23:52.1   1:16:46.8   1:22:09.9   1:15:58.3   1:07:59.9   1:07:54.1",
+          "cells": {}
+        },
+        {
+          "row_index": 109,
+          "row_label": "110",
+          "raw_text": "2       3     Golden Valley Harriers Stirred       Golden Valley Harriers Stirred       Golden Valley Harriers Stirred       Golden Valley Harriers Stirred       Golden Valley Harriers Stirred       Golden Valley Harriers Stirred       Golden Valley Harriers Stirred       Golden Valley Harriers Stirred       Men's Open          8:49:25.8    1:05:19.4   1:19:30.2   1:19:33.4   1:20:23.9   1:20:49.8   1:19:39.7   1:04:09.3",
+          "cells": {}
+        },
+        {
+          "row_index": 110,
+          "row_label": "111",
+          "raw_text": "3       4     StoupBeerRunners                     StoupBeerRunners                     StoupBeerRunners                     StoupBeerRunners                     StoupBeerRunners                     StoupBeerRunners                     StoupBeerRunners                     StoupBeerRunners                     Men's Open          10:42:28.3   1:19:17.5   2:29:30.4   1:23:13.5   1:02:49.1   1:32:26.8   1:24:29.2   1:30:41.9",
+          "cells": {}
+        },
+        {
+          "row_index": 111,
+          "row_label": "112",
+          "raw_text": "4       6     Midnight Society                     Midnight Society                     Midnight Society                     Midnight Society                     Midnight Society                     Midnight Society                     Midnight Society                     Midnight Society                     Men's Open          11:01:30.3   1:14:59.6   2:06:11.2   1:00:00.4   1:13:21.1   1:59:57.1   1:30:21.4   1:56:39.6",
+          "cells": {}
+        },
+        {
+          "row_index": 112,
+          "row_label": "113",
+          "raw_text": "",
+          "cells": {}
+        },
+        {
+          "row_index": 113,
+          "row_label": "114",
+          "raw_text": "              Mixed 40+",
+          "cells": {}
+        },
+        {
+          "row_index": 114,
+          "row_label": "115",
+          "raw_text": "Place   Bib   Team name                            Leg 1                                Leg 2                                Leg 3                                Leg 4                                Leg 5                                Leg 6                                Leg 7                                Category            Time         Lap 1       Lap 2       Lap 3       Lap 4       Lap 5       Lap 6       Lap 7",
+          "cells": {}
+        },
+        {
+          "row_index": 115,
+          "row_label": "116",
+          "raw_text": "1       10    Low Maintance                        Low Maintance                        Low Maintance                        Low Maintance                        Low Maintance                        Low Maintance                        Low Maintance                        Low Maintance                        Mixed 40+           12:48:37.3   42:48.1     2:29:52.7   1:50:24.2   1:38:41.6   1:45:55.1   1:30:10.9   2:50:44.6",
+          "cells": {}
+        },
+        {
+          "row_index": 116,
+          "row_label": "117",
+          "raw_text": "2       12    BABS 1                               BABS 1                               BABS 1                               BABS 1                               BABS 1                               BABS 1                               BABS 1                               BABS 1                               Mixed 40+           13:58:53.5   52:32.7     2:44:52.2   2:11:15.7   1:24:31.6   2:38:43.5   2:03:14.3   2:03:43.5",
+          "cells": {}
+        },
+        {
+          "row_index": 117,
+          "row_label": "118",
+          "raw_text": "-       11    It's All Relative                                                                                                                                                                                                                                                                                       Mixed 40+           DNS",
+          "cells": {}
+        },
+        {
+          "row_index": 118,
+          "row_label": "119",
+          "raw_text": "",
+          "cells": {}
+        },
+        {
+          "row_index": 119,
+          "row_label": "120",
+          "raw_text": "              Mixed Open",
+          "cells": {}
+        },
+        {
+          "row_index": 120,
+          "row_label": "121",
+          "raw_text": "Place   Bib   Team name                            Leg 1                                Leg 2                                Leg 3                                Leg 4                                Leg 5                                Leg 6                                Leg 7                                Category            Time         Lap 1       Lap 2       Lap 3       Lap 4       Lap 5       Lap 6       Lap 7",
+          "cells": {}
+        },
+        {
+          "row_index": 121,
+          "row_label": "122",
+          "raw_text": "1       40    Tintinnabulating Transmogrified      Tintinnabulating Transmogrified      Tintinnabulating Transmogrified      Tintinnabulating Transmogrified      Tintinnabulating Transmogrified      Tintinnabulating Transmogrified      Tintinnabulating Transmogrified      Tintinnabulating Transmogrified      Mixed Open          8:53:25.3    1:12:52.2   1:22:59.8   1:13:33.9   1:13:27.7   1:29:33.4   1:02:05.6   1:18:52.6",
+          "cells": {}
+        },
+        {
+          "row_index": 122,
+          "row_label": "123",
+          "raw_text": "2       26    Golden Valley Harriers Shaken        Golden Valley Harriers Shaken        Golden Valley Harriers Shaken        Golden Valley Harriers Shaken        Golden Valley Harriers Shaken        Golden Valley Harriers Shaken        Golden Valley Harriers Shaken        Golden Valley Harriers Shaken        Mixed Open          9:34:35.1    1:19:24.5   1:42:50.4   1:10:25.4   1:17:47.1   1:21:37.1   1:20:56.2   1:21:34.3",
+          "cells": {}
+        },
+        {
+          "row_index": 123,
+          "row_label": "124",
+          "raw_text": "3       39    OCTC                                 OCTC                                 OCTC                                 OCTC                                 OCTC                                 OCTC                                 OCTC                                 OCTC                                 Mixed Open          9:49:05.6    1:14:42.4   2:04:22.1   1:15:15.7   1:26:44.1   1:32:17.2   1:33:24.7   42:19.4",
+          "cells": {}
+        },
+        {
+          "row_index": 124,
+          "row_label": "125",
+          "raw_text": "4       34    Doo Farts                            Doo Farts                            Doo Farts                            Doo Farts                            Doo Farts                            Doo Farts                            Doo Farts                            Doo Farts                            Mixed Open          10:18:44.5   1:27:02.2   2:00:17.5   1:38:20.1   1:27:20.3   1:26:58.0   1:15:12.8   1:03:33.6",
+          "cells": {}
+        },
+        {
+          "row_index": 125,
+          "row_label": "126",
+          "raw_text": "5       33    Endorphinaddicts                     Endorphinaddicts                     Endorphinaddicts                                                                                               Endorphinaddicts                     Endorphinaddicts                                                          Mixed Open          10:30:53.0   45:36.1     4:41:19.0   -           -           1:50:48.0   4:56:13.6   -",
+          "cells": {}
+        },
+        {
+          "row_index": 126,
+          "row_label": "127",
+          "raw_text": "6       38    Sacramento City College              Sacramento City College              Sacramento City College              Sacramento City College              Sacramento City College              Sacramento City College              Sacramento City College              Sacramento City College              Mixed Open          10:32:45.7   1:22:26.9   1:35:03.9   1:20:06.2   1:29:44.6   1:31:27.4   1:15:58.7   1:57:58.0",
+          "cells": {}
+        },
+        {
+          "row_index": 127,
+          "row_label": "128",
+          "raw_text": "7       20    SB Fun Runners                       SB Fun Runners                       SB Fun Runners                       SB Fun Runners                       SB Fun Runners                       SB Fun Runners                       SB Fun Runners                       SB Fun Runners                       Mixed Open          10:36:18.2   1:06:40.1   1:55:51.6   1:40:23.8   1:22:44.9   1:52:41.0   1:28:52.1   1:09:04.6",
+          "cells": {}
+        },
+        {
+          "row_index": 128,
+          "row_label": "129",
+          "raw_text": "8       22    Chh-Yeah!                            Chh-Yeah!                            Chh-Yeah!                            Chh-Yeah!                            Chh-Yeah!                            Chh-Yeah!                            Chh-Yeah!                            Chh-Yeah!                            Mixed Open          10:43:27.5   1:26:06.7   1:36:26.1   1:09:52.7   1:40:25.1   1:35:43.2   1:33:42.9   1:41:10.8",
+          "cells": {}
+        },
+        {
+          "row_index": 129,
+          "row_label": "130",
+          "raw_text": "9       25    Golden Valley Harriers Straight Up   Golden Valley Harriers Straight Up   Golden Valley Harriers Straight Up   Golden Valley Harriers Straight Up   Golden Valley Harriers Straight Up   Golden Valley Harriers Straight Up   Golden Valley Harriers Straight Up   Golden Valley Harriers Straight Up   Mixed Open          10:50:08.2   1:23:14.7   1:59:47.5   1:34:34.1   1:26:24.3   1:27:04.8   1:15:09.5   1:43:53.3",
+          "cells": {}
+        },
+        {
+          "row_index": 130,
+          "row_label": "131",
+          "raw_text": "10      36    Bear Sharks                          Bear Sharks                          Bear Sharks                          Bear Sharks                          Bear Sharks                          Bear Sharks                          Bear Sharks                          Bear Sharks                          Mixed Open          11:03:40.3   1:30:38.9   1:44:19.5   1:20:03.0   1:48:39.1   1:28:51.8   1:44:12.5   1:26:55.4",
+          "cells": {}
+        },
+        {
+          "row_index": 131,
+          "row_label": "132",
+          "raw_text": "11      32    Go Lytley                            Go Lytley                                                                 Go Lytley                            Go Lytley                            Go Lytley                            Go Lytley                            Go Lytley                            Mixed Open          11:09:07.8   5:04:06.4   -           1:14:45.5   1:44:30.9   1:40:19.7   1:27:59.4   2:44:50.9",
+          "cells": {}
+        },
+        {
+          "row_index": 132,
+          "row_label": "133",
+          "raw_text": "12      28    ZRC 1                                ZRC 1                                ZRC 1                                ZRC 1                                ZRC 1                                ZRC 1                                ZRC 1                                ZRC 1                                Mixed Open          11:10:38.7   1:23:20.3   2:03:29.9   1:42:51.6   1:25:00.9   1:46:59.4   1:31:32.3   1:17:24.3",
+          "cells": {}
+        },
+        {
+          "row_index": 133,
+          "row_label": "134",
+          "raw_text": "13      23    Nth Degree Athletico                 Nth Degree Athletico                 Nth Degree Athletico                 Nth Degree Athletico                 Nth Degree Athletico                 Nth Degree Athletico                 Nth Degree Athletico                 Nth Degree Athletico                 Mixed Open          11:21:28.0   1:11:58.8   2:06:01.1   1:11:29.3   1:18:46.4   1:59:15.7   1:36:44.8   1:57:11.9",
+          "cells": {}
+        },
+        {
+          "row_index": 134,
+          "row_label": "135",
+          "raw_text": "14      18    Run Fit                              Run Fit                                                                   Run Fit                              Run Fit                              Run Fit                              Run Fit                              Run Fit                              Mixed Open          11:23:43.6   5:09:05.1   -           1:29:15.7   1:23:41.9   1:49:42.9   1:36:35.6   2:41:39.9",
+          "cells": {}
+        },
+        {
+          "row_index": 135,
+          "row_label": "136",
+          "raw_text": "15      24    Chafing the Dream                    Chafing the Dream                    Chafing the Dream                    Chafing the Dream                    Chafing the Dream                    Chafing the Dream                    Chafing the Dream                    Chafing the Dream                    Mixed Open          11:24:14.3   1:16:35.5   1:52:06.3   1:30:34.6   1:25:57.2   1:40:01.0   1:37:44.7   2:01:14.9",
+          "cells": {}
+        },
+        {
+          "row_index": 136,
+          "row_label": "137",
+          "raw_text": "16      35    Running on Cafine                    Running on Cafine                    Running on Cafine                    Running on Cafine                    Running on Cafine                    Running on Cafine                    Running on Cafine                    Running on Cafine                    Mixed Open          11:37:41.3   1:39:25.9   2:21:11.4   1:23:35.5   1:16:24.1   1:33:02.3   1:31:58.0   1:52:04.1",
+          "cells": {}
+        },
+        {
+          "row_index": 137,
+          "row_label": "138",
+          "raw_text": "17      27    Boulder Dashers                      Boulder Dashers                      Boulder Dashers                      Boulder Dashers                      Boulder Dashers                      Boulder Dashers                      Boulder Dashers                      Boulder Dashers                      Mixed Open          11:45:39.8   36:37.5     1:38:58.4   1:46:53.4   1:49:41.0   1:18:55.9   1:28:18.9   3:06:14.7",
+          "cells": {}
+        },
+        {
+          "row_index": 138,
+          "row_label": "139",
+          "raw_text": "18      29    ZRC 2                                ZRC 2                                ZRC 2                                ZRC 2                                ZRC 2                                ZRC 2                                ZRC 2                                ZRC 2                                Mixed Open          11:48:06.1   1:28:56.8   1:56:28.1   1:44:42.0   57:45.4     2:39:49.6   1:38:54.2   1:21:30.0",
+          "cells": {}
+        },
+        {
+          "row_index": 139,
+          "row_label": "140",
+          "raw_text": "19      21    Sibling Rivalry                      Sibling Rivalry                                                           Sibling Rivalry                      Sibling Rivalry                      Sibling Rivalry                      Sibling Rivalry                      Sibling Rivalry                      Mixed Open          11:48:51.2   5:07:11.8   -           1:22:24.7   1:40:56.0   1:57:45.0   1:35:36.8   3:09:48.7",
+          "cells": {}
+        },
+        {
+          "row_index": 140,
+          "row_label": "141",
+          "raw_text": "20      37    The Xtreme Falcons                   The Xtreme Falcons                   The Xtreme Falcons                   The Xtreme Falcons                   The Xtreme Falcons                   The Xtreme Falcons                   The Xtreme Falcons                   The Xtreme Falcons                   Mixed Open          11:53:41.0   1:26:38.3   2:17:15.4   1:38:37.7   1:38:36.8   1:57:20.8   1:25:24.1   1:29:47.9",
+          "cells": {}
+        },
+        {
+          "row_index": 141,
+          "row_label": "142",
+          "raw_text": "21      19    Banana Cream Thighs                  Banana Cream Thighs                                                       Banana Cream Thighs                  Banana Cream Thighs                  Banana Cream Thighs                  Banana Cream Thighs                  Banana Cream Thighs                  Mixed Open          11:56:27.9   5:03:50.2   -           1:38:20.4   1:43:36.2   1:48:01.6   1:25:34.1   2:38:32.4",
+          "cells": {}
+        },
+        {
+          "row_index": 142,
+          "row_label": "143",
+          "raw_text": "22      31    Raiders of the Lost Track            Raiders of the Lost Track                                                 Raiders of the Lost Track            Raiders of the Lost Track            Raiders of the Lost Track            Raiders of the Lost Track            Raiders of the Lost Track            Mixed Open          12:11:46.3   5:04:04.8   -           1:34:19.7   1:54:41.8   1:45:13.4   1:15:47.0   2:52:08.5",
+          "cells": {}
+        },
+        {
+          "row_index": 143,
+          "row_label": "144",
+          "raw_text": "23      30    Tahoe Trotters                       Tahoe Trotters                       Tahoe Trotters                                                                                                 Tahoe Trotters                       Tahoe Trotters                       Tahoe Trotters                       Mixed Open          12:15:29.8   5:04:04.0   22:50.3     -           -           1:57:38.2   2:06:39.3   2:34:00.5",
+          "cells": {}
+        },
+        {
+          "row_index": 144,
+          "row_label": "145",
+          "raw_text": "24      17    Fleet Feet Racing Team D             Fleet Feet Racing Team D                                                  Fleet Feet Racing Team D             Fleet Feet Racing Team D             Fleet Feet Racing Team D             Fleet Feet Racing Team D             Fleet Feet Racing Team D             Mixed Open          12:39:27.7   5:09:17.0   -           1:22:59.0   1:55:41.8   2:31:49.0   1:14:28.4   2:41:13.6",
+          "cells": {}
+        },
+        {
+          "row_index": 145,
+          "row_label": "146",
+          "raw_text": "25      16    Fleet Feet Racing Team C             Fleet Feet Racing Team C             Fleet Feet Racing Team C             Fleet Feet Racing Team C             Fleet Feet Racing Team C             Fleet Feet Racing Team C             Fleet Feet Racing Team C             Fleet Feet Racing Team C             Mixed Open          13:21:20.4   38:37.4     1:59:19.9   2:18:00.9   2:04:09.5   1:55:19.9   1:34:48.2   2:51:04.6",
+          "cells": {}
+        },
+        {
+          "row_index": 146,
+          "row_label": "147",
+          "raw_text": "26      15    Fleet Feet Racing team B             Fleet Feet Racing team B             Fleet Feet Racing team B             Fleet Feet Racing team B             Fleet Feet Racing team B             Fleet Feet Racing team B             Fleet Feet Racing team B             Fleet Feet Racing team B             Mixed Open          13:45:46.1   46:58.7     1:44:21.2   1:13:08.9   3:18:26.5   1:53:42.0   1:57:37.7   2:51:31.1",
+          "cells": {}
+        },
+        {
+          "row_index": 147,
+          "row_label": "148",
+          "raw_text": "27      14    Fleet Feet Racing Team A             Fleet Feet Racing Team A                                                  Fleet Feet Racing Team A             Fleet Feet Racing Team A             Fleet Feet Racing Team A             Fleet Feet Racing Team A             Fleet Feet Racing Team A             Mixed Open          13:51:37.1   5:09:16.4   -           2:16:41.1   2:04:20.4   1:55:07.6   1:58:48.3   2:57:22.1",
+          "cells": {}
+        },
+        {
+          "row_index": 148,
+          "row_label": "149",
+          "raw_text": "28      41    BABS 2                               BABS 2                               BABS 2                               BABS 2                               BABS 2                               BABS 2                               BABS 2                               BABS 2                               Mixed Open          13:58:59.1   52:25.0     2:45:00.3   2:11:14.3   1:24:34.6   2:38:42.6   2:03:13.1   2:03:49.1",
+          "cells": {}
+        },
+        {
+          "row_index": 149,
+          "row_label": "150",
+          "raw_text": "-       13    Heavenly Beer and Bears              Heavenly Beer and Bears              Heavenly Beer and Bears              Heavenly Beer and Bears              Heavenly Beer and Bears              Heavenly Beer and Bears              Heavenly Beer and Bears              Heavenly Beer and Bears              Mixed Open          DNS          50:06.6     2:17:05.2   1:57:23.1   2:00:41.4   1:30:56.9   1:33:05.9   2:02:54.6",
+          "cells": {}
+        },
+        {
+          "row_index": 150,
+          "row_label": "151",
+          "raw_text": "-       42    Sports Basement                                                                                                                                                                                                                                                                                         Mixed Open          DNS",
+          "cells": {}
+        },
+        {
+          "row_index": 151,
+          "row_label": "152",
+          "raw_text": "",
+          "cells": {}
+        },
+        {
+          "row_index": 152,
+          "row_label": "153",
+          "raw_text": "              Solo",
+          "cells": {}
+        },
+        {
+          "row_index": 153,
+          "row_label": "154",
+          "raw_text": "Place   Bib   Team name                            Leg 1                                Leg 2                                Leg 3                                Leg 4                                Leg 5                                Leg 6                                Leg 7                                Category            Time         Lap 1       Lap 2       Lap 3       Lap 4       Lap 5       Lap 6       Lap 7",
+          "cells": {}
+        },
+        {
+          "row_index": 154,
+          "row_label": "155",
+          "raw_text": "1       62    Payton Rudnick                       Payton Rudnick                       Payton Rudnick                                                                                                 Payton Rudnick                       Payton Rudnick                       Payton Rudnick                       Solo                15:58:39.7   5:08:11.0   5:40:38.4   -           -           2:24:43.4   3:25:10.0   4:02:09.9",
+          "cells": {}
+        },
+        {
+          "row_index": 155,
+          "row_label": "156",
+          "raw_text": "",
+          "cells": {}
+        },
+        {
+          "row_index": 156,
+          "row_label": "157",
+          "raw_text": "              Women's 40+",
+          "cells": {}
+        },
+        {
+          "row_index": 157,
+          "row_label": "158",
+          "raw_text": "Place   Bib   Team name                            Leg 1                                Leg 2                                Leg 3                                Leg 4                                Leg 5                                Leg 6                                Leg 7                                Category            Time         Lap 1       Lap 2       Lap 3       Lap 4       Lap 5       Lap 6       Lap 7",
+          "cells": {}
+        },
+        {
+          "row_index": 158,
+          "row_label": "159",
+          "raw_text": "1       9     Keep Tahoe Blue                      Keep Tahoe Blue                                                           Keep Tahoe Blue                      Keep Tahoe Blue                      Keep Tahoe Blue                      Keep Tahoe Blue                      Keep Tahoe Blue                      Women's 40+         11:19:10.4   5:03:47.1   -           1:35:37.2   1:36:09.5   1:48:17.7   1:27:37.7   2:26:55.8",
+          "cells": {}
+        },
+        {
+          "row_index": 159,
+          "row_label": "160",
+          "raw_text": "",
+          "cells": {}
+        },
+        {
+          "row_index": 160,
+          "row_label": "161",
+          "raw_text": "              Women's Open",
+          "cells": {}
+        },
+        {
+          "row_index": 161,
+          "row_label": "162",
+          "raw_text": "Place   Bib   Team name                            Leg 1                                Leg 2                                Leg 3                                Leg 4                                Leg 5                                Leg 6                                Leg 7                                Category            Time         Lap 1       Lap 2       Lap 3       Lap 4       Lap 5       Lap 6       Lap 7",
+          "cells": {}
+        },
+        {
+          "row_index": 162,
+          "row_label": "163",
+          "raw_text": "1       8     Pick Pack                            Pick Pack                            Pick Pack                            Pick Pack                            Pick Pack                            Pick Pack                            Pick Pack                            Pick Pack                            Women's Open        12:56:49.3   59:31.1     1:54:54.2   1:20:59.9   1:23:12.0   1:53:15.3   1:51:43.6   3:33:13.1",
+          "cells": {}
+        }
+      ],
+      "text": "              Overall\nPlace Bib     Team name                            Leg 1                                Leg 2                                Leg 3                                Leg 4                                Leg 5                                Leg 6                                Leg 7                                Category            Time         Lap 1       Lap 2       Lap 3       Lap 4       Lap 5       Lap 6       Lap 7\n1       1     West Valley Track Club -             West Valley Track Club -             West Valley Track Club -             West Valley Track Club -             West Valley Track Club -             West Valley Track Club -             West Valley Track Club -             West Valley Track Club -             Men's 40+           7:33:34.0    55:28.5     1:19:33.0   1:01:36.3   1:00:15.5   1:07:42.2   59:29.3     1:09:29.2\n2       53    Monache High School                  Monache High School                                                       Monache High School                  Monache High School                  Monache High School                  Monache High School                  Monache High School                  High School Boys    8:20:05.7    5:04:09.9   -           1:16:41.2   1:03:10.6   1:13:40.7   1:00:27.6   2:13:05.2\n3       5     Deportivo Runners                    Deportivo Runners                    Deportivo Runners                    Deportivo Runners                    Deportivo Runners                    Deportivo Runners                    Deportivo Runners                    Deportivo Runners                    Men's Open          8:47:10.7    1:12:29.5   1:23:52.1   1:16:46.8   1:22:09.9   1:15:58.3   1:07:59.9   1:07:54.1\n4       3     Golden Valley Harriers Stirred       Golden Valley Harriers Stirred       Golden Valley Harriers Stirred       Golden Valley Harriers Stirred       Golden Valley Harriers Stirred       Golden Valley Harriers Stirred       Golden Valley Harriers Stirred       Golden Valley Harriers Stirred       Men's Open          8:49:25.8    1:05:19.4   1:19:30.2   1:19:33.4   1:20:23.9   1:20:49.8   1:19:39.7   1:04:09.3\n5       40    Tintinnabulating Transmogrified      Tintinnabulating Transmogrified      Tintinnabulating Transmogrified      Tintinnabulating Transmogrified      Tintinnabulating Transmogrified      Tintinnabulating Transmogrified      Tintinnabulating Transmogrified      Tintinnabulating Transmogrified      Mixed Open          8:53:25.3    1:12:52.2   1:22:59.8   1:13:33.9   1:13:27.7   1:29:33.4   1:02:05.6   1:18:52.6\n6       57    Toads Go To Tahoe                    Toads Go To Tahoe                    Toads Go To Tahoe                    Toads Go To Tahoe                    Toads Go To Tahoe                    Toads Go To Tahoe                    Toads Go To Tahoe                    Toads Go To Tahoe                    High School Mixed   9:30:40.2    1:22:09.9   1:34:39.9   1:18:17.9   1:24:21.2   1:25:35.5   1:09:23.3   1:16:12.6\n7       26    Golden Valley Harriers Shaken        Golden Valley Harriers Shaken        Golden Valley Harriers Shaken        Golden Valley Harriers Shaken        Golden Valley Harriers Shaken        Golden Valley Harriers Shaken        Golden Valley Harriers Shaken        Golden Valley Harriers Shaken        Mixed Open          9:34:35.1    1:19:24.5   1:42:50.4   1:10:25.4   1:17:47.1   1:21:37.1   1:20:56.2   1:21:34.3\n8       39    OCTC                                 OCTC                                 OCTC                                 OCTC                                 OCTC                                 OCTC                                 OCTC                                 OCTC                                 Mixed Open          9:49:05.6    1:14:42.4   2:04:22.1   1:15:15.7   1:26:44.1   1:32:17.2   1:33:24.7   42:19.4\n9       46    Delano Lifehouse Church              Delano Lifehouse Church              Delano Lifehouse Church              Delano Lifehouse Church              Delano Lifehouse Church              Delano Lifehouse Church              Delano Lifehouse Church              Delano Lifehouse Church              Corporate Open      9:59:17.9    1:32:11.1   1:38:43.7   1:12:14.9   1:09:52.6   1:46:20.4   1:13:26.3   1:26:28.9\n10      58    MVXC Boys                            MVXC Boys                            MVXC Boys                            MVXC Boys                            MVXC Boys                            MVXC Boys                            MVXC Boys                            MVXC Boys                            High School Boys    10:01:56.6   1:18:58.7   1:48:44.2   1:22:36.5   1:32:43.8   1:35:45.2   1:09:05.4   1:14:02.9\n11      2     Casual Jogboys                       Casual Jogboys                       Casual Jogboys                       Casual Jogboys                       Casual Jogboys                       Casual Jogboys                       Casual Jogboys                       Casual Jogboys                       Men's 40+           10:02:48.6   1:19:29.5   1:47:13.3   1:23:35.6   1:17:44.2   1:30:08.6   1:21:42.0   1:22:55.5\n12      54    McFarland High School                McFarland High School                McFarland High School                McFarland High School                McFarland High School                McFarland High School                McFarland High School                McFarland High School                High School Boys    10:08:08.5   1:10:36.4   1:54:42.2   1:21:53.6   1:17:32.9   1:34:38.4   1:19:27.7   1:29:17.4\n13      34    Doo Farts                            Doo Farts                            Doo Farts                            Doo Farts                            Doo Farts                            Doo Farts                            Doo Farts                            Doo Farts                            Mixed Open          10:18:44.5   1:27:02.2   2:00:17.5   1:38:20.1   1:27:20.3   1:26:58.0   1:15:12.8   1:03:33.6\n14      33    Endorphinaddicts                     Endorphinaddicts                     Endorphinaddicts                                                                                               Endorphinaddicts                     Endorphinaddicts                                                          Mixed Open          10:30:53.0   45:36.1     4:41:19.0   -           -           1:50:48.0   4:56:13.6   -\n15      38    Sacramento City College              Sacramento City College              Sacramento City College            Sacramento City College                Sacramento City College              Sacramento City College              Sacramento City College              Sacramento City College              Mixed Open          10:32:45.7   1:22:26.9   1:35:03.9   1:20:06.2   1:29:44.6   1:31:27.4   1:15:58.7   1:57:58.0\n16      50    Kiewait Black                        Kiewait Black                                                           Kiewait Black                          Kiewait Black                        Kiewait Black                        Kiewait Black                        Kiewait Black                        Corporate Open      10:36:14.6   5:04:13.0   -           1:34:17.6   1:20:17.4   1:25:15.7   1:20:57.0   2:49:10.1\n17      20    SB Fun Runners                       SB Fun Runners                       SB Fun Runners                     SB Fun Runners                         SB Fun Runners                       SB Fun Runners                       SB Fun Runners                       SB Fun Runners                       Mixed Open          10:36:18.2   1:06:40.1   1:55:51.6   1:40:23.8   1:22:44.9   1:52:41.0   1:28:52.1   1:09:04.6\n18      4     StoupBeerRunners                     StoupBeerRunners                     StoupBeerRunners                   StoupBeerRunners                       StoupBeerRunners                     StoupBeerRunners                     StoupBeerRunners                     StoupBeerRunners                     Men's Open          10:42:28.3   1:19:17.5   2:29:30.4   1:23:13.5   1:02:49.1   1:32:26.8   1:24:29.2   1:30:41.9\n19      22    Chh-Yeah!                            Chh-Yeah!                            Chh-Yeah!                          Chh-Yeah!                              Chh-Yeah!                            Chh-Yeah!                            Chh-Yeah!                            Chh-Yeah!                            Mixed Open          10:43:27.5   1:26:06.7   1:36:26.1   1:09:52.7   1:40:25.1   1:35:43.2   1:33:42.9   1:41:10.8\n20      25    Golden Valley Harriers Straight Up   Golden Valley Harriers Straight Up   Golden Valley Harriers Straight Up Golden Valley Harriers Straight Up     Golden Valley Harriers Straight Up   Golden Valley Harriers Straight Up   Golden Valley Harriers Straight Up   Golden Valley Harriers Straight Up   Mixed Open          10:50:08.2   1:23:14.7   1:59:47.5   1:34:34.1   1:26:24.3   1:27:04.8   1:15:09.5   1:43:53.3\n21      55    Monache High School                  Monache High School                                                     Monache High School                    Monache High School                  Monache High School                  Monache High School                  Monache High School                  High School Girls   11:00:12.0   5:08:12.2   -           1:27:51.1   1:43:54.0   1:39:51.9   1:15:27.6   2:29:00.2\n22      6     Midnight Society                     Midnight Society                     Midnight Society                   Midnight Society                       Midnight Society                     Midnight Society                     Midnight Society                     Midnight Society                     Men's Open          11:01:30.3   1:14:59.6   2:06:11.2   1:00:00.4   1:13:21.1   1:59:57.1   1:30:21.4   1:56:39.6\n23      36    Bear Sharks                          Bear Sharks                          Bear Sharks                        Bear Sharks                            Bear Sharks                          Bear Sharks                          Bear Sharks                          Bear Sharks                          Mixed Open          11:03:40.3   1:30:38.9   1:44:19.5   1:20:03.0   1:48:39.1   1:28:51.8   1:44:12.5   1:26:55.4\n24      32    Go Lytley                            Go Lytley                                                               Go Lytley                              Go Lytley                            Go Lytley                            Go Lytley                            Go Lytley                            Mixed Open          11:09:07.8   5:04:06.4   -           1:14:45.5   1:44:30.9   1:40:19.7   1:27:59.4   2:44:50.9\n25      28    ZRC 1                                ZRC 1                                ZRC 1                              ZRC 1                                  ZRC 1                                ZRC 1                                ZRC 1                                ZRC 1                                Mixed Open          11:10:38.7   1:23:20.3   2:03:29.9   1:42:51.6   1:25:00.9   1:46:59.4   1:31:32.3   1:17:24.3\n26      45    Pisco Sours                          Pisco Sours                                                                                                                                         Pisco Sours                          Pisco Sours                          Pisco Sours                          2 Person Relay      11:16:31.1   5:04:09.0   -           -           -           1:30:25.9   1:23:18.6   2:52:44.2\n27      9     Keep Tahoe Blue                      Keep Tahoe Blue                                                           Keep Tahoe Blue                      Keep Tahoe Blue                      Keep Tahoe Blue                      Keep Tahoe Blue                      Keep Tahoe Blue                      Women's 40+         11:19:10.4   5:03:47.1   -           1:35:37.2   1:36:09.5   1:48:17.7   1:27:37.7   2:26:55.8\n28      23    Nth Degree Athletico                 Nth Degree Athletico                 Nth Degree Athletico                 Nth Degree Athletico                 Nth Degree Athletico                 Nth Degree Athletico                 Nth Degree Athletico                 Nth Degree Athletico                 Mixed Open          11:21:28.0   1:11:58.8   2:06:01.1   1:11:29.3   1:18:46.4   1:59:15.7   1:36:44.8   1:57:11.9\n29      18    Run Fit                              Run Fit                                                                   Run Fit                              Run Fit                              Run Fit                              Run Fit                              Run Fit                              Mixed Open          11:23:43.6   5:09:05.1   -           1:29:15.7   1:23:41.9   1:49:42.9   1:36:35.6   2:41:39.9\n30      24    Chafing the Dream                    Chafing the Dream                    Chafing the Dream                    Chafing the Dream                    Chafing the Dream                    Chafing the Dream                    Chafing the Dream                    Chafing the Dream                    Mixed Open          11:24:14.3   1:16:35.5   1:52:06.3   1:30:34.6   1:25:57.2   1:40:01.0   1:37:44.7   2:01:14.9\n31      59    MVXC Girls                           MVXC Girls                                                                MVXC Girls                           MVXC Girls                           MVXC Girls                           MVXC Girls                           MVXC Girls                           High School Girls   11:36:21.3   5:08:13.2   -           1:58:04.0   1:34:12.9   1:50:31.7   1:09:09.3   2:49:02.1\n32      35    Running on Cafine                    Running on Cafine                    Running on Cafine                    Running on Cafine                    Running on Cafine                    Running on Cafine                    Running on Cafine                    Running on Cafine                    Mixed Open          11:37:41.3   1:39:25.9   2:21:11.4   1:23:35.5   1:16:24.1   1:33:02.3   1:31:58.0   1:52:04.1\n33      27    Boulder Dashers                      Boulder Dashers                      Boulder Dashers                      Boulder Dashers                      Boulder Dashers                      Boulder Dashers                      Boulder Dashers                      Boulder Dashers                      Mixed Open          11:45:39.8   36:37.5     1:38:58.4   1:46:53.4   1:49:41.0   1:18:55.9   1:28:18.9   3:06:14.7\n34      29    ZRC 2                                ZRC 2                                ZRC 2                                ZRC 2                                ZRC 2                                ZRC 2                                ZRC 2                                ZRC 2                                Mixed Open          11:48:06.1   1:28:56.8   1:56:28.1   1:44:42.0   57:45.4     2:39:49.6   1:38:54.2   1:21:30.0\n35      21    Sibling Rivalry                      Sibling Rivalry                                                           Sibling Rivalry                      Sibling Rivalry                      Sibling Rivalry                      Sibling Rivalry                      Sibling Rivalry                      Mixed Open          11:48:51.2   5:07:11.8   -           1:22:24.7   1:40:56.0   1:57:45.0   1:35:36.8   3:09:48.7\n36      49    Kiewait Yellow                       Kiewait Yellow                                                            Kiewait Yellow                       Kiewait Yellow                       Kiewait Yellow                       Kiewait Yellow                                                            Corporate Open      11:51:40.4   5:04:13.5   -           1:24:46.2   1:32:03.9   2:14:35.2   4:36:21.8   -\n37      37    The Xtreme Falcons                   The Xtreme Falcons                   The Xtreme Falcons                   The Xtreme Falcons                   The Xtreme Falcons                   The Xtreme Falcons                   The Xtreme Falcons                   The Xtreme Falcons                   Mixed Open          11:53:41.0   1:26:38.3   2:17:15.4   1:38:37.7   1:38:36.8   1:57:20.8   1:25:24.1   1:29:47.9\n38      19    Banana Cream Thighs                  Banana Cream Thighs                                                       Banana Cream Thighs                  Banana Cream Thighs                  Banana Cream Thighs                  Banana Cream Thighs                  Banana Cream Thighs                  Mixed Open          11:56:27.9   5:03:50.2   -           1:38:20.4   1:43:36.2   1:48:01.6   1:25:34.1   2:38:32.4\n39      44    Texas Tag Team                       Texas Tag Team                                                            Texas Tag Team                       Texas Tag Team                       Texas Tag Team                       Texas Tag Team                       Texas Tag Team                       2 Person Relay      11:58:12.2   5:04:08.2   -           1:19:48.7   1:30:41.0   2:02:03.1   1:37:57.9   3:06:02.5\n40      31    Raiders of the Lost Track            Raiders of the Lost Track                                                 Raiders of the Lost Track            Raiders of the Lost Track            Raiders of the Lost Track            Raiders of the Lost Track            Raiders of the Lost Track            Mixed Open          12:11:46.3   5:04:04.8   -           1:34:19.7   1:54:41.8   1:45:13.4   1:15:47.0   2:52:08.5\n41      30    Tahoe Trotters                       Tahoe Trotters                       Tahoe Trotters                                                                                                 Tahoe Trotters                       Tahoe Trotters                       Tahoe Trotters                       Mixed Open          12:15:29.8   5:04:04.0   22:50.3     -           -           1:57:38.2   2:06:39.3   2:34:00.5\n42      51    LPI Fitness                          LPI Fitness                          LPI Fitness                                                                                                    LPI Fitness                          LPI Fitness                          LPI Fitness                          Corporate Open      12:17:12.8   5:04:12.1   22:44.2     -           -           1:47:28.1   1:18:42.5   2:58:10.8\n43      48    Team Tailgate Party                  Team Tailgate Party                  Team Tailgate Party                  Team Tailgate Party                  Team Tailgate Party                  Team Tailgate Party                  Team Tailgate Party                  Team Tailgate Party                  Corporate Open      12:27:29.6   1:29:12.6   2:04:02.5   1:44:50.9   1:47:57.4   1:49:18.3   1:49:16.3   1:42:51.7\n44      17    Fleet Feet Racing Team D             Fleet Feet Racing Team D                                                  Fleet Feet Racing Team D             Fleet Feet Racing Team D             Fleet Feet Racing Team D             Fleet Feet Racing Team D             Fleet Feet Racing Team D             Mixed Open          12:39:27.7   5:09:17.0   -           1:22:59.0   1:55:41.8   2:31:49.0   1:14:28.4   2:41:13.6\n45      10    Low Maintance                        Low Maintance                        Low Maintance                        Low Maintance                        Low Maintance                        Low Maintance                        Low Maintance                        Low Maintance                        Mixed 40+           12:48:37.3   42:48.1     2:29:52.7   1:50:24.2   1:38:41.6   1:45:55.1   1:30:10.9   2:50:44.6\n46      8     Pick Pack                            Pick Pack                            Pick Pack                            Pick Pack                            Pick Pack                            Pick Pack                            Pick Pack                            Pick Pack                            Women's Open        12:56:49.3   59:31.1     1:54:54.2   1:20:59.9   1:23:12.0   1:53:15.3   1:51:43.6   3:33:13.1\n47      16    Fleet Feet Racing Team C             Fleet Feet Racing Team C             Fleet Feet Racing Team C             Fleet Feet Racing Team C             Fleet Feet Racing Team C             Fleet Feet Racing Team C             Fleet Feet Racing Team C             Fleet Feet Racing Team C             Mixed Open          13:21:20.4   38:37.4     1:59:19.9   2:18:00.9   2:04:09.5   1:55:19.9   1:34:48.2   2:51:04.6\n48      15    Fleet Feet Racing team B             Fleet Feet Racing team B             Fleet Feet Racing team B             Fleet Feet Racing team B             Fleet Feet Racing team B             Fleet Feet Racing team B             Fleet Feet Racing team B             Fleet Feet Racing team B             Mixed Open          13:45:46.1   46:58.7     1:44:21.2   1:13:08.9   3:18:26.5   1:53:42.0   1:57:37.7   2:51:31.1\n49      14    Fleet Feet Racing Team A             Fleet Feet Racing Team A                                                  Fleet Feet Racing Team A             Fleet Feet Racing Team A             Fleet Feet Racing Team A             Fleet Feet Racing Team A             Fleet Feet Racing Team A             Mixed Open          13:51:37.1   5:09:16.4   -           2:16:41.1   2:04:20.4   1:55:07.6   1:58:48.3   2:57:22.1\n50      12    BABS 1                               BABS 1                               BABS 1                               BABS 1                               BABS 1                               BABS 1                               BABS 1                               BABS 1                               Mixed 40+           13:58:53.5   52:32.7     2:44:52.2   2:11:15.7   1:24:31.6   2:38:43.5   2:03:14.3   2:03:43.5\n51      41    BABS 2                               BABS 2                               BABS 2                               BABS 2                               BABS 2                               BABS 2                               BABS 2                               BABS 2                               Mixed Open          13:58:59.1   52:25.0     2:45:00.3   2:11:14.3   1:24:34.6   2:38:42.6   2:03:13.1   2:03:49.1\n52      52    Relay for Rhett                      Relay for Rhett                                                           Relay for Rhett                      Relay for Rhett                      Relay for Rhett                      Relay for Rhett                      Relay for Rhett                      Corporate Open      14:09:45.3   5:04:11.3   -           1:45:51.2   2:37:28.5   2:02:01.2   1:20:12.4   4:14:45.3\n53      60    All Gas No Brakes                    All Gas No Brakes                    All Gas No Brakes                    All Gas No Brakes                    All Gas No Brakes                    All Gas No Brakes                    All Gas No Brakes                    All Gas No Brakes                    2 Person Relay      14:50:11.2   46:19.5     2:30:43.8   2:08:13.3   1:47:43.2   2:45:29.8   1:39:19.6   3:12:22.0\n54      62    Payton Rudnick                       Payton Rudnick                       Payton Rudnick                                                                                                 Payton Rudnick                       Payton Rudnick                       Payton Rudnick                       Solo                15:58:39.7   5:08:11.0   5:40:38.4   -           -           2:24:43.4   3:25:10.0   4:02:09.9\n-       7     Original A Team                                                                                                                                                                                                                                                                                         Men's 60+           DNS\n-       11    It's All Relative                                                                                                                                                                                                                                                                                       Mixed 40+           DNS\n-       13    Heavenly Beer and Bears              Heavenly Beer and Bears              Heavenly Beer and Bears              Heavenly Beer and Bears              Heavenly Beer and Bears              Heavenly Beer and Bears              Heavenly Beer and Bears              Heavenly Beer and Bears              Mixed Open          DNS          50:06.6     2:17:05.2   1:57:23.1   2:00:41.4   1:30:56.9   1:33:05.9   2:02:54.6\n-       42    Sports Basement                                                                                                                                                                                                                                                                                         Mixed Open          DNS\n-       43    MV Sauce                                                                                                                                                                                                                                                                                                2 Person Relay      DNS\n-       47    Novo Construction                                                                                                                                                                                                                                                                                       Corporate Open      DNS\n-       56    South Tahoe High School                                                                                                                                                                                                                                                                                 High School Mixed   DNS\n\n              2 Person Relay\nPlace   Bib   Team name                            Leg 1                                Leg 2                                Leg 3                                Leg 4                                Leg 5                                Leg 6                                Leg 7                                Category            Time         Lap 1       Lap 2       Lap 3       Lap 4       Lap 5       Lap 6       Lap 7\n1       45    Pisco Sours                          Pisco Sours                                                                                                                                         Pisco Sours                          Pisco Sours                          Pisco Sours                          2 Person Relay      11:16:31.1   5:04:09.0   -           -           -           1:30:25.9   1:23:18.6   2:52:44.2\n2       44    Texas Tag Team                       Texas Tag Team                                                            Texas Tag Team                       Texas Tag Team                       Texas Tag Team                       Texas Tag Team                       Texas Tag Team                       2 Person Relay      11:58:12.2   5:04:08.2   -           1:19:48.7   1:30:41.0   2:02:03.1   1:37:57.9   3:06:02.5\n3       60    All Gas No Brakes                    All Gas No Brakes                    All Gas No Brakes                    All Gas No Brakes                    All Gas No Brakes                    All Gas No Brakes                    All Gas No Brakes                    All Gas No Brakes                    2 Person Relay      14:50:11.2   46:19.5     2:30:43.8   2:08:13.3   1:47:43.2   2:45:29.8   1:39:19.6   3:12:22.0\n-       43    MV Sauce                                                                                                                                                                                                                                                                                                2 Person Relay      DNS\n\n              Corporate Open\nPlace   Bib   Team name                            Leg 1                                Leg 2                                Leg 3                                Leg 4                                Leg 5                                Leg 6                                Leg 7                                Category            Time         Lap 1       Lap 2       Lap 3       Lap 4       Lap 5       Lap 6       Lap 7\n1       46    Delano Lifehouse Church              Delano Lifehouse Church              Delano Lifehouse Church              Delano Lifehouse Church              Delano Lifehouse Church              Delano Lifehouse Church              Delano Lifehouse Church              Delano Lifehouse Church              Corporate Open      9:59:17.9    1:32:11.1   1:38:43.7   1:12:14.9   1:09:52.6   1:46:20.4   1:13:26.3   1:26:28.9\n2       50    Kiewait Black                        Kiewait Black                                                             Kiewait Black                        Kiewait Black                        Kiewait Black                        Kiewait Black                        Kiewait Black                        Corporate Open      10:36:14.6   5:04:13.0   -           1:34:17.6   1:20:17.4   1:25:15.7   1:20:57.0   2:49:10.1\n3       49    Kiewait Yellow                       Kiewait Yellow                                                            Kiewait Yellow                       Kiewait Yellow                       Kiewait Yellow                       Kiewait Yellow                                                            Corporate Open      11:51:40.4   5:04:13.5   -           1:24:46.2   1:32:03.9   2:14:35.2   4:36:21.8   -\n4       51    LPI Fitness                          LPI Fitness                          LPI Fitness                                                                                                    LPI Fitness                          LPI Fitness                          LPI Fitness                          Corporate Open      12:17:12.8   5:04:12.1   22:44.2     -           -           1:47:28.1   1:18:42.5   2:58:10.8\n5       48    Team Tailgate Party                  Team Tailgate Party                  Team Tailgate Party                  Team Tailgate Party                  Team Tailgate Party                  Team Tailgate Party                  Team Tailgate Party                  Team Tailgate Party                  Corporate Open      12:27:29.6   1:29:12.6   2:04:02.5   1:44:50.9   1:47:57.4   1:49:18.3   1:49:16.3   1:42:51.7\n6       52    Relay for Rhett                      Relay for Rhett                                                           Relay for Rhett                      Relay for Rhett                      Relay for Rhett                      Relay for Rhett                      Relay for Rhett                      Corporate Open      14:09:45.3   5:04:11.3   -           1:45:51.2   2:37:28.5   2:02:01.2   1:20:12.4   4:14:45.3\n-       47    Novo Construction                                                                                                                                                                                                                                                                                       Corporate Open      DNS\n\n              High School Boys\nPlace   Bib   Team name                            Leg 1                                Leg 2                                Leg 3                                Leg 4                                Leg 5                                Leg 6                                Leg 7                                Category            Time         Lap 1       Lap 2       Lap 3       Lap 4       Lap 5       Lap 6       Lap 7\n1       53    Monache High School                  Monache High School                                                       Monache High School                  Monache High School                  Monache High School                  Monache High School                  Monache High School                  High School Boys    8:20:05.7    5:04:09.9   -           1:16:41.2   1:03:10.6   1:13:40.7   1:00:27.6   2:13:05.2\n2       58    MVXC Boys                            MVXC Boys                            MVXC Boys                            MVXC Boys                            MVXC Boys                            MVXC Boys                            MVXC Boys                            MVXC Boys                            High School Boys    10:01:56.6   1:18:58.7   1:48:44.2   1:22:36.5   1:32:43.8   1:35:45.2   1:09:05.4   1:14:02.9\n3       54    McFarland High School                McFarland High School                McFarland High School                McFarland High School                McFarland High School                McFarland High School                McFarland High School                McFarland High School                High School Boys    10:08:08.5   1:10:36.4   1:54:42.2   1:21:53.6   1:17:32.9   1:34:38.4   1:19:27.7   1:29:17.4\n\n              High School Girls\nPlace   Bib   Team name                            Leg 1                                Leg 2                                Leg 3                                Leg 4                                Leg 5                                Leg 6                                Leg 7                                Category            Time         Lap 1       Lap 2       Lap 3       Lap 4       Lap 5       Lap 6       Lap 7\n1       55    Monache High School                  Monache High School                                                       Monache High School                  Monache High School                  Monache High School                  Monache High School                  Monache High School                  High School Girls   11:00:12.0   5:08:12.2   -           1:27:51.1   1:43:54.0   1:39:51.9   1:15:27.6   2:29:00.2\n2       59    MVXC Girls                           MVXC Girls                                                                MVXC Girls                           MVXC Girls                           MVXC Girls                           MVXC Girls                           MVXC Girls                           High School Girls   11:36:21.3   5:08:13.2   -           1:58:04.0   1:34:12.9   1:50:31.7   1:09:09.3   2:49:02.1\n\n              High School Mixed\nPlace   Bib   Team name                            Leg 1                                Leg 2                                Leg 3                                Leg 4                                Leg 5                                Leg 6                                Leg 7                                Category          Time           Lap 1       Lap 2       Lap 3       Lap 4       Lap 5       Lap 6       Lap 7\n1       57    Toads Go To Tahoe                    Toads Go To Tahoe                    Toads Go To Tahoe                    Toads Go To Tahoe                    Toads Go To Tahoe                    Toads Go To Tahoe                    Toads Go To Tahoe                    Toads Go To Tahoe                    High School Mixed 9:30:40.2      1:22:09.9   1:34:39.9   1:18:17.9   1:24:21.2   1:25:35.5   1:09:23.3   1:16:12.6\n-       56    South Tahoe High School                                                                                                                                                                                                                                                                                 High School Mixed DNS\n\n              Men's 40+\nPlace   Bib   Team name                            Leg 1                                Leg 2                                Leg 3                                Leg 4                                Leg 5                                Leg 6                                Leg 7                                Category            Time         Lap 1       Lap 2       Lap 3       Lap 4       Lap 5       Lap 6       Lap 7\n1       1     West Valley Track Club -             West Valley Track Club -             West Valley Track Club -             West Valley Track Club -             West Valley Track Club -             West Valley Track Club -             West Valley Track Club -             West Valley Track Club -             Men's 40+           7:33:34.0    55:28.5     1:19:33.0   1:01:36.3   1:00:15.5   1:07:42.2   59:29.3     1:09:29.2\n2       2     Casual Jogboys                       Casual Jogboys                       Casual Jogboys                       Casual Jogboys                       Casual Jogboys                       Casual Jogboys                       Casual Jogboys                       Casual Jogboys                       Men's 40+           10:02:48.6   1:19:29.5   1:47:13.3   1:23:35.6   1:17:44.2   1:30:08.6   1:21:42.0   1:22:55.5\n\n              Men's 60+\nPlace   Bib   Team name                            Leg 1                                Leg 2                                                                                                                                                                                                                         Category            Time         Lap 1       Lap 2\n-       7     Original A Team                                                                                                                                                                                                                                                                                         Men's 60+           DNS\n\n              Men's Open\nPlace   Bib   Team name                            Leg 1                                Leg 2                                Leg 3                                Leg 4                                Leg 5                                Leg 6                                Leg 7                                Category            Time         Lap 1       Lap 2       Lap 3       Lap 4       Lap 5       Lap 6       Lap 7\n1       5     Deportivo Runners                    Deportivo Runners                    Deportivo Runners                    Deportivo Runners                    Deportivo Runners                    Deportivo Runners                    Deportivo Runners                    Deportivo Runners                    Men's Open          8:47:10.7    1:12:29.5   1:23:52.1   1:16:46.8   1:22:09.9   1:15:58.3   1:07:59.9   1:07:54.1\n2       3     Golden Valley Harriers Stirred       Golden Valley Harriers Stirred       Golden Valley Harriers Stirred       Golden Valley Harriers Stirred       Golden Valley Harriers Stirred       Golden Valley Harriers Stirred       Golden Valley Harriers Stirred       Golden Valley Harriers Stirred       Men's Open          8:49:25.8    1:05:19.4   1:19:30.2   1:19:33.4   1:20:23.9   1:20:49.8   1:19:39.7   1:04:09.3\n3       4     StoupBeerRunners                     StoupBeerRunners                     StoupBeerRunners                     StoupBeerRunners                     StoupBeerRunners                     StoupBeerRunners                     StoupBeerRunners                     StoupBeerRunners                     Men's Open          10:42:28.3   1:19:17.5   2:29:30.4   1:23:13.5   1:02:49.1   1:32:26.8   1:24:29.2   1:30:41.9\n4       6     Midnight Society                     Midnight Society                     Midnight Society                     Midnight Society                     Midnight Society                     Midnight Society                     Midnight Society                     Midnight Society                     Men's Open          11:01:30.3   1:14:59.6   2:06:11.2   1:00:00.4   1:13:21.1   1:59:57.1   1:30:21.4   1:56:39.6\n\n              Mixed 40+\nPlace   Bib   Team name                            Leg 1                                Leg 2                                Leg 3                                Leg 4                                Leg 5                                Leg 6                                Leg 7                                Category            Time         Lap 1       Lap 2       Lap 3       Lap 4       Lap 5       Lap 6       Lap 7\n1       10    Low Maintance                        Low Maintance                        Low Maintance                        Low Maintance                        Low Maintance                        Low Maintance                        Low Maintance                        Low Maintance                        Mixed 40+           12:48:37.3   42:48.1     2:29:52.7   1:50:24.2   1:38:41.6   1:45:55.1   1:30:10.9   2:50:44.6\n2       12    BABS 1                               BABS 1                               BABS 1                               BABS 1                               BABS 1                               BABS 1                               BABS 1                               BABS 1                               Mixed 40+           13:58:53.5   52:32.7     2:44:52.2   2:11:15.7   1:24:31.6   2:38:43.5   2:03:14.3   2:03:43.5\n-       11    It's All Relative                                                                                                                                                                                                                                                                                       Mixed 40+           DNS\n\n              Mixed Open\nPlace   Bib   Team name                            Leg 1                                Leg 2                                Leg 3                                Leg 4                                Leg 5                                Leg 6                                Leg 7                                Category            Time         Lap 1       Lap 2       Lap 3       Lap 4       Lap 5       Lap 6       Lap 7\n1       40    Tintinnabulating Transmogrified      Tintinnabulating Transmogrified      Tintinnabulating Transmogrified      Tintinnabulating Transmogrified      Tintinnabulating Transmogrified      Tintinnabulating Transmogrified      Tintinnabulating Transmogrified      Tintinnabulating Transmogrified      Mixed Open          8:53:25.3    1:12:52.2   1:22:59.8   1:13:33.9   1:13:27.7   1:29:33.4   1:02:05.6   1:18:52.6\n2       26    Golden Valley Harriers Shaken        Golden Valley Harriers Shaken        Golden Valley Harriers Shaken        Golden Valley Harriers Shaken        Golden Valley Harriers Shaken        Golden Valley Harriers Shaken        Golden Valley Harriers Shaken        Golden Valley Harriers Shaken        Mixed Open          9:34:35.1    1:19:24.5   1:42:50.4   1:10:25.4   1:17:47.1   1:21:37.1   1:20:56.2   1:21:34.3\n3       39    OCTC                                 OCTC                                 OCTC                                 OCTC                                 OCTC                                 OCTC                                 OCTC                                 OCTC                                 Mixed Open          9:49:05.6    1:14:42.4   2:04:22.1   1:15:15.7   1:26:44.1   1:32:17.2   1:33:24.7   42:19.4\n4       34    Doo Farts                            Doo Farts                            Doo Farts                            Doo Farts                            Doo Farts                            Doo Farts                            Doo Farts                            Doo Farts                            Mixed Open          10:18:44.5   1:27:02.2   2:00:17.5   1:38:20.1   1:27:20.3   1:26:58.0   1:15:12.8   1:03:33.6\n5       33    Endorphinaddicts                     Endorphinaddicts                     Endorphinaddicts                                                                                               Endorphinaddicts                     Endorphinaddicts                                                          Mixed Open          10:30:53.0   45:36.1     4:41:19.0   -           -           1:50:48.0   4:56:13.6   -\n6       38    Sacramento City College              Sacramento City College              Sacramento City College              Sacramento City College              Sacramento City College              Sacramento City College              Sacramento City College              Sacramento City College              Mixed Open          10:32:45.7   1:22:26.9   1:35:03.9   1:20:06.2   1:29:44.6   1:31:27.4   1:15:58.7   1:57:58.0\n7       20    SB Fun Runners                       SB Fun Runners                       SB Fun Runners                       SB Fun Runners                       SB Fun Runners                       SB Fun Runners                       SB Fun Runners                       SB Fun Runners                       Mixed Open          10:36:18.2   1:06:40.1   1:55:51.6   1:40:23.8   1:22:44.9   1:52:41.0   1:28:52.1   1:09:04.6\n8       22    Chh-Yeah!                            Chh-Yeah!                            Chh-Yeah!                            Chh-Yeah!                            Chh-Yeah!                            Chh-Yeah!                            Chh-Yeah!                            Chh-Yeah!                            Mixed Open          10:43:27.5   1:26:06.7   1:36:26.1   1:09:52.7   1:40:25.1   1:35:43.2   1:33:42.9   1:41:10.8\n9       25    Golden Valley Harriers Straight Up   Golden Valley Harriers Straight Up   Golden Valley Harriers Straight Up   Golden Valley Harriers Straight Up   Golden Valley Harriers Straight Up   Golden Valley Harriers Straight Up   Golden Valley Harriers Straight Up   Golden Valley Harriers Straight Up   Mixed Open          10:50:08.2   1:23:14.7   1:59:47.5   1:34:34.1   1:26:24.3   1:27:04.8   1:15:09.5   1:43:53.3\n10      36    Bear Sharks                          Bear Sharks                          Bear Sharks                          Bear Sharks                          Bear Sharks                          Bear Sharks                          Bear Sharks                          Bear Sharks                          Mixed Open          11:03:40.3   1:30:38.9   1:44:19.5   1:20:03.0   1:48:39.1   1:28:51.8   1:44:12.5   1:26:55.4\n11      32    Go Lytley                            Go Lytley                                                                 Go Lytley                            Go Lytley                            Go Lytley                            Go Lytley                            Go Lytley                            Mixed Open          11:09:07.8   5:04:06.4   -           1:14:45.5   1:44:30.9   1:40:19.7   1:27:59.4   2:44:50.9\n12      28    ZRC 1                                ZRC 1                                ZRC 1                                ZRC 1                                ZRC 1                                ZRC 1                                ZRC 1                                ZRC 1                                Mixed Open          11:10:38.7   1:23:20.3   2:03:29.9   1:42:51.6   1:25:00.9   1:46:59.4   1:31:32.3   1:17:24.3\n13      23    Nth Degree Athletico                 Nth Degree Athletico                 Nth Degree Athletico                 Nth Degree Athletico                 Nth Degree Athletico                 Nth Degree Athletico                 Nth Degree Athletico                 Nth Degree Athletico                 Mixed Open          11:21:28.0   1:11:58.8   2:06:01.1   1:11:29.3   1:18:46.4   1:59:15.7   1:36:44.8   1:57:11.9\n14      18    Run Fit                              Run Fit                                                                   Run Fit                              Run Fit                              Run Fit                              Run Fit                              Run Fit                              Mixed Open          11:23:43.6   5:09:05.1   -           1:29:15.7   1:23:41.9   1:49:42.9   1:36:35.6   2:41:39.9\n15      24    Chafing the Dream                    Chafing the Dream                    Chafing the Dream                    Chafing the Dream                    Chafing the Dream                    Chafing the Dream                    Chafing the Dream                    Chafing the Dream                    Mixed Open          11:24:14.3   1:16:35.5   1:52:06.3   1:30:34.6   1:25:57.2   1:40:01.0   1:37:44.7   2:01:14.9\n16      35    Running on Cafine                    Running on Cafine                    Running on Cafine                    Running on Cafine                    Running on Cafine                    Running on Cafine                    Running on Cafine                    Running on Cafine                    Mixed Open          11:37:41.3   1:39:25.9   2:21:11.4   1:23:35.5   1:16:24.1   1:33:02.3   1:31:58.0   1:52:04.1\n17      27    Boulder Dashers                      Boulder Dashers                      Boulder Dashers                      Boulder Dashers                      Boulder Dashers                      Boulder Dashers                      Boulder Dashers                      Boulder Dashers                      Mixed Open          11:45:39.8   36:37.5     1:38:58.4   1:46:53.4   1:49:41.0   1:18:55.9   1:28:18.9   3:06:14.7\n18      29    ZRC 2                                ZRC 2                                ZRC 2                                ZRC 2                                ZRC 2                                ZRC 2                                ZRC 2                                ZRC 2                                Mixed Open          11:48:06.1   1:28:56.8   1:56:28.1   1:44:42.0   57:45.4     2:39:49.6   1:38:54.2   1:21:30.0\n19      21    Sibling Rivalry                      Sibling Rivalry                                                           Sibling Rivalry                      Sibling Rivalry                      Sibling Rivalry                      Sibling Rivalry                      Sibling Rivalry                      Mixed Open          11:48:51.2   5:07:11.8   -           1:22:24.7   1:40:56.0   1:57:45.0   1:35:36.8   3:09:48.7\n20      37    The Xtreme Falcons                   The Xtreme Falcons                   The Xtreme Falcons                   The Xtreme Falcons                   The Xtreme Falcons                   The Xtreme Falcons                   The Xtreme Falcons                   The Xtreme Falcons                   Mixed Open          11:53:41.0   1:26:38.3   2:17:15.4   1:38:37.7   1:38:36.8   1:57:20.8   1:25:24.1   1:29:47.9\n21      19    Banana Cream Thighs                  Banana Cream Thighs                                                       Banana Cream Thighs                  Banana Cream Thighs                  Banana Cream Thighs                  Banana Cream Thighs                  Banana Cream Thighs                  Mixed Open          11:56:27.9   5:03:50.2   -           1:38:20.4   1:43:36.2   1:48:01.6   1:25:34.1   2:38:32.4\n22      31    Raiders of the Lost Track            Raiders of the Lost Track                                                 Raiders of the Lost Track            Raiders of the Lost Track            Raiders of the Lost Track            Raiders of the Lost Track            Raiders of the Lost Track            Mixed Open          12:11:46.3   5:04:04.8   -           1:34:19.7   1:54:41.8   1:45:13.4   1:15:47.0   2:52:08.5\n23      30    Tahoe Trotters                       Tahoe Trotters                       Tahoe Trotters                                                                                                 Tahoe Trotters                       Tahoe Trotters                       Tahoe Trotters                       Mixed Open          12:15:29.8   5:04:04.0   22:50.3     -           -           1:57:38.2   2:06:39.3   2:34:00.5\n24      17    Fleet Feet Racing Team D             Fleet Feet Racing Team D                                                  Fleet Feet Racing Team D             Fleet Feet Racing Team D             Fleet Feet Racing Team D             Fleet Feet Racing Team D             Fleet Feet Racing Team D             Mixed Open          12:39:27.7   5:09:17.0   -           1:22:59.0   1:55:41.8   2:31:49.0   1:14:28.4   2:41:13.6\n25      16    Fleet Feet Racing Team C             Fleet Feet Racing Team C             Fleet Feet Racing Team C             Fleet Feet Racing Team C             Fleet Feet Racing Team C             Fleet Feet Racing Team C             Fleet Feet Racing Team C             Fleet Feet Racing Team C             Mixed Open          13:21:20.4   38:37.4     1:59:19.9   2:18:00.9   2:04:09.5   1:55:19.9   1:34:48.2   2:51:04.6\n26      15    Fleet Feet Racing team B             Fleet Feet Racing team B             Fleet Feet Racing team B             Fleet Feet Racing team B             Fleet Feet Racing team B             Fleet Feet Racing team B             Fleet Feet Racing team B             Fleet Feet Racing team B             Mixed Open          13:45:46.1   46:58.7     1:44:21.2   1:13:08.9   3:18:26.5   1:53:42.0   1:57:37.7   2:51:31.1\n27      14    Fleet Feet Racing Team A             Fleet Feet Racing Team A                                                  Fleet Feet Racing Team A             Fleet Feet Racing Team A             Fleet Feet Racing Team A             Fleet Feet Racing Team A             Fleet Feet Racing Team A             Mixed Open          13:51:37.1   5:09:16.4   -           2:16:41.1   2:04:20.4   1:55:07.6   1:58:48.3   2:57:22.1\n28      41    BABS 2                               BABS 2                               BABS 2                               BABS 2                               BABS 2                               BABS 2                               BABS 2                               BABS 2                               Mixed Open          13:58:59.1   52:25.0     2:45:00.3   2:11:14.3   1:24:34.6   2:38:42.6   2:03:13.1   2:03:49.1\n-       13    Heavenly Beer and Bears              Heavenly Beer and Bears              Heavenly Beer and Bears              Heavenly Beer and Bears              Heavenly Beer and Bears              Heavenly Beer and Bears              Heavenly Beer and Bears              Heavenly Beer and Bears              Mixed Open          DNS          50:06.6     2:17:05.2   1:57:23.1   2:00:41.4   1:30:56.9   1:33:05.9   2:02:54.6\n-       42    Sports Basement                                                                                                                                                                                                                                                                                         Mixed Open          DNS\n\n              Solo\nPlace   Bib   Team name                            Leg 1                                Leg 2                                Leg 3                                Leg 4                                Leg 5                                Leg 6                                Leg 7                                Category            Time         Lap 1       Lap 2       Lap 3       Lap 4       Lap 5       Lap 6       Lap 7\n1       62    Payton Rudnick                       Payton Rudnick                       Payton Rudnick                                                                                                 Payton Rudnick                       Payton Rudnick                       Payton Rudnick                       Solo                15:58:39.7   5:08:11.0   5:40:38.4   -           -           2:24:43.4   3:25:10.0   4:02:09.9\n\n              Women's 40+\nPlace   Bib   Team name                            Leg 1                                Leg 2                                Leg 3                                Leg 4                                Leg 5                                Leg 6                                Leg 7                                Category            Time         Lap 1       Lap 2       Lap 3       Lap 4       Lap 5       Lap 6       Lap 7\n1       9     Keep Tahoe Blue                      Keep Tahoe Blue                                                           Keep Tahoe Blue                      Keep Tahoe Blue                      Keep Tahoe Blue                      Keep Tahoe Blue                      Keep Tahoe Blue                      Women's 40+         11:19:10.4   5:03:47.1   -           1:35:37.2   1:36:09.5   1:48:17.7   1:27:37.7   2:26:55.8\n\n              Women's Open\nPlace   Bib   Team name                            Leg 1                                Leg 2                                Leg 3                                Leg 4                                Leg 5                                Leg 6                                Leg 7                                Category            Time         Lap 1       Lap 2       Lap 3       Lap 4       Lap 5       Lap 6       Lap 7\n1       8     Pick Pack                            Pick Pack                            Pick Pack                            Pick Pack                            Pick Pack                            Pick Pack                            Pick Pack                            Pick Pack                            Women's Open        12:56:49.3   59:31.1     1:54:54.2   1:20:59.9   1:23:12.0   1:53:15.3   1:51:43.6   3:33:13.1"
+    }
+  ]
+}

@@ -16,6 +16,7 @@ import {
 } from "../lib/raceDisplay";
 import type { DisplayLegResult, RaceResultStatus } from "../lib/raceDisplay";
 import { formatFeet, formatMiles, formatPace, formatSourceType } from "../lib/utils";
+import { LegPill } from "./LegPill";
 
 const HistoryView: React.FC = () => {
   const {
@@ -279,10 +280,31 @@ const HistoryView: React.FC = () => {
                           {race.legResults.map((leg: DisplayLegResult) => (
                             <tr key={leg.key}>
                               <td className="px-4 py-2 whitespace-nowrap text-sm font-medium text-gray-800">
-                                {leg.leg_number} (v{leg.leg_version})
+                                {leg.leg_number && leg.leg_version ? (
+                                  <LegPill
+                                    leg={leg.leg_number}
+                                    version={leg.leg_version}
+                                    className="inline-flex items-center rounded-full bg-primary-50 px-2.5 py-1 text-xs font-semibold text-primary-700 transition-colors hover:bg-primary-100 hover:text-primary-800"
+                                  >
+                                    Leg {leg.leg_number} v{leg.leg_version}
+                                  </LegPill>
+                                ) : (
+                                  "N/A"
+                                )}
                               </td>
                               <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-800">
-                                {leg.runner_name || "N/A"}
+                                {leg.runner_name ? (
+                                  <Link
+                                    to="/runners/$runnerName"
+                                    params={{ runnerName: leg.runner_name }}
+                                    className="text-primary-700 hover:text-primary-800"
+                                    onClick={(event) => event.stopPropagation()}
+                                  >
+                                    {leg.runner_name}
+                                  </Link>
+                                ) : (
+                                  "N/A"
+                                )}
                               </td>
                               <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-800">
                                 <SourceBadge leg={leg} />
@@ -344,12 +366,15 @@ const HistoryView: React.FC = () => {
                       </h4>
                       <div className="flex flex-wrap gap-2">
                         {race.unknownLegParticipations.map((participation) => (
-                          <span
+                          <Link
                             key={`${participation.year}-${participation.runner_id}`}
-                            className="px-3 py-1 bg-amber-100 text-amber-800 text-sm rounded-full"
+                            to="/runners/$runnerName"
+                            params={{ runnerName: participation.runner_name }}
+                            className="px-3 py-1 bg-amber-100 text-amber-800 text-sm rounded-full hover:bg-amber-200"
+                            onClick={(event) => event.stopPropagation()}
                           >
                             {participation.runner_name}
-                          </span>
+                          </Link>
                         ))}
                       </div>
                     </div>

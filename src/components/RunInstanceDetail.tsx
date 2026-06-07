@@ -529,7 +529,7 @@ const RunInstanceDetail: React.FC = () => {
     <div className="animate-fade-in space-y-8">
       <div>
         <Breadcrumbs
-          current={`${selectedYear} Leg ${selectedLegNumber}`}
+          current={`${selectedYear} Leg ${selectedLegNumber} Performance`}
           items={[
             { label: "Team", to: "/team" },
             {
@@ -549,8 +549,11 @@ const RunInstanceDetail: React.FC = () => {
         />
         <div className="mt-4 flex flex-wrap items-start justify-between gap-4">
           <div>
+            <p className="mt-1 text-xs font-semibold uppercase tracking-wider text-primary-700">
+              Leg Performance
+            </p>
             <h1 className="text-3xl font-bold text-gray-900">
-              {selectedYear} Leg {selectedLegNumber}
+              {selectedYear} Leg {selectedLegNumber} Performance
             </h1>
             <p className="mt-2 text-gray-600">
               {formatMiles(officialResult?.distance ?? legDefinition?.distance)} •{" "}
@@ -605,10 +608,24 @@ const RunInstanceDetail: React.FC = () => {
             <Metric label="Finish" value={formatValue(officialResult.leg_finish_time)} />
             <Metric label="Elevation" value={formatFeet(officialResult.elevation_gain)} />
             <Metric label="Source" value={formatSourceType(officialResult.source_type)} />
+            <Link
+              to="/leg-results/$resultType/$runnerName/$year/$legNumber/$version/$resultId"
+              params={{
+                resultType: "official",
+                runnerName,
+                year: String(selectedYear),
+                legNumber: String(selectedLegNumber),
+                version: String(selectedVersion),
+                resultId: "official",
+              }}
+              className="inline-flex items-center justify-center rounded-lg border border-primary-200 px-3 py-2 text-sm font-medium text-primary-700 transition-colors hover:border-primary-300 hover:bg-primary-50"
+            >
+              View leg result
+            </Link>
           </div>
         ) : (
           <p className="text-sm text-gray-600">
-            No official result is recorded for this run instance.
+            No official result is recorded for this leg performance.
           </p>
         )}
       </section>
@@ -724,17 +741,33 @@ const RunInstanceDetail: React.FC = () => {
                         )}
                       </td>
                       <td className="px-4 py-3 text-sm text-gray-900">
-                        <button
-                          type="button"
-                          onClick={() => handleDeleteObservation(observation)}
-                          disabled={deletingObservationId === observation.id}
-                          className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-red-700 transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:text-gray-400"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                          <span>
-                            {deletingObservationId === observation.id ? "Deleting..." : "Delete"}
-                          </span>
-                        </button>
+                        <div className="flex flex-wrap gap-2">
+                          <Link
+                            to="/leg-results/$resultType/$runnerName/$year/$legNumber/$version/$resultId"
+                            params={{
+                              resultType: "self-reported",
+                              runnerName,
+                              year: String(selectedYear),
+                              legNumber: String(selectedLegNumber),
+                              version: String(selectedVersion),
+                              resultId: observation.id || "unknown",
+                            }}
+                            className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-primary-700 transition-colors hover:bg-primary-50"
+                          >
+                            View/edit
+                          </Link>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteObservation(observation)}
+                            disabled={deletingObservationId === observation.id}
+                            className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-red-700 transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:text-gray-400"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                            <span>
+                              {deletingObservationId === observation.id ? "Deleting..." : "Delete"}
+                            </span>
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -747,7 +780,7 @@ const RunInstanceDetail: React.FC = () => {
           </div>
         ) : (
           <p className="text-sm text-gray-600">
-            No self recorded evidence has been saved for this run instance.
+            No self recorded evidence has been saved for this leg performance.
           </p>
         )}
       </section>

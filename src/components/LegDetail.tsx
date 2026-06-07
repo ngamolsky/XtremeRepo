@@ -375,7 +375,17 @@ const LegDetail: React.FC = () => {
                     }
                   >
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {result.year}
+                      {result.year ? (
+                        <Link
+                          to="/races/$year"
+                          params={{ year: String(result.year) }}
+                          className="text-primary-700 hover:text-primary-800"
+                        >
+                          {result.year}
+                        </Link>
+                      ) : (
+                        "N/A"
+                      )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 hover:text-primary-600">
                       <Link

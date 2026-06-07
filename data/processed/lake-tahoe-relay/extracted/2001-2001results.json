@@ -1,0 +1,712 @@
+{
+  "schema_version": 1,
+  "extracted_at": "2026-06-07T19:41:44.553Z",
+  "source": {
+    "year": 2001,
+    "label": "2001",
+    "source_url": "https://laketahoerelay.com/wp-content/uploads/2019/05/2001results.gif",
+    "final_url": "https://laketahoerelay.com/wp-content/uploads/2019/05/2001results.gif",
+    "filename": "data/raw/lake-tahoe-relay/results/2001results.gif",
+    "file_type": "gif",
+    "content_type": "image/gif",
+    "bytes": 120923,
+    "sha256": "6d182ec379a9dda2f8c61c1e9996103298d67ec528f3a31ab60f4ec301d8201d",
+    "actual_sha256": "6d182ec379a9dda2f8c61c1e9996103298d67ec528f3a31ab60f4ec301d8201d"
+  },
+  "extraction": {
+    "method": "tesseract-ocr",
+    "status": "needs_review",
+    "warnings": [
+      "Image OCR requires human review before parsing."
+    ]
+  },
+  "summary": {
+    "rows": 111,
+    "cells": 0,
+    "characters": 10235
+  },
+  "documents": [
+    {
+      "document_type": "image",
+      "name": "2001results.gif",
+      "sheet_index": null,
+      "page_number": null,
+      "row_count": 111,
+      "column_count": null,
+      "extraction_status": "needs_review",
+      "metadata": {
+        "extraction": "tesseract --psm 6"
+      },
+      "cells": [],
+      "rows": [
+        {
+          "row_index": 0,
+          "row_label": "1",
+          "raw_text": "2001 37th DeCelle Memorial Lake Tahoe Relay",
+          "cells": {}
+        },
+        {
+          "row_index": 1,
+          "row_label": "2",
+          "raw_text": "Team Pe Pince TTimo Log Tmo eg Leg Time Pie TTine LegTime Place Tine Leg Tmo Puce THe LepTime Pisce TTine  LegTme Place TTine Lap Tine Place",
+          "cells": {}
+        },
+        {
+          "row_index": 2,
+          "row_label": "3",
+          "raw_text": "Numbe OW Leg Leg Lep2 Lep2Lep2Leg3 Leg Leg Seg — Legd — Legé Leg LenS Leg legS Log Leg Leg? Lap? Leg?",
+          "cells": {}
+        },
+        {
+          "row_index": 3,
+          "row_label": "4",
+          "raw_text": "Division 1: Open Men,",
+          "cells": {}
+        },
+        {
+          "row_index": 4,
+          "row_label": "5",
+          "raw_text": "51 14 on8828 o1s256 cns42s 9 28824 010330 3 OkOE44 OHIO 3 cBORIE ONGLIA 2 O5:I220 OLMa1 2 OTAIHO GOSEAY 4",
+          "cells": {}
+        },
+        {
+          "row_index": 5,
+          "row_label": "6",
+          "raw_text": "78 2 5 910029 18933 coseOs § 03050 01063 § OKZIOS O1IGSD § 057829 CtNS25 —§ OBI04E O11 § OTHOOI OTeOTD",
+          "cells": {}
+        },
+        {
+          "row_index": 6,
+          "row_label": "7",
+          "raw_text": "70 9 2 ON0RI8 czIBGR OtORAs 24 033395 O49 5 OTIS OLABID 16 CBSBS? ot2508 #7 OTAZSS 010800 19 030020 OLITZ7 12",
+          "cells": {}
+        },
+        {
+          "row_index": 7,
+          "row_label": "8",
+          "raw_text": "23 4 2% Obtt4S 22041 OLtA2a BF 094640 012028 27 05:30 012629 19 OB4IMB 012899 20 OBTRTE OF2NN 20 ORES O1I548 19",
+          "cells": {}
+        },
+        {
+          "row_index": 8,
+          "row_label": "9",
+          "raw_text": "15 5 65 012081 028455 012405 GE O428SE 013342 64 OHOEAS OIE GF C7SNS C1240 4B 085594 012642 40 101003 O11479 33",
+          "cells": {}
+        },
+        {
+          "row_index": 9,
+          "row_label": "10",
+          "raw_text": "57 6 %6 OFOB4s caI024 oHOREs 20 va422e 012600 20 ORBEA OHSLOR 34 C8880 012527 AT OSM319 O1M420 24 102245 o19RSE 42",
+          "cells": {}
+        },
+        {
+          "row_index": 10,
+          "row_label": "11",
+          "raw_text": "BD 7 SE ONNGD GzaKNS 012034 48 040926 O1:3441 BD ORSEOG OHAEHD G1 CTATOS 015259 87 01396 012591 62 10.9515 O12290 48",
+          "cells": {}
+        },
+        {
+          "row_index": 11,
+          "row_label": "12",
+          "raw_text": "75 8 ST O12612 23418 010800 45 ODTEO ONG 28 053252 O14SC 33 072625 01599 45 ORITAD OTSIOE §5 103748 O12019 4",
+          "cells": {}
+        },
+        {
+          "row_index": 12,
+          "row_label": "13",
+          "raw_text": "A 9 66 OF9190 GeMBa> ONTECD G4 043008 O1MO9S G8 OEE4IT O12429 G2 CTI 019635 50 OW:I008 O19856 48 sO4TOR otsTOO 82",
+          "cells": {}
+        },
+        {
+          "row_index": 13,
+          "row_label": "14",
+          "raw_text": "45 10 80 O12502 02405 01.2009 62 49709 O147SE 6B 053800 OISEST 69 082017 O1KEIT 70 ORDIAD O1NN2E G1 110554 O19eN 60",
+          "cells": {}
+        },
+        {
+          "row_index": 14,
+          "row_label": "15",
+          "raw_text": "65 11 a7 OLNTSI O24Da1 O12240 S4 O4ANSS ORCI TE 05RD OZITO 75 OBZOAT O12018 79 IOZIGG ONSIAD 71 120810 O1M7O TH",
+          "cells": {}
+        },
+        {
+          "row_index": 15,
+          "row_label": "16",
+          "raw_text": "Division 2: Open Women,",
+          "cells": {}
+        },
+        {
+          "row_index": 16,
+          "row_label": "17",
+          "raw_text": "© 1 8 Of0252 o20900 o10509 41 oRatZe O1tB22 10 OAD—IE OII7SZ 9 OSA? O1:1928 _@ OTHER O1Z2K9 8 ROS O1OSIE 9",
+          "cells": {}
+        },
+        {
+          "row_index": 17,
+          "row_label": "18",
+          "raw_text": "632 49 OUTS o22019 O19294 28 ORBTST OLITIE 48 051200 013438 18 059996 012727 4 O82EI7 OrASAT 7B O94KOS O84 21",
+          "cells": {}
+        },
+        {
+          "row_index": 18,
+          "row_label": "19",
+          "raw_text": "Th 3 38 O19907 029297 01.1490 41 ONSSGK O1ZEZT 30 054420 014028 40 OTT) 01724 43 ORAGSD 912500 M8 101549 012856 a7",
+          "cells": {}
+        },
+        {
+          "row_index": 19,
+          "row_label": "20",
+          "raw_text": "35 4 30 0199S) 021229 O0S89 19 QMEzE OTIRSS 26 O5:IOSS 013331 25 OSSTIT 01379 28 ONEKZE OFSES7 Me 102020 010452 44",
+          "cells": {}
+        },
+        {
+          "row_index": 20,
+          "row_label": "21",
+          "raw_text": "35 8 012550 024825 012295 61 O444IO OTSEDE 14 OOO 020598 72 085250 O14242 74 $OIEG7 ODODAT 74 1226M4 OL4OST TH",
+          "cells": {}
+        },
+        {
+          "row_index": 21,
+          "row_label": "22",
+          "raw_text": "Division 3: Mixed",
+          "cells": {}
+        },
+        {
+          "row_index": 22,
+          "row_label": "23",
+          "raw_text": "24 1 7 o10250 a20e4e 010350 9 251 ONES 19 O43800 O11Z51 _—& OS5TSZ 019929 8 OTOTHE ONION 8 ORI82D O1I03T 8",
+          "cells": {}
+        },
+        {
+          "row_index": 23,
+          "row_label": "24",
+          "raw_text": "73 2 mB ORG 079025 019731 38 ORAL OTE 24 O5IBAO 013202 22 OF5EAO 012200 4B OTEIME O11R08 16 ONSEAB 010502 10",
+          "cells": {}
+        },
+        {
+          "row_index": 24,
+          "row_label": "25",
+          "raw_text": "72 3 M6 OLN709 oRaI47 010638 29 094435 O1Z24 23 050825 012949 18 52212 ONT 42 OTAGSO of24AT 12 OBSHNA 01.1215 HH",
+          "cells": {}
+        },
+        {
+          "row_index": 25,
+          "row_label": "26",
+          "raw_text": "G4 4 44 010019 c2s840 010957 18 OBAZaH OZER At OIE 019608 mM F522 015950 24 OBIEGO 012036 21 OO4SHA O1Z944 22",
+          "cells": {}
+        },
+        {
+          "row_index": 26,
+          "row_label": "27",
+          "raw_text": "40 8 35 Oi053 029910 c12217 52 40029 O1ZTI9 42 053054 019025 42 OTA 019050 9 ORGRED O1at2 BF o9SEz0 o12311 m4",
+          "cells": {}
+        },
+        {
+          "row_index": 27,
+          "row_label": "28",
+          "raw_text": "G7 8 25 011129 ozs922 010853 21 OR4LOD O12ESB 22 OITSI O159S1 29 OTOTA O1M920 33 O8GTSA O190KS 32 O9SEM 012040 28",
+          "cells": {}
+        },
+        {
+          "row_index": 28,
+          "row_label": "29",
+          "raw_text": "a7 7 99 OVNI c22805 ON:ITS1 MH ORABSE O1Z2EI BL 059029 O14TIO 31 O7NSOR O19 MH OFANSE 019859 39 O95G2E O11722 26",
+          "cells": {}
+        },
+        {
+          "row_index": 29,
+          "row_label": "30",
+          "raw_text": "12 8 94 Of1650 022129 OF0499 28 GBeI45 O1-I948 4B 057029 O14zO8 26 CE4B29 C1250 29 R94 OL4IIT 24 100104 OtSHZE 27",
+          "cells": {}
+        },
+        {
+          "row_index": 30,
+          "row_label": "31",
+          "raw_text": "42 9 82 012918 ORBLIB O18 Bo ORSZTE 0120S 36 O54K1 OISZIT 44 OTASE 01-9027 9B OG5AT 12010 28 tOOKat O12a14 28",
+          "cells": {}
+        },
+        {
+          "row_index": 31,
+          "row_label": "32",
+          "raw_text": "5 10 €2 o12900 oxaai2 oVoere 42 oasz4t O11929 37 O525:I2 01593 28 OTDDIY 019959 2 082405 OfZA 22 100820 O14215 30",
+          "cells": {}
+        },
+        {
+          "row_index": 32,
+          "row_label": "33",
+          "raw_text": "38°11 #7 Ot0B47 024512 010825 18 OBAOTO OFSESE 32 O5 2541 019091 29 ORSEAT O1:905G 2B 089230 OFS 28 100840 O19410 st",
+          "cells": {}
+        },
+        {
+          "row_index": 33,
+          "row_label": "34",
+          "raw_text": "2% 12 $8 OLZTOT 023933 O10608 43 OFO5A2 013220 46 0540.28 OF4IKS 48 O79 01.2421 M4 FORGO O14BSO 45 OLtSH O10015 M4",
+          "cells": {}
+        },
+        {
+          "row_index": 34,
+          "row_label": "35",
+          "raw_text": "8 19 © 012249 026757 012509 HB OFZESD ODEO ST OSA OIZ71 47 OT180R O12ES? 41 085638 019832 42 101480 O11820 96",
+          "cells": {}
+        },
+        {
+          "row_index": 35,
+          "row_label": "36",
+          "raw_text": "3 14 AB OVTOMS c23859 ONIOS st oDsEIT OLIERT 40 0580.14 CH5209 GO 072029 019015 42 06AGI O1ZESI 35 101600 O12949 98",
+          "cells": {}
+        },
+        {
+          "row_index": 36,
+          "row_label": "37",
+          "raw_text": "27 18 49 01225 O29TS2 ONES GP OLODEI OFSIMD GH 054796 OFITAT 44 079431 CI4BS2 59 08.1249 019812 BI TOITSA OLOBTT 40",
+          "cells": {}
+        },
+        {
+          "row_index": 37,
+          "row_label": "38",
+          "raw_text": "7% 16 2B OVORS8 027025 OV1927 a7 ORsOIS O12NS 34 059822 OL4SOT 38 072704 OLMBA2 46 O6ET OFZ 41 0951 O12949 41",
+          "cells": {}
+        },
+        {
+          "row_index": 38,
+          "row_label": "39",
+          "raw_text": "40 17 74 O1MSd O2515E OF11O 65 OHA OLME4E 70 BANGS 919225 GO O7AEND O12005 49 OBSTOA 012554 49 102915 OraeT 48",
+          "cells": {}
+        },
+        {
+          "row_index": 39,
+          "row_label": "40",
+          "raw_text": "2 18 63 012345 23540 O1-I1SS 47 OFGEAE OZEDL M4 5602 OTMEZE 49 O732OD O1AIMB $2 085502 012002 38 103269 OLSTST a7",
+          "cells": {}
+        },
+        {
+          "row_index": 40,
+          "row_label": "41",
+          "raw_text": "19 19 23 011029 021601 OtOs41 16 040453 OF4ES2 45 054595 O1404] 42 97.4521 012045 BT 00010 Ot444d 44 104627 O14817 1",
+          "cells": {}
+        },
+        {
+          "row_index": 41,
+          "row_label": "42",
+          "raw_text": "18 20 54 C1286 G2209T O1OE49 26 40RD OLMIS 49 OF4ISI 015258 39 072992 OLATA: AT 082732 OFSEGD 69 J0484O 012108 4",
+          "cells": {}
+        },
+        {
+          "row_index": 42,
+          "row_label": "43",
+          "raw_text": "M4 21 4 011008 029843 OFI209 AB 0400S O12EA2 43 OF-EAD OISAE 36 07.3552 015900 $4 OBIE13 T4021 8) 105448 013833 56",
+          "cells": {}
+        },
+        {
+          "row_index": 43,
+          "row_label": "44",
+          "raw_text": "68 2 eB 010259 O24D5E 01.1125 BF O422G0 OSES 88 OGIEAS OTSTSE E2 TSO 019629 60 OIVST O1904I SF IOSS4T OI3NS BF",
+          "cells": {}
+        },
+        {
+          "row_index": 44,
+          "row_label": "45",
+          "raw_text": "2 2 60 012805 029935 01:11:00 52 O4IEAD 019598 HF OFFS O1555S EF 07520 OTKOSS 9 O64z25 OIEOZ? GE HHeECe 12649 @2",
+          "cells": {}
+        },
+        {
+          "row_index": 45,
+          "row_label": "46",
+          "raw_text": "89 2% 73 OF4049 050099 019950 72 042828 012749 G2 OEIOIT 1414 G9 O7SOSZ OTMOTS BE ODHD.IS CRODDE BB 11.4799 o12709 65",
+          "cells": {}
+        },
+        {
+          "row_index": 46,
+          "row_label": "47",
+          "raw_text": "M4 25 TO 019411 ORs—42 012251 GE OFIE2E OFSEAD GB OREESE CLIO TH OHTENS O1ZB19 67 OD4SzS O1ZI0 Gb TTZAS OLMIS OF",
+          "cells": {}
+        },
+        {
+          "row_index": 47,
+          "row_label": "48",
+          "raw_text": "21 28 76 OLMESE OBOIST 0154S TA O4ATAS OF4OOD 72 OBALIZ ONES G7 ORISOE 014255 GE OMS Or90Z7 G7 112849 OL4KOR «8",
+          "cells": {}
+        },
+        {
+          "row_index": 48,
+          "row_label": "49",
+          "raw_text": "41 27 8 012795 OR419 O94 GE OEIZSE O1SIAD 59 OBITOE CZOEIO 63 074525 012620 BF 009036 Or4eMs 49 THI8E2 020598 OB",
+          "cells": {}
+        },
+        {
+          "row_index": 49,
+          "row_label": "50",
+          "raw_text": "2 28 81 OL2311 ORK105 OITA SE OKI7ZT 013622 8 OBZBIT CRIDSD 6 CBTSAT O147GO 69 10.1507 ONSHO 79 THET2 OVA 70",
+          "cells": {}
+        },
+        {
+          "row_index": 50,
+          "row_label": "51",
+          "raw_text": "48 29° 47 012247 090535 014319 76 04324 O12TOT G7 OBEEST CZ2IH4 7S COMBE O18227 7H rOMOIS OLSEI2 75 121098 019022 72",
+          "cells": {}
+        },
+        {
+          "row_index": 51,
+          "row_label": "52",
+          "raw_text": "48 20 88 012594 028509 01:035 67 OF0KZ2 DORIS TE OHHE40 C1821 74 OB2EI3 012753 TH 102820 ovOAIE 73 129259 OT4KGO 73",
+          "cells": {}
+        },
+        {
+          "row_index": 52,
+          "row_label": "53",
+          "raw_text": "37-8 TS OFAKIE OOTY 019837 79 04920 019058 6 OIRO oROSSS 70 Gb25z2 OIM728 72 102612 O18940 72 122900 COORME 75",
+          "cells": {}
+        },
+        {
+          "row_index": 53,
+          "row_label": "54",
+          "raw_text": "valon 4 Corporate",
+          "cells": {}
+        },
+        {
+          "row_index": 54,
+          "row_label": "55",
+          "raw_text": "49 1B O1I997 O2IB2E OFT 22 ORBAEE OKIE 46 050720 015225 44 OHIO CIZTSO 18 07562 OLZT AF C9204 O1ZR50 20",
+          "cells": {}
+        },
+        {
+          "row_index": 55,
+          "row_label": "56",
+          "raw_text": "3 2 GF 019139 GBN095 OF 2855 TH O4II2S O12 4 OHHBIE O13849 45 OTTEIS O12BG2 39 083534 OrI919 29 Ges5ZE 1185 2",
+          "cells": {}
+        },
+        {
+          "row_index": 56,
+          "row_label": "57",
+          "raw_text": "383 18 OLOTIT GaRIDO 0151923 28 ORAETS O12KTS 25 052628 O11 27 OBKEAL 017018 71 0939625 OTSIAZ 90 101730 OLATOL 39",
+          "cells": {}
+        },
+        {
+          "row_index": 57,
+          "row_label": "58",
+          "raw_text": "44 a8 012248 ceHe55 012007 57 OE0RZL 012827 48 054534 OADIZ 48 072552 013658 44 09.0518 015044 48 102601 OTEK 4",
+          "cells": {}
+        },
+        {
+          "row_index": 58,
+          "row_label": "59",
+          "raw_text": "25 5 BF OLESE O2IBAD 010849 2 ORSZAT OFBKOK 38 O43 CROIES 52 0746525 O15LAD 56 092520 LTRS BT H109M5 019875 5",
+          "cells": {}
+        },
+        {
+          "row_index": 59,
+          "row_label": "60",
+          "raw_text": "11 6 45 042190 ceMB4B O127-49 62 062600 CHIT G2 O6S24E ORCEAS EB OG0ESH 1985 OF ORIEIS O12 Er T1140 01902",
+          "cells": {}
+        },
+        {
+          "row_index": 60,
+          "row_label": "61",
+          "raw_text": "St 7 SB OIA ORaHAS OF TBO 40 O80KIS OHHH A OGOLTZ OFEPSD G4 OGOKO CRORE G4 OREDSS OTHE? 6 112548 019450 eB",
+          "cells": {}
+        },
+        {
+          "row_index": 61,
+          "row_label": "62",
+          "raw_text": "Division 8 High Schoo! Boys",
+          "cells": {}
+        },
+        {
+          "row_index": 62,
+          "row_label": "63",
+          "raw_text": "8 1 4 OOSSST O14a18 005327 2 REID OTOREE 2 OKOETE OTIS 2 OSIAIT O1IOI 3082055 HOGI 3 T2409 OLOD4 9",
+          "cells": {}
+        },
+        {
+          "row_index": 63,
+          "row_label": "64",
+          "raw_text": "8 2 49 OFOROD 021829 O12 19 082526 OTIC 44 051200 014256 17 059699 012433 46 OTSOSS ON422 14 O90EST OINEDE 16",
+          "cells": {}
+        },
+        {
+          "row_index": 64,
+          "row_label": "65",
+          "raw_text": "7% 3 & OFG3G0 eZOT4D OFOE49 10 031895 O1I04S _§ OF0KE OT4TOS 13. CGATSO 014249 22 OTSRSE ONIZ2 19 ORIG OTIZIS 18",
+          "cells": {}
+        },
+        {
+          "row_index": 65,
+          "row_label": "66",
+          "raw_text": "77 OQ 43 012082 o2z170 OOS a7 034852 012532 28 052825 OTALSS 30 OTOSSE 019609 32 OBITS OLSII6 31 101227 19519 35",
+          "cells": {}
+        },
+        {
+          "row_index": 66,
+          "row_label": "67",
+          "raw_text": "M24 MB OF2IM8 02348 OFIEOS 44 042241 OLASS2 88 OBORIS OIMBSE $8 OTSTZS OLAT4S 62 ODZTIZ OL2VM9 BB IONE O1IGR2 OH",
+          "cells": {}
+        },
+        {
+          "row_index": 67,
+          "row_label": "68",
+          "raw_text": "Division: Master Mon - Age 40-49",
+          "cells": {}
+        },
+        {
+          "row_index": 68,
+          "row_label": "69",
+          "raw_text": "5 1 3 ODST39 014825 ODS047 1 GRATE OOSVIO 1 GRSEAD ONGAOL 4 OS;GKOD OrGTIN 4 OBMRIS OVO 4 OrKDAL OOD 2",
+          "cells": {}
+        },
+        {
+          "row_index": 69,
+          "row_label": "70",
+          "raw_text": "18 2 6 OLO100 O1s8I0 OnETO: 4 030007 OL0IS7 4 OET4S OTR 4 052012 019629 4 O2459 OLORAT 4 OTItaR o1NEND 4",
+          "cells": {}
+        },
+        {
+          "row_index": 70,
+          "row_label": "71",
+          "raw_text": "22 3 ¥0 OO842 a20e31 OFDIID § O30RAE OFOKIS § OKZEOT O1I7Z1 6 059544 O1G0IT 6 OSHBAE OLTI0 6 O7SEMS OKIZET 6",
+          "cells": {}
+        },
+        {
+          "row_index": 71,
+          "row_label": "72",
+          "raw_text": "85 4 44 010425 oza2t8 onsrs3 7 031157 01093 8 OLILK ONZO4D 7 054958 OLTIIZ 7 085228 O1092@ 7 OBNEIS O29 7",
+          "cells": {}
+        },
+        {
+          "row_index": 72,
+          "row_label": "73",
+          "raw_text": "20 5 2 OO90 OLISe OFOEGL 14 O32ETE OF:I042 42 OLEBIT ONIEOS 42 GEIOS 012047 Ht GTASAS OV2EKY 11 CRDITD OKIE 14",
+          "cells": {}
+        },
+        {
+          "row_index": 73,
+          "row_label": "74",
+          "raw_text": "52 8 42 OrOsI6 oz0030 OLDEA 42 032155 019225 41 OLZIOS OLOLII 11 062649 ORGS 49 OTABIZ OL2II9 19 oRORKD OFND0E 15",
+          "cells": {}
+        },
+        {
+          "row_index": 74,
+          "row_label": "75",
+          "raw_text": "40 7 G1 012840 022727 ODSD:7 34 C3SOOT 012240 33 059800 OIMTIS? 28 OT1420 012620 98 O8MdMd 01-2629 a7 sOOESS OIE 2",
+          "cells": {}
+        },
+        {
+          "row_index": 75,
+          "row_label": "76",
+          "raw_text": "© 8 45 C1082 022837 O1OIS 3B ORSII 012557 36 OFEM OLMSIT 97 OTISHK 01979 38 OFOTAT OTSTST 47 1028S OIZIIS 44",
+          "cells": {}
+        },
+        {
+          "row_index": 76,
+          "row_label": "77",
+          "raw_text": "Division 7: Masters Men - Age 60-58",
+          "cells": {}
+        },
+        {
+          "row_index": 77,
+          "row_label": "78",
+          "raw_text": "Bf 38 OLIBIS aR2148 010333 30 O5ABSE 012700 30 OFHIT 012529 20 OFAMIT O1I59O 14 OTSTIO O12TS2 18 ORIt20 OV4E0 47",
+          "cells": {}
+        },
+        {
+          "row_index": 78,
+          "row_label": "79",
+          "raw_text": "8 2 24 OrtO#2 aRtB0E OOz2 47 033722 OLZII 47 054628 C1970 21 O6S20 OIABE2 26 085295 014005 26 T1004 O19720 32",
+          "cells": {}
+        },
+        {
+          "row_index": 79,
+          "row_label": "80",
+          "raw_text": "Division: Master Men - Age 6",
+          "cells": {}
+        },
+        {
+          "row_index": 80,
+          "row_label": "81",
+          "raw_text": "381 44 CH2IOS OR3722 ORTEID 49 O35OIE O12ISG 44 OHOHIO CROROI SY OTALKT 02928 & ORISAT OL4000 $0 104104 oKZRIT 50",
+          "cells": {}
+        },
+        {
+          "row_index": 81,
+          "row_label": "82",
+          "raw_text": "Division: Masters Women - Age 40-48",
+          "cells": {}
+        },
+        {
+          "row_index": 82,
+          "row_label": "83",
+          "raw_text": "S11 G3 012089 024852 OLIESS 60 042255 019709 GD OBZESO C1855 64 GBO1SD OIMODD 62 ORITIE O1TZE G2 I4MI98 ora 6",
+          "cells": {}
+        },
+        {
+          "row_index": 83,
+          "row_label": "84",
+          "raw_text": "vaio fC: Masters Women - Age 50:58",
+          "cells": {}
+        },
+        {
+          "row_index": 84,
+          "row_label": "85",
+          "raw_text": "29 1 G6 OLIDI2 080525 ONAEIG 75 050092 OLSSOD TS OFIZK2 CRIZID 78 OROTS4 OLS4S2 78 104707 O19099 76 I2MB22 OrEOIS 78",
+          "cells": {}
+        },
+        {
+          "row_index": 85,
+          "row_label": "86",
+          "raw_text": "Dvalon 12: High Schoot ite",
+          "cells": {}
+        },
+        {
+          "row_index": 86,
+          "row_label": "87",
+          "raw_text": "T 1 TH OTSETS 024838 ONTING 5% 02555 014022 GL OBOTIS OIMIAD 88 GBOEIT O1H56 GE OOMIIS OLIROT 6S I10TI2 OrZOSE OF",
+          "cells": {}
+        },
+        {
+          "row_index": 87,
+          "row_label": "88",
+          "raw_text": "ato 13: aatre tized",
+          "cells": {}
+        },
+        {
+          "row_index": 88,
+          "row_label": "89",
+          "raw_text": "Gt 1 2 ODSTOS ots826 oFOIz2 6 31099 ONIZI1 7 044229 OT9IA 10 060629 OF2400 10 O7SI2E o14501 18 o9OI2 OLIGO +",
+          "cells": {}
+        },
+        {
+          "row_index": 89,
+          "row_label": "90",
+          "raw_text": "S22 72 OrBHAS OOOO O12519 7D O4AIZT O14I23 Th OG2440 O14313 6H OTSESH O1I2IG GI O62 011926 Be TOMRIE OLDIE &",
+          "cells": {}
+        },
+        {
+          "row_index": 90,
+          "row_label": "91",
+          "raw_text": "58 3 4B 011850 022795 OLGE4S 35 061025 OFAZAT 52 OSMEIT O195AB AI O7N635 012025 40 ODHONE O1GI40 49 TOSH45 OF4120",
+          "cells": {}
+        },
+        {
+          "row_index": 91,
+          "row_label": "92",
+          "raw_text": "1 oars 23 GVH Swainson Bs 45 Mistake by th Lake 7 Pace crest",
+          "cells": {}
+        },
+        {
+          "row_index": 92,
+          "row_label": "93",
+          "raw_text": "2 Serr Meties 24 GVH Flesh 45 Stfoters and some Dudes 188 MeFarand TC",
+          "cells": {}
+        },
+        {
+          "row_index": 93,
+          "row_label": "94",
+          "raw_text": "3 Rigo Rumors 25 Equion Oua Gas 4&7 Mean Mactone 8 TamuRoveads",
+          "cells": {}
+        },
+        {
+          "row_index": 94,
+          "row_label": "95",
+          "raw_text": "4 Souprenase Assocs! 25 O's 48 2007 NASA Space Oates 70 Tibetan",
+          "cells": {}
+        },
+        {
+          "row_index": 95,
+          "row_label": "96",
+          "raw_text": "5 Cattorcatrs 27 Manteca Queasbver2 49 Applied Bosyatar 71 Tee Women",
+          "cells": {}
+        },
+        {
+          "row_index": 96,
+          "row_label": "97",
+          "raw_text": "6 Raunchy Rancho Run 28 Manion Genser 1 80 TRC Mastrs 12 Tee Mees",
+          "cells": {}
+        },
+        {
+          "row_index": 97,
+          "row_label": "98",
+          "raw_text": "7 Lady Comars 29 Dashing Duckones 51 CaltomiaRurners.com 73 Covches Ete",
+          "cells": {}
+        },
+        {
+          "row_index": 98,
+          "row_label": "99",
+          "raw_text": "8 UWS Seniors 30 Seven Sigs 82 DUS Masors 74 Moder Hairs",
+          "cells": {}
+        },
+        {
+          "row_index": 99,
+          "row_label": "100",
+          "raw_text": "9 Lighting Stes 31 FillLove Hussas 59 dine Soa Cate 75 ones Runners",
+          "cells": {}
+        },
+        {
+          "row_index": 100,
+          "row_label": "101",
+          "raw_text": "10 Dae Rung Co 32 Dawes Back 54 Hyat Lake Totoe 18 Choo Tack hd",
+          "cells": {}
+        },
+        {
+          "row_index": 101,
+          "row_label": "102",
+          "raw_text": "11 WersGrowpAumes 33 Sunnis 55 Aggie Coster 177 Ponders Brin",
+          "cells": {}
+        },
+        {
+          "row_index": 102,
+          "row_label": "103",
+          "raw_text": "12 Diamond Boe 34 Ase nasi 156 Reebok Agge Hoods 178 Kelts Team",
+          "cells": {}
+        },
+        {
+          "row_index": 103,
+          "row_label": "104",
+          "raw_text": "13 Tahoe Foroigoers 35 River City Yemen Whiners 57 Cros Travers a",
+          "cells": {}
+        },
+        {
+          "row_index": 104,
+          "row_label": "105",
+          "raw_text": "1 Oring Too 135 North Lake Tahoe Fe 88 Old Endoroins 2",
+          "cells": {}
+        },
+        {
+          "row_index": 105,
+          "row_label": "106",
+          "raw_text": "45 Bose tisznicusoHs 37 Bate Mounlain 159 Rewing on Emoty a",
+          "cells": {}
+        },
+        {
+          "row_index": 106,
+          "row_label": "107",
+          "raw_text": "16 Moa Nuts 38 LMS a0 Men 80 Ecipse Reming a",
+          "cells": {}
+        },
+        {
+          "row_index": 107,
+          "row_label": "108",
+          "raw_text": "137 Relay Coo! Team 20 Halers a Puts 181 Preparation Ache 3",
+          "cells": {}
+        },
+        {
+          "row_index": 108,
+          "row_label": "109",
+          "raw_text": "18 Lite Ronde 40 Livorno Valey Wines 62 Rios win no Reason a",
+          "cells": {}
+        },
+        {
+          "row_index": 109,
+          "row_label": "110",
+          "raw_text": "19 CSDSeH(Propetants 41: Me, My Car, My pack 63 Eutays Runing Das 85",
+          "cells": {}
+        },
+        {
+          "row_index": 110,
+          "row_label": "111",
+          "raw_text": "20 Tatoo Teesios 122 Fesey Pcl Theraov 54 Winneba Wario a8",
+          "cells": {}
+        }
+      ],
+      "text": "2001 37th DeCelle Memorial Lake Tahoe Relay\nTeam Pe Pince TTimo Log Tmo eg Leg Time Pie TTine LegTime Place Tine Leg Tmo Puce THe LepTime Pisce TTine  LegTme Place TTine Lap Tine Place\nNumbe OW Leg Leg Lep2 Lep2Lep2Leg3 Leg Leg Seg — Legd — Legé Leg LenS Leg legS Log Leg Leg? Lap? Leg?\nDivision 1: Open Men,\n51 14 on8828 o1s256 cns42s 9 28824 010330 3 OkOE44 OHIO 3 cBORIE ONGLIA 2 O5:I220 OLMa1 2 OTAIHO GOSEAY 4\n78 2 5 910029 18933 coseOs § 03050 01063 § OKZIOS O1IGSD § 057829 CtNS25 —§ OBI04E O11 § OTHOOI OTeOTD\n70 9 2 ON0RI8 czIBGR OtORAs 24 033395 O49 5 OTIS OLABID 16 CBSBS? ot2508 #7 OTAZSS 010800 19 030020 OLITZ7 12\n23 4 2% Obtt4S 22041 OLtA2a BF 094640 012028 27 05:30 012629 19 OB4IMB 012899 20 OBTRTE OF2NN 20 ORES O1I548 19\n15 5 65 012081 028455 012405 GE O428SE 013342 64 OHOEAS OIE GF C7SNS C1240 4B 085594 012642 40 101003 O11479 33\n57 6 %6 OFOB4s caI024 oHOREs 20 va422e 012600 20 ORBEA OHSLOR 34 C8880 012527 AT OSM319 O1M420 24 102245 o19RSE 42\nBD 7 SE ONNGD GzaKNS 012034 48 040926 O1:3441 BD ORSEOG OHAEHD G1 CTATOS 015259 87 01396 012591 62 10.9515 O12290 48\n75 8 ST O12612 23418 010800 45 ODTEO ONG 28 053252 O14SC 33 072625 01599 45 ORITAD OTSIOE §5 103748 O12019 4\nA 9 66 OF9190 GeMBa> ONTECD G4 043008 O1MO9S G8 OEE4IT O12429 G2 CTI 019635 50 OW:I008 O19856 48 sO4TOR otsTOO 82\n45 10 80 O12502 02405 01.2009 62 49709 O147SE 6B 053800 OISEST 69 082017 O1KEIT 70 ORDIAD O1NN2E G1 110554 O19eN 60\n65 11 a7 OLNTSI O24Da1 O12240 S4 O4ANSS ORCI TE 05RD OZITO 75 OBZOAT O12018 79 IOZIGG ONSIAD 71 120810 O1M7O TH\nDivision 2: Open Women,\n© 1 8 Of0252 o20900 o10509 41 oRatZe O1tB22 10 OAD—IE OII7SZ 9 OSA? O1:1928 _@ OTHER O1Z2K9 8 ROS O1OSIE 9\n632 49 OUTS o22019 O19294 28 ORBTST OLITIE 48 051200 013438 18 059996 012727 4 O82EI7 OrASAT 7B O94KOS O84 21\nTh 3 38 O19907 029297 01.1490 41 ONSSGK O1ZEZT 30 054420 014028 40 OTT) 01724 43 ORAGSD 912500 M8 101549 012856 a7\n35 4 30 0199S) 021229 O0S89 19 QMEzE OTIRSS 26 O5:IOSS 013331 25 OSSTIT 01379 28 ONEKZE OFSES7 Me 102020 010452 44\n35 8 012550 024825 012295 61 O444IO OTSEDE 14 OOO 020598 72 085250 O14242 74 $OIEG7 ODODAT 74 1226M4 OL4OST TH\nDivision 3: Mixed\n24 1 7 o10250 a20e4e 010350 9 251 ONES 19 O43800 O11Z51 _—& OS5TSZ 019929 8 OTOTHE ONION 8 ORI82D O1I03T 8\n73 2 mB ORG 079025 019731 38 ORAL OTE 24 O5IBAO 013202 22 OF5EAO 012200 4B OTEIME O11R08 16 ONSEAB 010502 10\n72 3 M6 OLN709 oRaI47 010638 29 094435 O1Z24 23 050825 012949 18 52212 ONT 42 OTAGSO of24AT 12 OBSHNA 01.1215 HH\nG4 4 44 010019 c2s840 010957 18 OBAZaH OZER At OIE 019608 mM F522 015950 24 OBIEGO 012036 21 OO4SHA O1Z944 22\n40 8 35 Oi053 029910 c12217 52 40029 O1ZTI9 42 053054 019025 42 OTA 019050 9 ORGRED O1at2 BF o9SEz0 o12311 m4\nG7 8 25 011129 ozs922 010853 21 OR4LOD O12ESB 22 OITSI O159S1 29 OTOTA O1M920 33 O8GTSA O190KS 32 O9SEM 012040 28\na7 7 99 OVNI c22805 ON:ITS1 MH ORABSE O1Z2EI BL 059029 O14TIO 31 O7NSOR O19 MH OFANSE 019859 39 O95G2E O11722 26\n12 8 94 Of1650 022129 OF0499 28 GBeI45 O1-I948 4B 057029 O14zO8 26 CE4B29 C1250 29 R94 OL4IIT 24 100104 OtSHZE 27\n42 9 82 012918 ORBLIB O18 Bo ORSZTE 0120S 36 O54K1 OISZIT 44 OTASE 01-9027 9B OG5AT 12010 28 tOOKat O12a14 28\n5 10 €2 o12900 oxaai2 oVoere 42 oasz4t O11929 37 O525:I2 01593 28 OTDDIY 019959 2 082405 OfZA 22 100820 O14215 30\n38°11 #7 Ot0B47 024512 010825 18 OBAOTO OFSESE 32 O5 2541 019091 29 ORSEAT O1:905G 2B 089230 OFS 28 100840 O19410 st\n2% 12 $8 OLZTOT 023933 O10608 43 OFO5A2 013220 46 0540.28 OF4IKS 48 O79 01.2421 M4 FORGO O14BSO 45 OLtSH O10015 M4\n8 19 © 012249 026757 012509 HB OFZESD ODEO ST OSA OIZ71 47 OT180R O12ES? 41 085638 019832 42 101480 O11820 96\n3 14 AB OVTOMS c23859 ONIOS st oDsEIT OLIERT 40 0580.14 CH5209 GO 072029 019015 42 06AGI O1ZESI 35 101600 O12949 98\n27 18 49 01225 O29TS2 ONES GP OLODEI OFSIMD GH 054796 OFITAT 44 079431 CI4BS2 59 08.1249 019812 BI TOITSA OLOBTT 40\n7% 16 2B OVORS8 027025 OV1927 a7 ORsOIS O12NS 34 059822 OL4SOT 38 072704 OLMBA2 46 O6ET OFZ 41 0951 O12949 41\n40 17 74 O1MSd O2515E OF11O 65 OHA OLME4E 70 BANGS 919225 GO O7AEND O12005 49 OBSTOA 012554 49 102915 OraeT 48\n2 18 63 012345 23540 O1-I1SS 47 OFGEAE OZEDL M4 5602 OTMEZE 49 O732OD O1AIMB $2 085502 012002 38 103269 OLSTST a7\n19 19 23 011029 021601 OtOs41 16 040453 OF4ES2 45 054595 O1404] 42 97.4521 012045 BT 00010 Ot444d 44 104627 O14817 1\n18 20 54 C1286 G2209T O1OE49 26 40RD OLMIS 49 OF4ISI 015258 39 072992 OLATA: AT 082732 OFSEGD 69 J0484O 012108 4\nM4 21 4 011008 029843 OFI209 AB 0400S O12EA2 43 OF-EAD OISAE 36 07.3552 015900 $4 OBIE13 T4021 8) 105448 013833 56\n68 2 eB 010259 O24D5E 01.1125 BF O422G0 OSES 88 OGIEAS OTSTSE E2 TSO 019629 60 OIVST O1904I SF IOSS4T OI3NS BF\n2 2 60 012805 029935 01:11:00 52 O4IEAD 019598 HF OFFS O1555S EF 07520 OTKOSS 9 O64z25 OIEOZ? GE HHeECe 12649 @2\n89 2% 73 OF4049 050099 019950 72 042828 012749 G2 OEIOIT 1414 G9 O7SOSZ OTMOTS BE ODHD.IS CRODDE BB 11.4799 o12709 65\nM4 25 TO 019411 ORs—42 012251 GE OFIE2E OFSEAD GB OREESE CLIO TH OHTENS O1ZB19 67 OD4SzS O1ZI0 Gb TTZAS OLMIS OF\n21 28 76 OLMESE OBOIST 0154S TA O4ATAS OF4OOD 72 OBALIZ ONES G7 ORISOE 014255 GE OMS Or90Z7 G7 112849 OL4KOR «8\n41 27 8 012795 OR419 O94 GE OEIZSE O1SIAD 59 OBITOE CZOEIO 63 074525 012620 BF 009036 Or4eMs 49 THI8E2 020598 OB\n2 28 81 OL2311 ORK105 OITA SE OKI7ZT 013622 8 OBZBIT CRIDSD 6 CBTSAT O147GO 69 10.1507 ONSHO 79 THET2 OVA 70\n48 29° 47 012247 090535 014319 76 04324 O12TOT G7 OBEEST CZ2IH4 7S COMBE O18227 7H rOMOIS OLSEI2 75 121098 019022 72\n48 20 88 012594 028509 01:035 67 OF0KZ2 DORIS TE OHHE40 C1821 74 OB2EI3 012753 TH 102820 ovOAIE 73 129259 OT4KGO 73\n37-8 TS OFAKIE OOTY 019837 79 04920 019058 6 OIRO oROSSS 70 Gb25z2 OIM728 72 102612 O18940 72 122900 COORME 75\nvalon 4 Corporate\n49 1B O1I997 O2IB2E OFT 22 ORBAEE OKIE 46 050720 015225 44 OHIO CIZTSO 18 07562 OLZT AF C9204 O1ZR50 20\n3 2 GF 019139 GBN095 OF 2855 TH O4II2S O12 4 OHHBIE O13849 45 OTTEIS O12BG2 39 083534 OrI919 29 Ges5ZE 1185 2\n383 18 OLOTIT GaRIDO 0151923 28 ORAETS O12KTS 25 052628 O11 27 OBKEAL 017018 71 0939625 OTSIAZ 90 101730 OLATOL 39\n44 a8 012248 ceHe55 012007 57 OE0RZL 012827 48 054534 OADIZ 48 072552 013658 44 09.0518 015044 48 102601 OTEK 4\n25 5 BF OLESE O2IBAD 010849 2 ORSZAT OFBKOK 38 O43 CROIES 52 0746525 O15LAD 56 092520 LTRS BT H109M5 019875 5\n11 6 45 042190 ceMB4B O127-49 62 062600 CHIT G2 O6S24E ORCEAS EB OG0ESH 1985 OF ORIEIS O12 Er T1140 01902\nSt 7 SB OIA ORaHAS OF TBO 40 O80KIS OHHH A OGOLTZ OFEPSD G4 OGOKO CRORE G4 OREDSS OTHE? 6 112548 019450 eB\nDivision 8 High Schoo! Boys\n8 1 4 OOSSST O14a18 005327 2 REID OTOREE 2 OKOETE OTIS 2 OSIAIT O1IOI 3082055 HOGI 3 T2409 OLOD4 9\n8 2 49 OFOROD 021829 O12 19 082526 OTIC 44 051200 014256 17 059699 012433 46 OTSOSS ON422 14 O90EST OINEDE 16\n7% 3 & OFG3G0 eZOT4D OFOE49 10 031895 O1I04S _§ OF0KE OT4TOS 13. CGATSO 014249 22 OTSRSE ONIZ2 19 ORIG OTIZIS 18\n77 OQ 43 012082 o2z170 OOS a7 034852 012532 28 052825 OTALSS 30 OTOSSE 019609 32 OBITS OLSII6 31 101227 19519 35\nM24 MB OF2IM8 02348 OFIEOS 44 042241 OLASS2 88 OBORIS OIMBSE $8 OTSTZS OLAT4S 62 ODZTIZ OL2VM9 BB IONE O1IGR2 OH\nDivision: Master Mon - Age 40-49\n5 1 3 ODST39 014825 ODS047 1 GRATE OOSVIO 1 GRSEAD ONGAOL 4 OS;GKOD OrGTIN 4 OBMRIS OVO 4 OrKDAL OOD 2\n18 2 6 OLO100 O1s8I0 OnETO: 4 030007 OL0IS7 4 OET4S OTR 4 052012 019629 4 O2459 OLORAT 4 OTItaR o1NEND 4\n22 3 ¥0 OO842 a20e31 OFDIID § O30RAE OFOKIS § OKZEOT O1I7Z1 6 059544 O1G0IT 6 OSHBAE OLTI0 6 O7SEMS OKIZET 6\n85 4 44 010425 oza2t8 onsrs3 7 031157 01093 8 OLILK ONZO4D 7 054958 OLTIIZ 7 085228 O1092@ 7 OBNEIS O29 7\n20 5 2 OO90 OLISe OFOEGL 14 O32ETE OF:I042 42 OLEBIT ONIEOS 42 GEIOS 012047 Ht GTASAS OV2EKY 11 CRDITD OKIE 14\n52 8 42 OrOsI6 oz0030 OLDEA 42 032155 019225 41 OLZIOS OLOLII 11 062649 ORGS 49 OTABIZ OL2II9 19 oRORKD OFND0E 15\n40 7 G1 012840 022727 ODSD:7 34 C3SOOT 012240 33 059800 OIMTIS? 28 OT1420 012620 98 O8MdMd 01-2629 a7 sOOESS OIE 2\n© 8 45 C1082 022837 O1OIS 3B ORSII 012557 36 OFEM OLMSIT 97 OTISHK 01979 38 OFOTAT OTSTST 47 1028S OIZIIS 44\nDivision 7: Masters Men - Age 60-58\nBf 38 OLIBIS aR2148 010333 30 O5ABSE 012700 30 OFHIT 012529 20 OFAMIT O1I59O 14 OTSTIO O12TS2 18 ORIt20 OV4E0 47\n8 2 24 OrtO#2 aRtB0E OOz2 47 033722 OLZII 47 054628 C1970 21 O6S20 OIABE2 26 085295 014005 26 T1004 O19720 32\nDivision: Master Men - Age 6\n381 44 CH2IOS OR3722 ORTEID 49 O35OIE O12ISG 44 OHOHIO CROROI SY OTALKT 02928 & ORISAT OL4000 $0 104104 oKZRIT 50\nDivision: Masters Women - Age 40-48\nS11 G3 012089 024852 OLIESS 60 042255 019709 GD OBZESO C1855 64 GBO1SD OIMODD 62 ORITIE O1TZE G2 I4MI98 ora 6\nvaio fC: Masters Women - Age 50:58\n29 1 G6 OLIDI2 080525 ONAEIG 75 050092 OLSSOD TS OFIZK2 CRIZID 78 OROTS4 OLS4S2 78 104707 O19099 76 I2MB22 OrEOIS 78\nDvalon 12: High Schoot ite\nT 1 TH OTSETS 024838 ONTING 5% 02555 014022 GL OBOTIS OIMIAD 88 GBOEIT O1H56 GE OOMIIS OLIROT 6S I10TI2 OrZOSE OF\nato 13: aatre tized\nGt 1 2 ODSTOS ots826 oFOIz2 6 31099 ONIZI1 7 044229 OT9IA 10 060629 OF2400 10 O7SI2E o14501 18 o9OI2 OLIGO +\nS22 72 OrBHAS OOOO O12519 7D O4AIZT O14I23 Th OG2440 O14313 6H OTSESH O1I2IG GI O62 011926 Be TOMRIE OLDIE &\n58 3 4B 011850 022795 OLGE4S 35 061025 OFAZAT 52 OSMEIT O195AB AI O7N635 012025 40 ODHONE O1GI40 49 TOSH45 OF4120\n1 oars 23 GVH Swainson Bs 45 Mistake by th Lake 7 Pace crest\n2 Serr Meties 24 GVH Flesh 45 Stfoters and some Dudes 188 MeFarand TC\n3 Rigo Rumors 25 Equion Oua Gas 4&7 Mean Mactone 8 TamuRoveads\n4 Souprenase Assocs! 25 O's 48 2007 NASA Space Oates 70 Tibetan\n5 Cattorcatrs 27 Manteca Queasbver2 49 Applied Bosyatar 71 Tee Women\n6 Raunchy Rancho Run 28 Manion Genser 1 80 TRC Mastrs 12 Tee Mees\n7 Lady Comars 29 Dashing Duckones 51 CaltomiaRurners.com 73 Covches Ete\n8 UWS Seniors 30 Seven Sigs 82 DUS Masors 74 Moder Hairs\n9 Lighting Stes 31 FillLove Hussas 59 dine Soa Cate 75 ones Runners\n10 Dae Rung Co 32 Dawes Back 54 Hyat Lake Totoe 18 Choo Tack hd\n11 WersGrowpAumes 33 Sunnis 55 Aggie Coster 177 Ponders Brin\n12 Diamond Boe 34 Ase nasi 156 Reebok Agge Hoods 178 Kelts Team\n13 Tahoe Foroigoers 35 River City Yemen Whiners 57 Cros Travers a\n1 Oring Too 135 North Lake Tahoe Fe 88 Old Endoroins 2\n45 Bose tisznicusoHs 37 Bate Mounlain 159 Rewing on Emoty a\n16 Moa Nuts 38 LMS a0 Men 80 Ecipse Reming a\n137 Relay Coo! Team 20 Halers a Puts 181 Preparation Ache 3\n18 Lite Ronde 40 Livorno Valey Wines 62 Rios win no Reason a\n19 CSDSeH(Propetants 41: Me, My Car, My pack 63 Eutays Runing Das 85\n20 Tatoo Teesios 122 Fesey Pcl Theraov 54 Winneba Wario a8\n"
+    }
+  ]
+}

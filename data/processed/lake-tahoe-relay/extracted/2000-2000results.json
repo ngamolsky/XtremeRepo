@@ -1,0 +1,760 @@
+{
+  "schema_version": 1,
+  "extracted_at": "2026-06-07T19:41:38.979Z",
+  "source": {
+    "year": 2000,
+    "label": "2000",
+    "source_url": "https://laketahoerelay.com/wp-content/uploads/2019/05/2000results.gif",
+    "final_url": "https://laketahoerelay.com/wp-content/uploads/2019/05/2000results.gif",
+    "filename": "data/raw/lake-tahoe-relay/results/2000results.gif",
+    "file_type": "gif",
+    "content_type": "image/gif",
+    "bytes": 122365,
+    "sha256": "3ac0eed3028e2278e8eaed9961ef7222aafa1c543f432a5c65f05732d48e9641",
+    "actual_sha256": "3ac0eed3028e2278e8eaed9961ef7222aafa1c543f432a5c65f05732d48e9641"
+  },
+  "extraction": {
+    "method": "tesseract-ocr",
+    "status": "needs_review",
+    "warnings": [
+      "Image OCR requires human review before parsing."
+    ]
+  },
+  "summary": {
+    "rows": 119,
+    "cells": 0,
+    "characters": 9993
+  },
+  "documents": [
+    {
+      "document_type": "image",
+      "name": "2000results.gif",
+      "sheet_index": null,
+      "page_number": null,
+      "row_count": 119,
+      "column_count": null,
+      "extraction_status": "needs_review",
+      "metadata": {
+        "extraction": "tesseract --psm 6"
+      },
+      "cells": [],
+      "rows": [
+        {
+          "row_index": 0,
+          "row_label": "1",
+          "raw_text": "2000 26th DoCelle Memorial Lake Tahoo Relay",
+          "cells": {}
+        },
+        {
+          "row_index": 1,
+          "row_label": "2",
+          "raw_text": "Nomtet Ou tept Uegt lag2 Uap? Lag lg) Land Uap S Uns Uagd Uap age gS aps eg Lag Urge leg? ep ng?",
+          "cells": {}
+        },
+        {
+          "row_index": 2,
+          "row_label": "3",
+          "raw_text": "ars Gosts9 ov4rae cose 1 caasco 28724 5 eL58I0 OLLos 1 G4OD0K OLeEsY 4 sores oHoLGL 1 oTOBSE LOIS 4",
+          "cells": {}
+        },
+        {
+          "row_index": 3,
+          "row_label": "4",
+          "raw_text": "22 4 opsaza oiane) ooso30 2 casoaD o1goa? 3 oeare? uses? 3 Guus? OUD 2 GING OA 3 HR TRO >",
+          "cells": {}
+        },
+        {
+          "row_index": 4,
+          "row_label": "5",
+          "raw_text": "os > 3 casnst olan cnssay 4 cases olorst 3 couse ontacy 5 GEaNs7 Ovgnas & onsRaD O1OHsD 5 GIDSS? OLGDDD",
+          "cells": {}
+        },
+        {
+          "row_index": 5,
+          "row_label": "6",
+          "raw_text": "1o 6 ante ceonae costes ¢ oaocen ones) @ ceaete orauts 4 Gsasce O1GasE ¢ obents GhiBad 6 Crs7a0 chants 7",
+          "cells": {}
+        },
+        {
+          "row_index": 6,
+          "row_label": "7",
+          "raw_text": "17S 10 choncr ozioar onoicd 14 onaz00 outnys 1 atsae Otzaae 19 Goozte Leas x Oraet> O1ass1 14 caoszD oLan}D 0",
+          "cells": {}
+        },
+        {
+          "row_index": 7,
+          "row_label": "8",
+          "raw_text": "Go 1 13 ongaae caataa ongaie M1 oqorar onzzes at sates Oliear <M Oftise otsnas a8 ORIN O12229 «0 10ON8D GDR —&",
+          "cells": {}
+        },
+        {
+          "row_index": 8,
+          "row_label": "9",
+          "raw_text": "Bb 57 ovaias caonce oninso $9 Senzor ona) a8 oeasaT orga) a2 Ornose olaDet M1 wastao Gra #2 Mores Chae",
+          "cells": {}
+        },
+        {
+          "row_index": 9,
+          "row_label": "10",
+          "raw_text": "1m 18 sa orate cuacsr orauss or caanae 012931 72 cuiszo O1snot 17 cao4ae OLeeoo To Gn4038 oFaee0 66 10992) 911055 89",
+          "cells": {}
+        },
+        {
+          "row_index": 10,
+          "row_label": "11",
+          "raw_text": "Sr 3s 5 orate case grass 70 cesmsa orate a2 Gea5i7 plates @ orsnae OLsTSt es GIONS Gis! G TOHG cae 6",
+          "cells": {}
+        },
+        {
+          "row_index": 11,
+          "row_label": "12",
+          "raw_text": "43 ti Ge oragts cuatat Guindy a2 cuanss ovaace 40 onazea ezoLte we ors80i las te cnsaco Ghazsa Ye Maes onus 7",
+          "cells": {}
+        },
+        {
+          "row_index": 12,
+          "row_label": "13",
+          "raw_text": "oven: Open Nomen",
+          "cells": {}
+        },
+        {
+          "row_index": 13,
+          "row_label": "14",
+          "raw_text": "Gy as frase oxstee oxoeso vm cn243e 18420 A cesEOD 198A Me OEE CItLET fH OLE OMNI aS OID 1",
+          "cells": {}
+        },
+        {
+          "row_index": 14,
+          "row_label": "15",
+          "raw_text": "S72 iz ovsaoo ounest onsnsn ta onarcs ovasve a3 osonmr o1anse 29 teats Grizeo te oranaa Onsaar #8 onesma o1iez0 48",
+          "cells": {}
+        },
+        {
+          "row_index": 15,
+          "row_label": "16",
+          "raw_text": "ti 3 be outeaz comeas orosor 2 onsen onsear at osmage otarze 1s anit orana7 4p onoras O1z0ze 22 onmnab croeaD",
+          "cells": {}
+        },
+        {
+          "row_index": 16,
+          "row_label": "17",
+          "raw_text": "TG ojirae caanss onsian a7 nanan nana a si7er o1aear ze Gowaae Oraner a7 oaorge Orazds 7 opaizt oL4esa 3",
+          "cells": {}
+        },
+        {
+          "row_index": 17,
+          "row_label": "18",
+          "raw_text": "$$ 2 pizosn gunn oranet 77 GuiLtT otziaa «2 OoaDs2 Gtante «9 OTAaa? Urasos 0 OR020 O1a24 e2 04080 CIzER0 6",
+          "cells": {}
+        },
+        {
+          "row_index": 18,
+          "row_label": "19",
+          "raw_text": "38 G77 farsa cusgar orca ex ocazro iaday a os200b Lanse $9 couse Chasse et cassia Orstea MM tHaa55 olarae 48",
+          "cells": {}
+        },
+        {
+          "row_index": 19,
+          "row_label": "20",
+          "raw_text": "42 7 7 oyzesa osoust ovazse a7 anf onzean Tm osze2s OLance e2 coanae Giant? s2 100035 OLsR9 HS 15204 914829 47",
+          "cells": {}
+        },
+        {
+          "row_index": 20,
+          "row_label": "21",
+          "raw_text": "Tet) 7 ojoese ozeass casoat a sin oLs4zt 9 os3280 onneer 8 GSA chEA 7 cama LOE 7 OISSU OIE —&",
+          "cells": {}
+        },
+        {
+          "row_index": 21,
+          "row_label": "22",
+          "raw_text": "0 2 2 onsest oneaae onsouo 7 ontez ouinso 7 oxs0at Otten 7 Geehod Ottsse F oRs4ae O1oLas & Ghanas chore 8",
+          "cells": {}
+        },
+        {
+          "row_index": 22,
+          "row_label": "23",
+          "raw_text": "4 51 Ohad quiagr ohensy 20 onzese choust 12 escsso olarse topside Gtasae 25 chonsy O1z227 24 oozaae cringe 8",
+          "cells": {}
+        },
+        {
+          "row_index": 23,
+          "row_label": "24",
+          "raw_text": "se 5 Gr o1zayt cuanto omesa et oncoas oures« 4 Goanza orsnet be Ohacse C1zias Months OhteaT 3 caa0m Or Tex8 aT",
+          "cells": {}
+        },
+        {
+          "row_index": 24,
+          "row_label": "25",
+          "raw_text": "te 3 iisun 022530 ononea sz obanan outoad a7 osits oratea af thanoo Cranes ae onanay o1grae 3» caves oasse 9",
+          "cells": {}
+        },
+        {
+          "row_index": 25,
+          "row_label": "26",
+          "raw_text": "fF ve orsoar tuanse onroat a asset outest 650818 orzeae te thon orazas #2 oncaso o1azeo m2 onarse Oana 32",
+          "cells": {}
+        },
+        {
+          "row_index": 26,
+          "row_label": "27",
+          "raw_text": "Ht 2 ouraor gitar onsnse 12 o4apar 012420 25 csanaT GzcnaD 47 OLt042 Grants 44 oba035 013993 37 n42ae OLI2z7 34",
+          "cells": {}
+        },
+        {
+          "row_index": 27,
+          "row_label": "28",
+          "raw_text": "S211 obcora caavah ovanze 4a cofaan ovanst 37 o531a7 oLznan 40 tovast otaaso #9 onaiso o1aGa9 35 O41? 012435",
+          "cells": {}
+        },
+        {
+          "row_index": 28,
+          "row_label": "29",
+          "raw_text": "Te 10 73 vizowe oua620 onceao st onseaz ovata 2 osanae 1zeaa 36 took? Ghazes 3 oLased O1arae aH ooaTae o1aNe6",
+          "cells": {}
+        },
+        {
+          "row_index": 29,
+          "row_label": "30",
+          "raw_text": "4 tt 22 ovens cana onsuso 10 cassco onaeas 20 csaosr olster 3 onshat 12647 a2 Eaysaa ONZIss 33 Ooaass OrKTS 3B",
+          "cells": {}
+        },
+        {
+          "row_index": 30,
+          "row_label": "31",
+          "raw_text": "te izes onzes? cuo2e oxna7 ax nanan onsoa] a3. Osteo lansn a2 ononas Ghaio «2 42439 O12s8 MH onsTes O1a53)",
+          "cells": {}
+        },
+        {
+          "row_index": 31,
+          "row_label": "32",
+          "raw_text": "Mets Ge olznce casnce oninse GF nears orga $1 csioee rata? 97 Grolos Ghaeso mB caaned O12 AA OasTTE ITI A",
+          "cells": {}
+        },
+        {
+          "row_index": 32,
+          "row_label": "33",
+          "raw_text": "‘2M Gh onsiar exiyed 10003 Ta oxziad o1ango 5 chasse oniese 48 O7DIgY O12e89 M4 GesRde Grance aw TomM GIN 2",
+          "cells": {}
+        },
+        {
+          "row_index": 33,
+          "row_label": "34",
+          "raw_text": "2b 18 se onsayt ousaze 010007 i oneeat o1a0a do GS2bon o1sast be ohonse Gtoses GY OHSS OOO WG HOI ge 4",
+          "cells": {}
+        },
+        {
+          "row_index": 34,
+          "row_label": "35",
+          "raw_text": "@ ie a7 cutee qqiaas otese 45 O3s932 orator chaes oia7ia 4 OLgnss orsigo 49 ohaait 19008 47 scree Grad 4",
+          "cells": {}
+        },
+        {
+          "row_index": 35,
+          "row_label": "36",
+          "raw_text": "2317 ontose cuare? Onna. cng000 ontna) 39 Osanit oLeazt ae encase orziaa «© Obeise O19405 «6 10,005 O1a8st 7",
+          "cells": {}
+        },
+        {
+          "row_index": 36,
+          "row_label": "37",
+          "raw_text": "Hm oiaree gusan onest e bazoa7 onsiso 14 csatos oiznas 49 Ofssse Onezsd ss ohasea 170s? a2 ONC Oras SY",
+          "cells": {}
+        },
+        {
+          "row_index": 37,
+          "row_label": "38",
+          "raw_text": "jo 42 co onznas oueoce onaoat ex esa onsasT oe scam oveacd es Grate) Gh3590. et Oksom) o1ara2 sf tote1 OTaes",
+          "cells": {}
+        },
+        {
+          "row_index": 38,
+          "row_label": "39",
+          "raw_text": "tr 20 6s onassa guns oniez) $6 o4on38 onzEz0 s¥ cseaao clasgs $4 ora2a7 Oleza7 2 GRABS) OLfOd8 $0 DAKE CIDE",
+          "cells": {}
+        },
+        {
+          "row_index": 39,
+          "row_label": "40",
+          "raw_text": "2M G2 ouaeai ouorae o1gnae sb osan0a oraezs 2 obezst o1sesa eo ora) Oraida a? nara? oLiee9 38 Yosest O13 #6",
+          "cells": {}
+        },
+        {
+          "row_index": 40,
+          "row_label": "41",
+          "raw_text": "ts iz ‘te ciinco qautes 012008 2 o4te6) OLaui) MM O40saT OhataY TE arava? O1as40 @ obuesd OLaSaD as osoaT clans? 8",
+          "cells": {}
+        },
+        {
+          "row_index": 41,
+          "row_label": "42",
+          "raw_text": "{2S ouinso cease clans Ms onseas orauai o Ggu7o olanae 3 ananor otsnoe te enaaen Onzass s4 toaiea shaken at",
+          "cells": {}
+        },
+        {
+          "row_index": 42,
+          "row_label": "43",
+          "raw_text": "Mou se pias oninar ongpm de onset o1gau a8 osuaza GISUa #0 OLaTae OOD $9 Clase Ol4sAd LOAD cLzeal 4",
+          "cells": {}
+        },
+        {
+          "row_index": 43,
+          "row_label": "44",
+          "raw_text": "sis 25 7 ovango crdez) oroims a9 buae erates Ge Gara ovanie ae erin oraz) fo eninea Grats os sOaaz9 Stouts we",
+          "cells": {}
+        },
+        {
+          "row_index": 44,
+          "row_label": "45",
+          "raw_text": "De ins ciaioe caenor ousnce a cetash 12040 st Goalge Clad m Ga! OM HB GMa oA me wes oA",
+          "cells": {}
+        },
+        {
+          "row_index": 45,
+          "row_label": "46",
+          "raw_text": "on a osia2 causa oleen 1 cemete cod T olen clam Toate on tore ours n wen ome",
+          "cells": {}
+        },
+        {
+          "row_index": 46,
+          "row_label": "47",
+          "raw_text": "3B Hoss Grmes ode MOO oe & cso Cle mM GI” ola A OAD ann 7 wes Tea Oo",
+          "cells": {}
+        },
+        {
+          "row_index": 47,
+          "row_label": "48",
+          "raw_text": "Soy es cra ogase olaear a7 cesosn ona ae cassia craeai Wt tenon lane 1 comm olsteD 72 wosom os 1",
+          "cells": {}
+        },
+        {
+          "row_index": 48,
+          "row_label": "49",
+          "raw_text": "Go ds Shas crew oune My uae oats A castis olmis # ora clad o@ omzs cesT Te WHA oa",
+          "cells": {}
+        },
+        {
+          "row_index": 49,
+          "row_label": "50",
+          "raw_text": "Sov ciisa gies) cosas w @gem o1aeed Me Gadd Grouse a onsen orestt a cane oisae G2 ieee LSS) Te",
+          "cells": {}
+        },
+        {
+          "row_index": 50,
+          "row_label": "51",
+          "raw_text": "Lh Goon gon ono mw ces caw & Gun ann oH Gres oa Ga Guan Hone ome 7",
+          "cells": {}
+        },
+        {
+          "row_index": 51,
+          "row_label": "52",
+          "raw_text": "2m to ciaree coisas Gist te Guus Ghalst 8 Gos0o Ota Te Gamer Oras! Te Ghote clus Mo MoM oss",
+          "cells": {}
+        },
+        {
+          "row_index": 52,
+          "row_label": "53",
+          "raw_text": "Gd olance Gees cravae to cannte Grisee @ Gite onstar ye Grats ghentd 39 chwse olange ao theM crea we",
+          "cells": {}
+        },
+        {
+          "row_index": 53,
+          "row_label": "54",
+          "raw_text": "MGs crates gules olsext a cea ouzish wf uses? crass a2 Giant Olam Gamal oreas oF Miste ouanss",
+          "cells": {}
+        },
+        {
+          "row_index": 54,
+          "row_label": "55",
+          "raw_text": "ioe te ciate Gude onsest Tt oateee O12) G Hoe OlOw Te ems Olan UH oOMH Gas 16 7s oss Me",
+          "cells": {}
+        },
+        {
+          "row_index": 55,
+          "row_label": "56",
+          "raw_text": "boar ciatay qoansh onaeie Ue cessit oranal ef Ghoede craees 74 ceehid O13) 2 costs ohesoe GF Hanae chateT tS",
+          "cells": {}
+        },
+        {
+          "row_index": 56,
+          "row_label": "57",
+          "raw_text": "vi Tn de onset caaeaa o1opa2 a8 cuense ens02» a4 cSz2ae cLaEE a CRALED Chane mB OLA OLR —w eAsEsS LOD 8",
+          "cells": {}
+        },
+        {
+          "row_index": 57,
+          "row_label": "58",
+          "raw_text": "3 so ouseso caunse chase i canton oLinat q coaeso oiaseo 0 qeandh ohtese ve Shade Graiie we Coote onaea?",
+          "cells": {}
+        },
+        {
+          "row_index": 58,
+          "row_label": "59",
+          "raw_text": "sh 3. ie ovine ceaoe ouahes a casoct o.anie 34 osssse o.asat 8 oneta7 o4ztab ta ohogss Gh24o0 36 enoaae oraaas 33",
+          "cells": {}
+        },
+        {
+          "row_index": 59,
+          "row_label": "60",
+          "raw_text": "Go La orueae eairoe ouraso 30 ocagut uae 4 ocsor czars 7 orzaan lana? #9 Ohe@e Chinas e2 fOsnae OrzTss e",
+          "cells": {}
+        },
+        {
+          "row_index": 60,
+          "row_label": "61",
+          "raw_text": "S24 orecea cesvat ovarzs eo outoa2 O1stas 10 oscoat otaate 2 orarat Oars §7 mando ctanco oh Tosig0 Oana &",
+          "cells": {}
+        },
+        {
+          "row_index": 61,
+          "row_label": "62",
+          "raw_text": "1G fb orazsa operat onsese tr o4teat ou09a7 ae oseton Onasdo 8 oranit Ouani? & onones Grade st fogia8 orotate",
+          "cells": {}
+        },
+        {
+          "row_index": 62,
+          "row_label": "63",
+          "raw_text": "1s 1 3 orasss coco O1oe0y $4 onaead uaea) a osc0a0 onsua«  orara® onanto q entded Oranas &8 fosiat Orasor Ty",
+          "cells": {}
+        },
+        {
+          "row_index": 63,
+          "row_label": "64",
+          "raw_text": "St te chases onen30 Ghonar th oeatae Qrinae #7 casooe onaraa af cnazae oraza2 a7 snosay eras) at tHa0%0 OLIMS? 8",
+          "cells": {}
+        },
+        {
+          "row_index": 64,
+          "row_label": "65",
+          "raw_text": "Vit > osyat 015202 easize 2 gaanar ongiss 2 cxakas onsaar 2 ensaod onseas 2 eninea oveses 2 wrasse overce 2",
+          "cells": {}
+        },
+        {
+          "row_index": 65,
+          "row_label": "66",
+          "raw_text": "ta 28 ongea) Gaesst onsozs 9 onizgy oLttst ¢ ceaeeo obztsr 9 oho4ad Liga) M1 OLR OLINsS 99 caaray UIA tT",
+          "cells": {}
+        },
+        {
+          "row_index": 66,
+          "row_label": "67",
+          "raw_text": "too 2 2 Grinae caatan Guanes a chuast SUi2s8 a4 oso olance dp ceanah hint? M onsiis Onur Gamae crate te",
+          "cells": {}
+        },
+        {
+          "row_index": 67,
+          "row_label": "68",
+          "raw_text": "ToL a craess pias tants 2 onv0ss oust af coerza ousmar at gnatot ciaeae 7 @hstas ouanis te chia oraaat",
+          "cells": {}
+        },
+        {
+          "row_index": 68,
+          "row_label": "69",
+          "raw_text": "HOG crease cpsos> renee fo cateat rare 12 oszese oitera at ceanse O1g0u M4 Gnonde Ohr4as 28 ooaeeD Gratze 39",
+          "cells": {}
+        },
+        {
+          "row_index": 69,
+          "row_label": "70",
+          "raw_text": "we isnse o1sree comes 4 Gaunt encoat 4 cannes crea 4 chiray cneans 4 caste rats 4 rae ort 4",
+          "cells": {}
+        },
+        {
+          "row_index": 70,
+          "row_label": "71",
+          "raw_text": "flo} se ounce chines guovst mp coiaas chews) wt Greta? clara wg centar Grovad wy ctasea oanss Ghose? crane",
+          "cells": {}
+        },
+        {
+          "row_index": 71,
+          "row_label": "72",
+          "raw_text": "Mod cries guest oueaie  Oond cuiesT we Genes olatm we Genea? Giana! de ormae Ghae Zt ehyecr oUESD",
+          "cells": {}
+        },
+        {
+          "row_index": 72,
+          "row_label": "73",
+          "raw_text": "Hol criesr estes ovenia 39 coisas otaceh te cacbed onseee oN Ghai? Guana mb cera Graney 2 tae crm",
+          "cells": {}
+        },
+        {
+          "row_index": 73,
+          "row_label": "74",
+          "raw_text": "ie o$ ie cums things tronsr dy Ghined Shoes be Goatse chanor Gh Guano Ghatte. ae ohanee o1anss ak onssze outged",
+          "cells": {}
+        },
+        {
+          "row_index": 74,
+          "row_label": "75",
+          "raw_text": "NG param cuss ons caaon oleae @ ouetee oom He Gast one <M Ghost Gis a se ort",
+          "cells": {}
+        },
+        {
+          "row_index": 75,
+          "row_label": "76",
+          "raw_text": "3h > & Grosao ceusa? oui? a2 cacoen o1anat s? ossete 4a Gras Oreste 7h chonss Graz? eM wean oes",
+          "cells": {}
+        },
+        {
+          "row_index": 76,
+          "row_label": "77",
+          "raw_text": "ce ouaran o2s3ts oneaae ne caine ensbes 19 cxsess tats a9 cesza onseae mm orsess anes ae nase onsngo a2",
+          "cells": {}
+        },
+        {
+          "row_index": 77,
+          "row_label": "78",
+          "raw_text": "Bez ognca thesao Grater ta ceauon Gratsa Ye Cosaao ohenar $8 onanoe Chotas Ta onagee biaraa Ta yostae Onaeet 73",
+          "cells": {}
+        },
+        {
+          "row_index": 78,
+          "row_label": "79",
+          "raw_text": "1 7 Se lanes oesoaz crane 4 orinss Grads @2 coon. toznos \"0 tnoneo eognoo \"@.ocae> enoneo \"@ onansa oman",
+          "cells": {}
+        },
+        {
+          "row_index": 79,
+          "row_label": "80",
+          "raw_text": "Ohvion Manton - Age t+",
+          "cells": {}
+        },
+        {
+          "row_index": 80,
+          "row_label": "81",
+          "raw_text": "se ta onsose 29410 o1s312 44 Lonse O1ab48 ab OhabeD O1aTdS 5 ORIEZH 02304 U4 OMSII9 OIaESI THIRD OIE",
+          "cells": {}
+        },
+        {
+          "row_index": 81,
+          "row_label": "82",
+          "raw_text": "Oven: Nata Women Age 448",
+          "cells": {}
+        },
+        {
+          "row_index": 82,
+          "row_label": "83",
+          "raw_text": "Bre oLiods cenmar 010004 2309430 011829 1H fone o1aRMK 7 cazIMD onsO4e HY oTAGIK OLTIII 4 cROLME O10 16",
+          "cells": {}
+        },
+        {
+          "row_index": 83,
+          "row_label": "84",
+          "raw_text": "7 2 yo olatas gues) olara2 18 o4s4® L277 G8 salsa Ohagtt G7 oraoal 134s 42 angzce Olz0s1 «2 se40m oFoi2a 4",
+          "cells": {}
+        },
+        {
+          "row_index": 84,
+          "row_label": "85",
+          "raw_text": "onion 2 hgh Senet ine",
+          "cells": {}
+        },
+        {
+          "row_index": 85,
+          "row_label": "86",
+          "raw_text": "SPs oxsoos onaers ay onsese vest te cases o1soe7 8 caziae orm t4 soonss Lea HD OMA",
+          "cells": {}
+        },
+        {
+          "row_index": 86,
+          "row_label": "87",
+          "raw_text": "So Ge laste oeisse oiosid fo oconaa ovasas tr ecogo smstaa “omnes ogo 'o onooco toosco ‘a oncogo euoaco “@",
+          "cells": {}
+        },
+        {
+          "row_index": 87,
+          "row_label": "88",
+          "raw_text": "on 1a a",
+          "cells": {}
+        },
+        {
+          "row_index": 88,
+          "row_label": "89",
+          "raw_text": "Bete Saco ozmes ous 24 onaos7 o1zss2 a2 oszeis o1gese a3 cgahor ormnar a2 onirsy oxmasr su ona0m7 oxisee a",
+          "cells": {}
+        },
+        {
+          "row_index": 89,
+          "row_label": "90",
+          "raw_text": "34 Gussie Geos cuss Gl cone ousosr ae osceme oust ee orcdae onsets ee arse oiscaz We scent oles",
+          "cells": {}
+        },
+        {
+          "row_index": 90,
+          "row_label": "91",
+          "raw_text": "& 3 GE OlsSee Geaozs ovaeze to esas ovaiaa at otsoat eiead 100 Ghivos oranat sno sna0v® Grote we ited O1staT",
+          "cells": {}
+        },
+        {
+          "row_index": 91,
+          "row_label": "92",
+          "raw_text": "1 oxias 2 satri 18 Keahtedn Soest 1% tena ed",
+          "cells": {}
+        },
+        {
+          "row_index": 92,
+          "row_label": "93",
+          "raw_text": "2 ieanman swe tating sine 3 tay sosy Seen 1 hens an Bh",
+          "cells": {}
+        },
+        {
+          "row_index": 93,
+          "row_label": "94",
+          "raw_text": "3 kage i thaws Bont 1 Sacwee",
+          "cells": {}
+        },
+        {
+          "row_index": 94,
+          "row_label": "95",
+          "raw_text": "{Shoe B teonhey 2 Sher sna Shten 1 Bone Dettme",
+          "cells": {}
+        },
+        {
+          "row_index": 95,
+          "row_label": "96",
+          "raw_text": "5 ie 2 fr Ten Ros Vion 53 Lgnrng Stes Agen 1 Gano",
+          "cells": {}
+        },
+        {
+          "row_index": 96,
+          "row_label": "97",
+          "raw_text": "& Reco 3 aoe Tree Ton 3 Dawning i eaten",
+          "cells": {}
+        },
+        {
+          "row_index": 97,
+          "row_label": "98",
+          "raw_text": "Epes 39 Nosaew tanya 3 poco 17 owen",
+          "cells": {}
+        },
+        {
+          "row_index": 98,
+          "row_label": "99",
+          "raw_text": "E Apne Gurnee 3 Prpuaton ace Ut nn 7 Sota ane",
+          "cells": {}
+        },
+        {
+          "row_index": 99,
+          "row_label": "100",
+          "raw_text": "S/Apeesurensoon 2 TaceToam i Reshreie 18 hice One Ron",
+          "cells": {}
+        },
+        {
+          "row_index": 100,
+          "row_label": "101",
+          "raw_text": "10 Ont 3 Coretta 3 Cave as tune rine ‘8 tnonare",
+          "cells": {}
+        },
+        {
+          "row_index": 101,
+          "row_label": "102",
+          "raw_text": "11 Ruimy Rando Run nye 5 for Guy Consing  captrbaes",
+          "cells": {}
+        },
+        {
+          "row_index": 102,
+          "row_label": "103",
+          "raw_text": "12 team % Taher ava £2 ducer ie iehes",
+          "cells": {}
+        },
+        {
+          "row_index": 103,
+          "row_label": "104",
+          "raw_text": "tree 3 metFet ae Pte 1 Ser St siden Ooen 8 fagneem te",
+          "cells": {}
+        },
+        {
+          "row_index": 104,
+          "row_label": "105",
+          "raw_text": "12 caper aner 3 anyehurarg Owe 62 inva Rag Teo o Redes",
+          "cells": {}
+        },
+        {
+          "row_index": 105,
+          "row_label": "106",
+          "raw_text": "{5 rootnhshrn 3 Gen Geet & toe i one",
+          "cells": {}
+        },
+        {
+          "row_index": 106,
+          "row_label": "107",
+          "raw_text": "{3 tremaater 20 Team any fe dors on te ste cou",
+          "cells": {}
+        },
+        {
+          "row_index": 107,
+          "row_label": "108",
+          "raw_text": "17 eoac Comoe, fo twas oven £5 Sou Taoe gh chat 1 cheate",
+          "cells": {}
+        },
+        {
+          "row_index": 108,
+          "row_label": "109",
+          "raw_text": "18 Seantuneigned 41 G50 SetPreptos @ Smee Sen create",
+          "cells": {}
+        },
+        {
+          "row_index": 109,
+          "row_label": "110",
+          "raw_text": "{2 punseerignSibes| 42 UUS ones Goon &F Fertey ry They f2 hore Tae Han",
+          "cells": {}
+        },
+        {
+          "row_index": 110,
+          "row_label": "111",
+          "raw_text": "4 fhechyinoen, 45 Keen oom Gusts 123 Keno oy ete",
+          "cells": {}
+        },
+        {
+          "row_index": 111,
+          "row_label": "112",
+          "raw_text": "i covintteren te Sewanee anes 8 tus ome {24 acoand 9d C2",
+          "cells": {}
+        },
+        {
+          "row_index": 112,
+          "row_label": "113",
+          "raw_text": "22 Panacaare ‘8 hosing yo Sema caer tis nets oo",
+          "cells": {}
+        },
+        {
+          "row_index": 113,
+          "row_label": "114",
+          "raw_text": "Wa9 te Revue Saeen",
+          "cells": {}
+        },
+        {
+          "row_index": 114,
+          "row_label": "115",
+          "raw_text": "Thank you for a great Lake Tahoe Relay",
+          "cells": {}
+        },
+        {
+          "row_index": 115,
+          "row_label": "116",
+          "raw_text": "this year.",
+          "cells": {}
+        },
+        {
+          "row_index": 116,
+          "row_label": "117",
+          "raw_text": "Please make copies of the results for your team and share them.",
+          "cells": {}
+        },
+        {
+          "row_index": 117,
+          "row_label": "118",
+          "raw_text": "SEE YOU NEXT YEAR!",
+          "cells": {}
+        },
+        {
+          "row_index": 118,
+          "row_label": "119",
+          "raw_text": "JUNE 9, 2001",
+          "cells": {}
+        }
+      ],
+      "text": "2000 26th DoCelle Memorial Lake Tahoo Relay\nNomtet Ou tept Uegt lag2 Uap? Lag lg) Land Uap S Uns Uagd Uap age gS aps eg Lag Urge leg? ep ng?\nars Gosts9 ov4rae cose 1 caasco 28724 5 eL58I0 OLLos 1 G4OD0K OLeEsY 4 sores oHoLGL 1 oTOBSE LOIS 4\n22 4 opsaza oiane) ooso30 2 casoaD o1goa? 3 oeare? uses? 3 Guus? OUD 2 GING OA 3 HR TRO >\nos > 3 casnst olan cnssay 4 cases olorst 3 couse ontacy 5 GEaNs7 Ovgnas & onsRaD O1OHsD 5 GIDSS? OLGDDD\n1o 6 ante ceonae costes ¢ oaocen ones) @ ceaete orauts 4 Gsasce O1GasE ¢ obents GhiBad 6 Crs7a0 chants 7\n17S 10 choncr ozioar onoicd 14 onaz00 outnys 1 atsae Otzaae 19 Goozte Leas x Oraet> O1ass1 14 caoszD oLan}D 0\nGo 1 13 ongaae caataa ongaie M1 oqorar onzzes at sates Oliear <M Oftise otsnas a8 ORIN O12229 «0 10ON8D GDR —&\nBb 57 ovaias caonce oninso $9 Senzor ona) a8 oeasaT orga) a2 Ornose olaDet M1 wastao Gra #2 Mores Chae\n1m 18 sa orate cuacsr orauss or caanae 012931 72 cuiszo O1snot 17 cao4ae OLeeoo To Gn4038 oFaee0 66 10992) 911055 89\nSr 3s 5 orate case grass 70 cesmsa orate a2 Gea5i7 plates @ orsnae OLsTSt es GIONS Gis! G TOHG cae 6\n43 ti Ge oragts cuatat Guindy a2 cuanss ovaace 40 onazea ezoLte we ors80i las te cnsaco Ghazsa Ye Maes onus 7\noven: Open Nomen\nGy as frase oxstee oxoeso vm cn243e 18420 A cesEOD 198A Me OEE CItLET fH OLE OMNI aS OID 1\nS72 iz ovsaoo ounest onsnsn ta onarcs ovasve a3 osonmr o1anse 29 teats Grizeo te oranaa Onsaar #8 onesma o1iez0 48\nti 3 be outeaz comeas orosor 2 onsen onsear at osmage otarze 1s anit orana7 4p onoras O1z0ze 22 onmnab croeaD\nTG ojirae caanss onsian a7 nanan nana a si7er o1aear ze Gowaae Oraner a7 oaorge Orazds 7 opaizt oL4esa 3\n$$ 2 pizosn gunn oranet 77 GuiLtT otziaa «2 OoaDs2 Gtante «9 OTAaa? Urasos 0 OR020 O1a24 e2 04080 CIzER0 6\n38 G77 farsa cusgar orca ex ocazro iaday a os200b Lanse $9 couse Chasse et cassia Orstea MM tHaa55 olarae 48\n42 7 7 oyzesa osoust ovazse a7 anf onzean Tm osze2s OLance e2 coanae Giant? s2 100035 OLsR9 HS 15204 914829 47\nTet) 7 ojoese ozeass casoat a sin oLs4zt 9 os3280 onneer 8 GSA chEA 7 cama LOE 7 OISSU OIE —&\n0 2 2 onsest oneaae onsouo 7 ontez ouinso 7 oxs0at Otten 7 Geehod Ottsse F oRs4ae O1oLas & Ghanas chore 8\n4 51 Ohad quiagr ohensy 20 onzese choust 12 escsso olarse topside Gtasae 25 chonsy O1z227 24 oozaae cringe 8\nse 5 Gr o1zayt cuanto omesa et oncoas oures« 4 Goanza orsnet be Ohacse C1zias Months OhteaT 3 caa0m Or Tex8 aT\nte 3 iisun 022530 ononea sz obanan outoad a7 osits oratea af thanoo Cranes ae onanay o1grae 3» caves oasse 9\nfF ve orsoar tuanse onroat a asset outest 650818 orzeae te thon orazas #2 oncaso o1azeo m2 onarse Oana 32\nHt 2 ouraor gitar onsnse 12 o4apar 012420 25 csanaT GzcnaD 47 OLt042 Grants 44 oba035 013993 37 n42ae OLI2z7 34\nS211 obcora caavah ovanze 4a cofaan ovanst 37 o531a7 oLznan 40 tovast otaaso #9 onaiso o1aGa9 35 O41? 012435\nTe 10 73 vizowe oua620 onceao st onseaz ovata 2 osanae 1zeaa 36 took? Ghazes 3 oLased O1arae aH ooaTae o1aNe6\n4 tt 22 ovens cana onsuso 10 cassco onaeas 20 csaosr olster 3 onshat 12647 a2 Eaysaa ONZIss 33 Ooaass OrKTS 3B\nte izes onzes? cuo2e oxna7 ax nanan onsoa] a3. Osteo lansn a2 ononas Ghaio «2 42439 O12s8 MH onsTes O1a53)\nMets Ge olznce casnce oninse GF nears orga $1 csioee rata? 97 Grolos Ghaeso mB caaned O12 AA OasTTE ITI A\n‘2M Gh onsiar exiyed 10003 Ta oxziad o1ango 5 chasse oniese 48 O7DIgY O12e89 M4 GesRde Grance aw TomM GIN 2\n2b 18 se onsayt ousaze 010007 i oneeat o1a0a do GS2bon o1sast be ohonse Gtoses GY OHSS OOO WG HOI ge 4\n@ ie a7 cutee qqiaas otese 45 O3s932 orator chaes oia7ia 4 OLgnss orsigo 49 ohaait 19008 47 scree Grad 4\n2317 ontose cuare? Onna. cng000 ontna) 39 Osanit oLeazt ae encase orziaa «© Obeise O19405 «6 10,005 O1a8st 7\nHm oiaree gusan onest e bazoa7 onsiso 14 csatos oiznas 49 Ofssse Onezsd ss ohasea 170s? a2 ONC Oras SY\njo 42 co onznas oueoce onaoat ex esa onsasT oe scam oveacd es Grate) Gh3590. et Oksom) o1ara2 sf tote1 OTaes\ntr 20 6s onassa guns oniez) $6 o4on38 onzEz0 s¥ cseaao clasgs $4 ora2a7 Oleza7 2 GRABS) OLfOd8 $0 DAKE CIDE\n2M G2 ouaeai ouorae o1gnae sb osan0a oraezs 2 obezst o1sesa eo ora) Oraida a? nara? oLiee9 38 Yosest O13 #6\nts iz ‘te ciinco qautes 012008 2 o4te6) OLaui) MM O40saT OhataY TE arava? O1as40 @ obuesd OLaSaD as osoaT clans? 8\n{2S ouinso cease clans Ms onseas orauai o Ggu7o olanae 3 ananor otsnoe te enaaen Onzass s4 toaiea shaken at\nMou se pias oninar ongpm de onset o1gau a8 osuaza GISUa #0 OLaTae OOD $9 Clase Ol4sAd LOAD cLzeal 4\nsis 25 7 ovango crdez) oroims a9 buae erates Ge Gara ovanie ae erin oraz) fo eninea Grats os sOaaz9 Stouts we\nDe ins ciaioe caenor ousnce a cetash 12040 st Goalge Clad m Ga! OM HB GMa oA me wes oA\non a osia2 causa oleen 1 cemete cod T olen clam Toate on tore ours n wen ome\n3B Hoss Grmes ode MOO oe & cso Cle mM GI” ola A OAD ann 7 wes Tea Oo\nSoy es cra ogase olaear a7 cesosn ona ae cassia craeai Wt tenon lane 1 comm olsteD 72 wosom os 1\nGo ds Shas crew oune My uae oats A castis olmis # ora clad o@ omzs cesT Te WHA oa\nSov ciisa gies) cosas w @gem o1aeed Me Gadd Grouse a onsen orestt a cane oisae G2 ieee LSS) Te\nLh Goon gon ono mw ces caw & Gun ann oH Gres oa Ga Guan Hone ome 7\n2m to ciaree coisas Gist te Guus Ghalst 8 Gos0o Ota Te Gamer Oras! Te Ghote clus Mo MoM oss\nGd olance Gees cravae to cannte Grisee @ Gite onstar ye Grats ghentd 39 chwse olange ao theM crea we\nMGs crates gules olsext a cea ouzish wf uses? crass a2 Giant Olam Gamal oreas oF Miste ouanss\nioe te ciate Gude onsest Tt oateee O12) G Hoe OlOw Te ems Olan UH oOMH Gas 16 7s oss Me\nboar ciatay qoansh onaeie Ue cessit oranal ef Ghoede craees 74 ceehid O13) 2 costs ohesoe GF Hanae chateT tS\nvi Tn de onset caaeaa o1opa2 a8 cuense ens02» a4 cSz2ae cLaEE a CRALED Chane mB OLA OLR —w eAsEsS LOD 8\n3 so ouseso caunse chase i canton oLinat q coaeso oiaseo 0 qeandh ohtese ve Shade Graiie we Coote onaea?\nsh 3. ie ovine ceaoe ouahes a casoct o.anie 34 osssse o.asat 8 oneta7 o4ztab ta ohogss Gh24o0 36 enoaae oraaas 33\nGo La orueae eairoe ouraso 30 ocagut uae 4 ocsor czars 7 orzaan lana? #9 Ohe@e Chinas e2 fOsnae OrzTss e\nS24 orecea cesvat ovarzs eo outoa2 O1stas 10 oscoat otaate 2 orarat Oars §7 mando ctanco oh Tosig0 Oana &\n1G fb orazsa operat onsese tr o4teat ou09a7 ae oseton Onasdo 8 oranit Ouani? & onones Grade st fogia8 orotate\n1s 1 3 orasss coco O1oe0y $4 onaead uaea) a osc0a0 onsua«  orara® onanto q entded Oranas &8 fosiat Orasor Ty\nSt te chases onen30 Ghonar th oeatae Qrinae #7 casooe onaraa af cnazae oraza2 a7 snosay eras) at tHa0%0 OLIMS? 8\nVit > osyat 015202 easize 2 gaanar ongiss 2 cxakas onsaar 2 ensaod onseas 2 eninea oveses 2 wrasse overce 2\nta 28 ongea) Gaesst onsozs 9 onizgy oLttst ¢ ceaeeo obztsr 9 oho4ad Liga) M1 OLR OLINsS 99 caaray UIA tT\ntoo 2 2 Grinae caatan Guanes a chuast SUi2s8 a4 oso olance dp ceanah hint? M onsiis Onur Gamae crate te\nToL a craess pias tants 2 onv0ss oust af coerza ousmar at gnatot ciaeae 7 @hstas ouanis te chia oraaat\nHOG crease cpsos> renee fo cateat rare 12 oszese oitera at ceanse O1g0u M4 Gnonde Ohr4as 28 ooaeeD Gratze 39\nwe isnse o1sree comes 4 Gaunt encoat 4 cannes crea 4 chiray cneans 4 caste rats 4 rae ort 4\nflo} se ounce chines guovst mp coiaas chews) wt Greta? clara wg centar Grovad wy ctasea oanss Ghose? crane\nMod cries guest oueaie  Oond cuiesT we Genes olatm we Genea? Giana! de ormae Ghae Zt ehyecr oUESD\nHol criesr estes ovenia 39 coisas otaceh te cacbed onseee oN Ghai? Guana mb cera Graney 2 tae crm\nie o$ ie cums things tronsr dy Ghined Shoes be Goatse chanor Gh Guano Ghatte. ae ohanee o1anss ak onssze outged\nNG param cuss ons caaon oleae @ ouetee oom He Gast one <M Ghost Gis a se ort\n3h > & Grosao ceusa? oui? a2 cacoen o1anat s? ossete 4a Gras Oreste 7h chonss Graz? eM wean oes\nce ouaran o2s3ts oneaae ne caine ensbes 19 cxsess tats a9 cesza onseae mm orsess anes ae nase onsngo a2\nBez ognca thesao Grater ta ceauon Gratsa Ye Cosaao ohenar $8 onanoe Chotas Ta onagee biaraa Ta yostae Onaeet 73\n1 7 Se lanes oesoaz crane 4 orinss Grads @2 coon. toznos \"0 tnoneo eognoo \"@.ocae> enoneo \"@ onansa oman\nOhvion Manton - Age t+\nse ta onsose 29410 o1s312 44 Lonse O1ab48 ab OhabeD O1aTdS 5 ORIEZH 02304 U4 OMSII9 OIaESI THIRD OIE\nOven: Nata Women Age 448\nBre oLiods cenmar 010004 2309430 011829 1H fone o1aRMK 7 cazIMD onsO4e HY oTAGIK OLTIII 4 cROLME O10 16\n7 2 yo olatas gues) olara2 18 o4s4® L277 G8 salsa Ohagtt G7 oraoal 134s 42 angzce Olz0s1 «2 se40m oFoi2a 4\nonion 2 hgh Senet ine\nSPs oxsoos onaers ay onsese vest te cases o1soe7 8 caziae orm t4 soonss Lea HD OMA\nSo Ge laste oeisse oiosid fo oconaa ovasas tr ecogo smstaa “omnes ogo 'o onooco toosco ‘a oncogo euoaco “@\non 1a a\nBete Saco ozmes ous 24 onaos7 o1zss2 a2 oszeis o1gese a3 cgahor ormnar a2 onirsy oxmasr su ona0m7 oxisee a\n34 Gussie Geos cuss Gl cone ousosr ae osceme oust ee orcdae onsets ee arse oiscaz We scent oles\n& 3 GE OlsSee Geaozs ovaeze to esas ovaiaa at otsoat eiead 100 Ghivos oranat sno sna0v® Grote we ited O1staT\n1 oxias 2 satri 18 Keahtedn Soest 1% tena ed\n2 ieanman swe tating sine 3 tay sosy Seen 1 hens an Bh\n3 kage i thaws Bont 1 Sacwee\n{Shoe B teonhey 2 Sher sna Shten 1 Bone Dettme\n5 ie 2 fr Ten Ros Vion 53 Lgnrng Stes Agen 1 Gano\n& Reco 3 aoe Tree Ton 3 Dawning i eaten\nEpes 39 Nosaew tanya 3 poco 17 owen\nE Apne Gurnee 3 Prpuaton ace Ut nn 7 Sota ane\nS/Apeesurensoon 2 TaceToam i Reshreie 18 hice One Ron\n10 Ont 3 Coretta 3 Cave as tune rine ‘8 tnonare\n11 Ruimy Rando Run nye 5 for Guy Consing  captrbaes\n12 team % Taher ava £2 ducer ie iehes\ntree 3 metFet ae Pte 1 Ser St siden Ooen 8 fagneem te\n12 caper aner 3 anyehurarg Owe 62 inva Rag Teo o Redes\n{5 rootnhshrn 3 Gen Geet & toe i one\n{3 tremaater 20 Team any fe dors on te ste cou\n17 eoac Comoe, fo twas oven £5 Sou Taoe gh chat 1 cheate\n18 Seantuneigned 41 G50 SetPreptos @ Smee Sen create\n{2 punseerignSibes| 42 UUS ones Goon &F Fertey ry They f2 hore Tae Han\n4 fhechyinoen, 45 Keen oom Gusts 123 Keno oy ete\ni covintteren te Sewanee anes 8 tus ome {24 acoand 9d C2\n22 Panacaare ‘8 hosing yo Sema caer tis nets oo\nWa9 te Revue Saeen\nThank you for a great Lake Tahoe Relay\nthis year.\nPlease make copies of the results for your team and share them.\nSEE YOU NEXT YEAR!\nJUNE 9, 2001\n"
+    }
+  ]
+}

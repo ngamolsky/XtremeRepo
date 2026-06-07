@@ -24,6 +24,10 @@ export default {
       return handleChat(request, env);
     }
 
+    if (url.pathname === "/api/historical-results/search" && request.method === "POST") {
+      return handleHistoricalResultsSearch(request, env);
+    }
+
     return new Response("Not found", { status: 404 });
   },
 };
@@ -74,6 +78,77 @@ type ChatRequestBody = {
   provider?: ChatProvider;
   pageContext?: PageContext;
 };
+
+type HistoricalResultsSearchRequestBody = {
+  query?: unknown;
+  matchCount?: unknown;
+  year?: unknown;
+  legNumber?: unknown;
+  legVersion?: unknown;
+  chunkType?: unknown;
+};
+
+type HistoricalResultSearchMatch = {
+  id: string;
+  source_id: string | null;
+  document_id: string | null;
+  raw_row_id: string | null;
+  year: number | null;
+  chunk_type: string | null;
+  chunk_text: string | null;
+  team_name: string | null;
+  runner_name: string | null;
+  bib: string | null;
+  division: string | null;
+  leg_number: number | null;
+  leg_version: number | null;
+  overall_place: number | null;
+  division_place: number | null;
+  similarity: number | null;
+};
+
+type HistoricalResultSearchEvidence = {
+  id: string;
+  source_url: string | null;
+  local_path: string | null;
+  original_filename: string | null;
+  document_name: string | null;
+  document_type: string | null;
+  page_number: number | null;
+  sheet_index: number | null;
+  row_index: number | null;
+};
+
+type HistoricalResultSearchResponse = HistoricalResultSearchMatch &
+  Partial<HistoricalResultSearchEvidence> & {
+    source_filename: string;
+    row_label: string;
+  };
+
+type HistoricalSearchRpcClient = {
+  rpc: (
+    functionName: "match_result_search_chunks",
+    args: {
+      query_embedding: number[];
+      match_count: number;
+      filter_year: number | null;
+      filter_leg_number: number | null;
+      filter_leg_version: number | null;
+      filter_chunk_type: string | null;
+    }
+  ) => Promise<{ data: HistoricalResultSearchMatch[] | null; error: { message: string } | null }>;
+  from: (tableName: "v_result_search") => {
+    select: (columns: string) => {
+      in: (
+        column: "id",
+        values: string[]
+      ) => Promise<{ data: HistoricalResultSearchEvidence[] | null; error: { message: string } | null }>;
+    };
+  };
+};
+
+const RESULT_SEARCH_EMBEDDING_MODEL = "text-embedding-3-small";
+const RESULT_SEARCH_EMBEDDING_DIMENSIONS = 1536;
 
 type DataClient = ReturnType<typeof createClient<Database>>;
 type RunnerRow = Pick<Database["public"]["Tables"]["runners"]["Row"], "email" | "id" | "name">;
@@ -393,6 +468,144 @@ function createToolExecutionLimiter(maxConcurrent: number): ToolExecutionLimiter
     active = Math.max(0, active - 1);
     queue.shift()?.();
   }
+}
+
+async function handleHistoricalResultsSearch(request: Request, env: Env): Promise<Response> {
+  if (!env.OPENAI_API_KEY) {
+    return Response.json(
+      { error: "Historical semantic search needs OPENAI_API_KEY configured." },
+      { status: 500, headers: jsonHeaders }
+    );
+  }
+
+  const body = await readHistoricalResultsSearchRequest(request);
+  const query = typeof body.query === "string" ? body.query.trim() : "";
+  if (!query) {
+    return Response.json(
+      { error: "Enter a search query." },
+      { status: 400, headers: jsonHeaders }
+    );
+  }
+
+  try {
+    const authorizationHeader = request.headers.get("authorization") ?? undefined;
+    const client = createRelayClient(env, authorizationHeader) as unknown as HistoricalSearchRpcClient;
+    const queryEmbedding = await embedHistoricalResultsQuery(query, env.OPENAI_API_KEY);
+    const matchCount = clampInteger(body.matchCount, 10, 1, 50);
+    const { data, error } = await client.rpc("match_result_search_chunks", {
+      query_embedding: queryEmbedding,
+      match_count: matchCount,
+      filter_year: nullablePositiveInteger(body.year),
+      filter_leg_number: nullablePositiveInteger(body.legNumber),
+      filter_leg_version: nullablePositiveInteger(body.legVersion),
+      filter_chunk_type: typeof body.chunkType === "string" && body.chunkType ? body.chunkType : null,
+    });
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    const results = await enrichHistoricalResultMatches(client, data || []);
+    return Response.json(
+      {
+        query,
+        model: RESULT_SEARCH_EMBEDDING_MODEL,
+        results,
+      },
+      { headers: jsonHeaders }
+    );
+  } catch (error) {
+    return Response.json(
+      { error: getErrorMessage(error) },
+      { status: 500, headers: jsonHeaders }
+    );
+  }
+}
+
+async function readHistoricalResultsSearchRequest(
+  request: Request
+): Promise<HistoricalResultsSearchRequestBody> {
+  try {
+    return (await request.json()) as HistoricalResultsSearchRequestBody;
+  } catch {
+    return {};
+  }
+}
+
+async function embedHistoricalResultsQuery(query: string, apiKey: string): Promise<number[]> {
+  const response = await fetch("https://api.openai.com/v1/embeddings", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: RESULT_SEARCH_EMBEDDING_MODEL,
+      input: query,
+      dimensions: RESULT_SEARCH_EMBEDDING_DIMENSIONS,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`OpenAI query embedding failed ${response.status}: ${await response.text()}`);
+  }
+
+  const body = (await response.json()) as { data?: Array<{ embedding?: unknown }> };
+  const embedding = body.data?.[0]?.embedding;
+  if (!Array.isArray(embedding) || embedding.length !== RESULT_SEARCH_EMBEDDING_DIMENSIONS) {
+    throw new Error("OpenAI returned an invalid query embedding.");
+  }
+
+  return embedding.map((value) => Number(value));
+}
+
+async function enrichHistoricalResultMatches(
+  client: HistoricalSearchRpcClient,
+  matches: HistoricalResultSearchMatch[]
+): Promise<HistoricalResultSearchResponse[]> {
+  if (matches.length === 0) {
+    return [];
+  }
+
+  const { data, error } = await client
+    .from("v_result_search")
+    .select("id, source_url, local_path, original_filename, document_name, document_type, page_number, sheet_index, row_index")
+    .in(
+      "id",
+      matches.map((match) => match.id)
+    );
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  const evidenceById = new Map((data || []).map((row) => [row.id, row]));
+  return matches.map((match) => {
+    const evidence = evidenceById.get(match.id);
+    return {
+      ...match,
+      ...(evidence || {}),
+      source_filename: evidence?.original_filename || evidence?.local_path || "",
+      row_label: evidence?.row_index == null ? "" : String(evidence.row_index + 1),
+    };
+  });
+}
+
+function nullablePositiveInteger(value: unknown): number | null {
+  if (value == null || value === "") {
+    return null;
+  }
+
+  const parsed = Number.parseInt(String(value), 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+}
+
+function clampInteger(value: unknown, fallback: number, min: number, max: number): number {
+  const parsed = Number.parseInt(String(value), 10);
+  if (!Number.isFinite(parsed)) {
+    return fallback;
+  }
+  return Math.min(Math.max(parsed, min), max);
 }
 
 async function readChatRequest(request: Request): Promise<ChatRequestBody> {

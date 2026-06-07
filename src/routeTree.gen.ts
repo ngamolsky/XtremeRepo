@@ -16,6 +16,7 @@ import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as PhotosRouteImport } from './routes/photos'
 import { Route as LegsRouteImport } from './routes/legs'
 import { Route as HistoryRouteImport } from './routes/history'
+import { Route as HistoricalResultsSearchRouteImport } from './routes/historical-results-search'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as RacesIndexRouteImport } from './routes/races.index'
@@ -26,6 +27,7 @@ import { Route as RacesYearRouteImport } from './routes/races.$year'
 import { Route as PhotosPhotoIdRouteImport } from './routes/photos.$photoId'
 import { Route as LegsLegNumberVersionRouteImport } from './routes/legs.$legNumber.$version'
 import { Route as RunsRunnerNameYearLegNumberVersionRouteImport } from './routes/runs.$runnerName.$year.$legNumber.$version'
+import { Route as LegResultsResultTypeRunnerNameYearLegNumberVersionResultIdRouteImport } from './routes/leg-results.$resultType.$runnerName.$year.$legNumber.$version.$resultId'
 
 const UploadRoute = UploadRouteImport.update({
   id: '/upload',
@@ -60,6 +62,11 @@ const LegsRoute = LegsRouteImport.update({
 const HistoryRoute = HistoryRouteImport.update({
   id: '/history',
   path: '/history',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HistoricalResultsSearchRoute = HistoricalResultsSearchRouteImport.update({
+  id: '/historical-results-search',
+  path: '/historical-results-search',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardRoute = DashboardRouteImport.update({
@@ -113,10 +120,17 @@ const RunsRunnerNameYearLegNumberVersionRoute =
     path: '/runs/$runnerName/$year/$legNumber/$version',
     getParentRoute: () => rootRouteImport,
   } as any)
+const LegResultsResultTypeRunnerNameYearLegNumberVersionResultIdRoute =
+  LegResultsResultTypeRunnerNameYearLegNumberVersionResultIdRouteImport.update({
+    id: '/leg-results/$resultType/$runnerName/$year/$legNumber/$version/$resultId',
+    path: '/leg-results/$resultType/$runnerName/$year/$legNumber/$version/$resultId',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
+  '/historical-results-search': typeof HistoricalResultsSearchRoute
   '/history': typeof HistoryRoute
   '/legs': typeof LegsRouteWithChildren
   '/photos': typeof PhotosRouteWithChildren
@@ -132,10 +146,12 @@ export interface FileRoutesByFullPath {
   '/races/': typeof RacesIndexRoute
   '/legs/$legNumber/$version': typeof LegsLegNumberVersionRoute
   '/runs/$runnerName/$year/$legNumber/$version': typeof RunsRunnerNameYearLegNumberVersionRoute
+  '/leg-results/$resultType/$runnerName/$year/$legNumber/$version/$resultId': typeof LegResultsResultTypeRunnerNameYearLegNumberVersionResultIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
+  '/historical-results-search': typeof HistoricalResultsSearchRoute
   '/history': typeof HistoryRoute
   '/profile': typeof ProfileRoute
   '/team': typeof TeamRoute
@@ -148,11 +164,13 @@ export interface FileRoutesByTo {
   '/races': typeof RacesIndexRoute
   '/legs/$legNumber/$version': typeof LegsLegNumberVersionRoute
   '/runs/$runnerName/$year/$legNumber/$version': typeof RunsRunnerNameYearLegNumberVersionRoute
+  '/leg-results/$resultType/$runnerName/$year/$legNumber/$version/$resultId': typeof LegResultsResultTypeRunnerNameYearLegNumberVersionResultIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
+  '/historical-results-search': typeof HistoricalResultsSearchRoute
   '/history': typeof HistoryRoute
   '/legs': typeof LegsRouteWithChildren
   '/photos': typeof PhotosRouteWithChildren
@@ -168,12 +186,14 @@ export interface FileRoutesById {
   '/races/': typeof RacesIndexRoute
   '/legs/$legNumber/$version': typeof LegsLegNumberVersionRoute
   '/runs/$runnerName/$year/$legNumber/$version': typeof RunsRunnerNameYearLegNumberVersionRoute
+  '/leg-results/$resultType/$runnerName/$year/$legNumber/$version/$resultId': typeof LegResultsResultTypeRunnerNameYearLegNumberVersionResultIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/dashboard'
+    | '/historical-results-search'
     | '/history'
     | '/legs'
     | '/photos'
@@ -189,10 +209,12 @@ export interface FileRouteTypes {
     | '/races/'
     | '/legs/$legNumber/$version'
     | '/runs/$runnerName/$year/$legNumber/$version'
+    | '/leg-results/$resultType/$runnerName/$year/$legNumber/$version/$resultId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/dashboard'
+    | '/historical-results-search'
     | '/history'
     | '/profile'
     | '/team'
@@ -205,10 +227,12 @@ export interface FileRouteTypes {
     | '/races'
     | '/legs/$legNumber/$version'
     | '/runs/$runnerName/$year/$legNumber/$version'
+    | '/leg-results/$resultType/$runnerName/$year/$legNumber/$version/$resultId'
   id:
     | '__root__'
     | '/'
     | '/dashboard'
+    | '/historical-results-search'
     | '/history'
     | '/legs'
     | '/photos'
@@ -224,11 +248,13 @@ export interface FileRouteTypes {
     | '/races/'
     | '/legs/$legNumber/$version'
     | '/runs/$runnerName/$year/$legNumber/$version'
+    | '/leg-results/$resultType/$runnerName/$year/$legNumber/$version/$resultId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DashboardRoute: typeof DashboardRoute
+  HistoricalResultsSearchRoute: typeof HistoricalResultsSearchRoute
   HistoryRoute: typeof HistoryRoute
   LegsRoute: typeof LegsRouteWithChildren
   PhotosRoute: typeof PhotosRouteWithChildren
@@ -238,6 +264,7 @@ export interface RootRouteChildren {
   UploadRoute: typeof UploadRoute
   RunnersRunnerNameRoute: typeof RunnersRunnerNameRoute
   RunsRunnerNameYearLegNumberVersionRoute: typeof RunsRunnerNameYearLegNumberVersionRoute
+  LegResultsResultTypeRunnerNameYearLegNumberVersionResultIdRoute: typeof LegResultsResultTypeRunnerNameYearLegNumberVersionResultIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -289,6 +316,13 @@ declare module '@tanstack/react-router' {
       path: '/history'
       fullPath: '/history'
       preLoaderRoute: typeof HistoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/historical-results-search': {
+      id: '/historical-results-search'
+      path: '/historical-results-search'
+      fullPath: '/historical-results-search'
+      preLoaderRoute: typeof HistoricalResultsSearchRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard': {
@@ -361,6 +395,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RunsRunnerNameYearLegNumberVersionRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/leg-results/$resultType/$runnerName/$year/$legNumber/$version/$resultId': {
+      id: '/leg-results/$resultType/$runnerName/$year/$legNumber/$version/$resultId'
+      path: '/leg-results/$resultType/$runnerName/$year/$legNumber/$version/$resultId'
+      fullPath: '/leg-results/$resultType/$runnerName/$year/$legNumber/$version/$resultId'
+      preLoaderRoute: typeof LegResultsResultTypeRunnerNameYearLegNumberVersionResultIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -404,6 +445,7 @@ const RacesRouteWithChildren = RacesRoute._addFileChildren(RacesRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DashboardRoute: DashboardRoute,
+  HistoricalResultsSearchRoute: HistoricalResultsSearchRoute,
   HistoryRoute: HistoryRoute,
   LegsRoute: LegsRouteWithChildren,
   PhotosRoute: PhotosRouteWithChildren,
@@ -414,6 +456,8 @@ const rootRouteChildren: RootRouteChildren = {
   RunnersRunnerNameRoute: RunnersRunnerNameRoute,
   RunsRunnerNameYearLegNumberVersionRoute:
     RunsRunnerNameYearLegNumberVersionRoute,
+  LegResultsResultTypeRunnerNameYearLegNumberVersionResultIdRoute:
+    LegResultsResultTypeRunnerNameYearLegNumberVersionResultIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

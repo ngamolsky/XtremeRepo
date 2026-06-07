@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { BarChart3, Camera, Flag, Menu, Trophy, User, Users, X } from "lucide-react";
+import { BarChart3, Camera, Flag, Menu, Search, Trophy, User, Users, X } from "lucide-react";
 import React from "react";
 import { getActiveNavId } from "../lib/navigation";
 import ThemeToggle from "./ThemeToggle";
@@ -14,6 +14,7 @@ const Navigation: React.FC = () => {
     { id: "team", label: "Team", icon: Users, path: "/team" },
     { id: "legs", label: "Legs", icon: BarChart3, path: "/legs" },
     { id: "races", label: "Races", icon: Flag, path: "/races" },
+    { id: "search", label: "Search", icon: Search, path: "/historical-results-search" },
     { id: "photos", label: "Photos", icon: Camera, path: "/photos" },
   ];
 

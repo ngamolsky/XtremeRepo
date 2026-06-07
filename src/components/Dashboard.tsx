@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import { Calendar, Clock, TrendingUp, Trophy } from "lucide-react";
 import React from "react";
 import {
@@ -297,7 +298,13 @@ const Dashboard: React.FC = () => {
                     }
                   >
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {perf.year}
+                      <Link
+                        to="/races/$year"
+                        params={{ year: String(perf.year) }}
+                        className="text-primary-700 hover:text-primary-800"
+                      >
+                        {perf.year}
+                      </Link>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {perf.total_time?.toString()}

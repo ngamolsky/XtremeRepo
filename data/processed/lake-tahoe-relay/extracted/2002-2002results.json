@@ -1,0 +1,814 @@
+{
+  "schema_version": 1,
+  "extracted_at": "2026-06-07T19:41:51.229Z",
+  "source": {
+    "year": 2002,
+    "label": "2002",
+    "source_url": "https://laketahoerelay.com/wp-content/uploads/2019/05/2002results.jpg",
+    "final_url": "https://laketahoerelay.com/wp-content/uploads/2019/05/2002results.jpg",
+    "filename": "data/raw/lake-tahoe-relay/results/2002results.jpg",
+    "file_type": "jpg",
+    "content_type": "image/jpeg",
+    "bytes": 366579,
+    "sha256": "930dcb2a002f15855a8ed8247fed2a7cf659a4a4e99c783ad1346c70643758af",
+    "actual_sha256": "930dcb2a002f15855a8ed8247fed2a7cf659a4a4e99c783ad1346c70643758af"
+  },
+  "extraction": {
+    "method": "tesseract-ocr",
+    "status": "needs_review",
+    "warnings": [
+      "Image OCR requires human review before parsing."
+    ]
+  },
+  "summary": {
+    "rows": 128,
+    "cells": 0,
+    "characters": 9597
+  },
+  "documents": [
+    {
+      "document_type": "image",
+      "name": "2002results.jpg",
+      "sheet_index": null,
+      "page_number": null,
+      "row_count": 128,
+      "column_count": null,
+      "extraction_status": "needs_review",
+      "metadata": {
+        "extraction": "tesseract --psm 6"
+      },
+      "cells": [],
+      "rows": [
+        {
+          "row_index": 0,
+          "row_label": "1",
+          "raw_text": "2002",
+          "cells": {}
+        },
+        {
+          "row_index": 1,
+          "row_label": "2",
+          "raw_text": "Ton Pe PoceTTineLeg Tine LepTine Pica Tene tapTina aca Tine Lap Tina Pico Tne Leg Time Pike Tene LagTine Pca Tint Lag Tina",
+          "cells": {}
+        },
+        {
+          "row_index": 2,
+          "row_label": "3",
+          "raw_text": "umes Ow L93 Lagi eg Len? Uepz Leo Lap LapSLage Lap Let LagS Lap Lap Lag Lag Lanny? kag?",
+          "cells": {}
+        },
+        {
+          "row_index": 3,
+          "row_label": "4",
+          "raw_text": "vision Open en",
+          "cells": {}
+        },
+        {
+          "row_index": 4,
+          "row_label": "5",
+          "raw_text": "ot 1 08525 47s oat 4 24525 osnay 4 34088 ora 4 Aspe Toso 2 Geman Term 1 Tos toe",
+          "cells": {}
+        },
+        {
+          "row_index": 5,
+          "row_label": "6",
+          "raw_text": "M2 4 oss 49st ososr 2 Dagse osn2n «2 35nte tane2 2 asrst toa9 t Goned tanee 2 Teeue T0089",
+          "cells": {}
+        },
+        {
+          "row_index": 6,
+          "row_label": "7",
+          "raw_text": "S73 7 toro» orm osos2 6 30038 csn25 4 atuar 11951 4 Sane MTar@ Garte THBt2 8 Tstad 108m",
+          "cells": {}
+        },
+        {
+          "row_index": 7,
+          "row_label": "8",
+          "raw_text": "a 4 a8 10837 pied Oger a2 ast ona to 4atat teas 8 Sasse t4es7 @ estay eee 8 Panon 1048",
+          "cells": {}
+        },
+        {
+          "row_index": 8,
+          "row_label": "9",
+          "raw_text": "2 8 tH 20545 Oto 40 31040 045s 8 es0ce 1925855582 12548 4 THRO! 12809 Ha BAOAT s0h8",
+          "cells": {}
+        },
+        {
+          "row_index": 9,
+          "row_label": "10",
+          "raw_text": "so © 3 05723 ora tou25 a 325 Hiz08 § auBsT 13691 1H S86 tosat ap 72937 tate 13 stan Ree",
+          "cells": {}
+        },
+        {
+          "row_index": 10,
+          "row_label": "11",
+          "raw_text": "27m 11225 2am Fora as 34M 12349 251500 13TH AN Ga3s6 Hse ay T4929 T9830 we tag? Tan",
+          "cells": {}
+        },
+        {
+          "row_index": 11,
+          "row_label": "12",
+          "raw_text": "8 M6 yea 29962 1050 dogs HHO mB «SDD aks MH GOTI | Sz8a BH TsRae 2105 20 eaBor 1737",
+          "cells": {}
+        },
+        {
+          "row_index": 12,
+          "row_label": "13",
+          "raw_text": "sos a tarts 24529 font me antes tanan @@ Sasay tao? go Ta00e taeae ab cana? tem at set a8",
+          "cells": {}
+        },
+        {
+          "row_index": 13,
+          "row_label": "14",
+          "raw_text": "S110 6s 124923680 nat ge ote 1400 66 Samos t40s0 3 Tne? tans a2 caste 1a5i7 90 forma tat",
+          "cells": {}
+        },
+        {
+          "row_index": 14,
+          "row_label": "15",
+          "raw_text": "Me 13732 Psyd5 MisN) mA ADK 14009 Be GMD 40D Fe TStMG sare1 TH Boras $1000 @@ toae7 ante",
+          "cells": {}
+        },
+        {
+          "row_index": 15,
+          "row_label": "16",
+          "raw_text": "aoe as viene paves aizr aa 4201 150mm GONE 2G] HH Tone Taras a otter tang es TOatat stat",
+          "cells": {}
+        },
+        {
+          "row_index": 16,
+          "row_label": "17",
+          "raw_text": "ae sa 77 1255128640 19050 od OD tant ge 63KOD Shon ap aorzs tate TH paszn tan0s rs 100% 124s",
+          "cells": {}
+        },
+        {
+          "row_index": 17,
+          "row_label": "18",
+          "raw_text": "a1 182) 2190) sora mua 1516 30 Sod 13047 az aNzE Ta52K ap aanes Tante 36 estan 2084",
+          "cells": {}
+        },
+        {
+          "row_index": 18,
+          "row_label": "19",
+          "raw_text": "22 6 12245 23nA7 V9601 674539 9TH Th Sab22 taped G]THEMA tS as Saeed 12840 as ToOnaS 12048",
+          "cells": {}
+        },
+        {
+          "row_index": 19,
+          "row_label": "20",
+          "raw_text": "40 3 55 1700 2365 t15%3 Go 3sna7 12072 ap Sati Seak 773196 13825 G8 9onsD sant gs fO4tz0 1300",
+          "cells": {}
+        },
+        {
+          "row_index": 20,
+          "row_label": "21",
+          "raw_text": "38 4 $3 14239 25500 $1223 aS 44027 12425 Fe onziNassd Ga PazaT 1378 ea 9stOS tanaD 7B th0Tae 13Eae",
+          "cells": {}
+        },
+        {
+          "row_index": 21,
+          "row_label": "22",
+          "raw_text": "Ge 5 m1 sgnse zante tar2e an 45500 13604 Os 6201 SADA] a Oanay taTae ne 9msas asa aD Hheoae Tati",
+          "cells": {}
+        },
+        {
+          "row_index": 22,
+          "row_label": "23",
+          "raw_text": "ion 3: Med",
+          "cells": {}
+        },
+        {
+          "row_index": 23,
+          "row_label": "24",
+          "raw_text": "a1 7 1004921099 nose te 3037 NTS HH Asta8 13001 12 oles 088 8 TORK tomar to BIRO 0N88",
+          "cells": {}
+        },
+        {
+          "row_index": 24,
+          "row_label": "25",
+          "raw_text": "62 2 me sas 2774s $9508 at 39820 Hos az Aaete ssa 43 Sshaa toeat fH 7orsE ones 8 aztsa ter?",
+          "cells": {}
+        },
+        {
+          "row_index": 25,
+          "row_label": "26",
+          "raw_text": "9 3 a7 tress 22235 torst Bt Sarsy vis $1657 13900 a8 Gate tis2 He 7a7aD asm te nares 14010",
+          "cells": {}
+        },
+        {
+          "row_index": 26,
+          "row_label": "27",
+          "raw_text": "M4 Me ez 22210 horas ay 3azor 13057 mF Sts Yante m Gani7 ta0si bs Tani? ta7eD a Goat taste",
+          "cells": {}
+        },
+        {
+          "row_index": 27,
+          "row_label": "28",
+          "raw_text": "Go a4 tira 25055 t4395 st aan So a4 Sot] sass 47 Ganae fanz ag BONN 124 23 9zTAT 12401",
+          "cells": {}
+        },
+        {
+          "row_index": 28,
+          "row_label": "29",
+          "raw_text": "6 4 11795 24029 1254 70 35838 607 as 82050 S95 as Gaga SNM 29 8920 ara 39 95KaT 1087",
+          "cells": {}
+        },
+        {
+          "row_index": 29,
+          "row_label": "30",
+          "raw_text": "S57 9 S088 21300 toss 43 33019 740 43 SION t9982 49 Sanat 14820 20 GtTaD. atiD a7 9aEot 12011",
+          "cells": {}
+        },
+        {
+          "row_index": 30,
+          "row_label": "31",
+          "raw_text": "48 a7 s0eas 2arse osnze mo 336m teen we 52120 teas 90 uo 24st aT 81000 tse2 as badass",
+          "cells": {}
+        },
+        {
+          "row_index": 31,
+          "row_label": "32",
+          "raw_text": "2 0 Mo viszs zane tnt 3B aasst 12215 9452612 teat Porae tanta a azan aM a Based Zit",
+          "cells": {}
+        },
+        {
+          "row_index": 32,
+          "row_label": "33",
+          "raw_text": "7 10 as ieee 21935 to51 2 3540 13405 ay a2] MOD AG 7002 12ND BaD Ta gk Sabie OTST",
+          "cells": {}
+        },
+        {
+          "row_index": 33,
+          "row_label": "34",
+          "raw_text": "a7 sy ta asge zaszz rand ot 35725 12108 ay 3121 1855 7OOS tats ae aus) tae ak estat 12TH",
+          "cells": {}
+        },
+        {
+          "row_index": 34,
+          "row_label": "35",
+          "raw_text": "a BNO 22128 tor S15 Siem a5 siz tasa7 M1 ato taaue aa panos atte",
+          "cells": {}
+        },
+        {
+          "row_index": 35,
+          "row_label": "36",
+          "raw_text": "B13 bo via 23106 T4755 GB 35820 t27te ag SOY Fase TSR tarsi at ama 12te@ a7 baree 124%",
+          "cells": {}
+        },
+        {
+          "row_index": 36,
+          "row_label": "37",
+          "raw_text": "9 M4 38 4500 Pirat toast tg 3o3e 1640 to Sted Sasa a7 Guan 19937 a2 ezdat aT 34 YoonG) 13028",
+          "cells": {}
+        },
+        {
+          "row_index": 37,
+          "row_label": "38",
+          "raw_text": "a8 18 so 12195 2204 tora 47 4001 13105 61 Sas00 Sanat aa Fantt Saas a4 aabab 2057 q@ foOntT 11820",
+          "cells": {}
+        },
+        {
+          "row_index": 38,
+          "row_label": "39",
+          "raw_text": "851 a utes? 22628 tet ab 35340 12615 4] S5t30 20047 aa 74790 49300 Me natze 138m a? Toons tzu",
+          "cells": {}
+        },
+        {
+          "row_index": 39,
+          "row_label": "40",
+          "raw_text": "M7 eh 12220 7287 tossh MM Hom 1921 G2 SAM aM HY 72090 TarHe so RapeD 9tM aa totean varus",
+          "cells": {}
+        },
+        {
+          "row_index": 40,
+          "row_label": "41",
+          "raw_text": "Ye 10 Gh zes3 22087 Toren ay Suara teas Mt ras3aeat Me roege tarts ot osngo aaa gr tesete tases",
+          "cells": {}
+        },
+        {
+          "row_index": 41,
+          "row_label": "42",
+          "raw_text": "W819 40 10695 2asts 12240 49 35082 2207 36 Sari Su6a7 sa Pata sapat SH eSTSS 362 se T0289 12538",
+          "cells": {}
+        },
+        {
+          "row_index": 42,
+          "row_label": "43",
+          "raw_text": "7 20 a 1308229637 10527 a ont 13515 G2 Sunt) 19910 ap 72016 Haron aa eamts 1300) a T0282 13953",
+          "cells": {}
+        },
+        {
+          "row_index": 43,
+          "row_label": "44",
+          "raw_text": "18:25 ae 13640 29428 os73y op 3sse 12090 ae 27m tae MS PIIAT tates 4] Beaed H9037 a8 TOES ADE",
+          "cells": {}
+        },
+        {
+          "row_index": 44,
+          "row_label": "45",
+          "raw_text": "% 2 67 12529 23050 10530 52 KoMCH T3308 67 $3020 13521 a] 7073 tape a7 OSI? sanes at 102882 13535",
+          "cells": {}
+        },
+        {
+          "row_index": 45,
+          "row_label": "46",
+          "raw_text": "2 $4059 25631 TR 2 ora THD GO Sara] tuts Se T20sH Haste ah soRtD Tan go toca t0u8",
+          "cells": {}
+        },
+        {
+          "row_index": 46,
+          "row_label": "47",
+          "raw_text": "6 24 ae $3440 30NA7 12707 st 4aoso 1482 9 tem 128t0 7H Passk 127s Ga 91809 T9018 Jo toaned tH03e",
+          "cells": {}
+        },
+        {
+          "row_index": 47,
+          "row_label": "48",
+          "raw_text": "ba 2 aa S172 22122 YOUN a7 Sa7ud 52522 43 SSRIS BOT 4 7azdo 43425 G]euetD 12930 og toad $4024",
+          "cells": {}
+        },
+        {
+          "row_index": 48,
+          "row_label": "49",
+          "raw_text": "70 2 m9 $1095 245K 10425 45 «S960 S984 a4 Senge SanaT aa 72119 tagar a2 SoesE Tazz az fo3ee2 19227",
+          "cells": {}
+        },
+        {
+          "row_index": 49,
+          "row_label": "50",
+          "raw_text": "2 63 saps 24624 19538 794121812554 G4 —GOMG 14920 GS T3547 ta7aT G4 60810 19023 we 10KRSD 12549",
+          "cells": {}
+        },
+        {
+          "row_index": 50,
+          "row_label": "51",
+          "raw_text": "2 7 12750 24129 HB) TE N92} 13NSE GE GOT LAROT GA 72H 408 GF B60 tae M4 S0ADGT 12817",
+          "cells": {}
+        },
+        {
+          "row_index": 51,
+          "row_label": "52",
+          "raw_text": "26 20 se 202720137 14110 oe 35522 1245 4S OSH 20850 ae PattY t35s9 ee ort aaa a? t0dead 138",
+          "cells": {}
+        },
+        {
+          "row_index": 52,
+          "row_label": "53",
+          "raw_text": "7 90 re 12525 30zas 1342) 92 4aGts 12127 M602 nonaT we Tssz2 12640 Te Ga4sD t3eaB M4 «1050S 1808",
+          "cells": {}
+        },
+        {
+          "row_index": 53,
+          "row_label": "54",
+          "raw_text": "so 31 ae vives zeae Taree am a2ste 13893 TH ona HarzT ae Passo Gael! 72 guns tase Te Tosete 13120",
+          "cells": {}
+        },
+        {
+          "row_index": 54,
+          "row_label": "55",
+          "raw_text": "we 32 Mt 3322 22459 HIST a4 38ST SDH $0 SaDMd SaDST a7 74020 STAI GEORGE S238 Gs YO5RI TaS28",
+          "cells": {}
+        },
+        {
+          "row_index": 55,
+          "row_label": "56",
+          "raw_text": "B33 4 14605 3451813013 as Soom t5tso 84 Azo Hans5 at bioee tanao co eanas 27a Te T0sba7 12190,",
+          "cells": {}
+        },
+        {
+          "row_index": 56,
+          "row_label": "57",
+          "raw_text": "42m 7 12605 25089 taste am doze 12731 Fe ane aaa ay Porat tas Ga 9MROT 128M8 at HH0800 BOTH",
+          "cells": {}
+        },
+        {
+          "row_index": 57,
+          "row_label": "58",
+          "raw_text": "e435 e7 33520 Dara vans? gt 4268919741 78 GTM 20255 OS 82920 15ST wo Goa SOND Te HhtEaa 12058",
+          "cells": {}
+        },
+        {
+          "row_index": 58,
+          "row_label": "59",
+          "raw_text": "77 9% ee 2515 2as2t_ 1200 77 42559 14029 G0 64216 S623 72 7ar30 95M TO Some NS8GE Te Th2et8\" 13555",
+          "cells": {}
+        },
+        {
+          "row_index": 59,
+          "row_label": "60",
+          "raw_text": "S237 7 izea7 22777 oma aw 4oLT Is SBMS 219M TE O1042 T4800 Jo 9sros ez) a tta802 12887",
+          "cells": {}
+        },
+        {
+          "row_index": 60,
+          "row_label": "61",
+          "raw_text": "zo 38 th 13228 24125 Too 44273 GO) ea GBD SSD 7381820 2eDMd OD EON aes wy Traot Tans",
+          "cells": {}
+        },
+        {
+          "row_index": 61,
+          "row_label": "62",
+          "raw_text": "B99 M4 15620 Pansy 1243 71 ieIB 1331 GB «G35 ZONK a2 ABST ZORR M HO1027 9658 we tras? ta20",
+          "cells": {}
+        },
+        {
+          "row_index": 62,
+          "row_label": "63",
+          "raw_text": "so 2 127000 2am 45 HS 41SI 13S a7 BYPs zouaT 77 ate 2a ta TOOrM) Haat a H12e57 t2E8T",
+          "cells": {}
+        },
+        {
+          "row_index": 63,
+          "row_label": "64",
+          "raw_text": "40 Se Hsh24 39357 asm se Sons sae sa GapoT Sats a2 Ga1z0 sat oa Hoes aTss oy t20e90 12982",
+          "cells": {}
+        },
+        {
+          "row_index": 64,
+          "row_label": "65",
+          "raw_text": "422 1 19004 73549 tose GA 470M ASH 77 «G84 2045 BE 8552 67OD wo HOIST 49s go T2ORST tasat",
+          "cells": {}
+        },
+        {
+          "row_index": 65,
+          "row_label": "66",
+          "raw_text": "Go «3 om 1265325705 15000 a azo44 tanae oh Satur 20550 att30 toned at f0OE0) 15730 a tEonst D00st",
+          "cells": {}
+        },
+        {
+          "row_index": 66,
+          "row_label": "67",
+          "raw_text": "45 4 op 15158 30042 sa7as 3 5073S t57s) 99 7aba2 20047 a antsy tanta wp TOTO 40st a HEaD4? S489",
+          "cells": {}
+        },
+        {
+          "row_index": 67,
+          "row_label": "68",
+          "raw_text": "74s 92 14022 Ponso 182d a8 50886 21005 H6—7ATHD. 200 BS BSDED 42D BH HOSEA SKIT aa TBSMe 20838",
+          "cells": {}
+        },
+        {
+          "row_index": 68,
+          "row_label": "69",
+          "raw_text": "65 46 sz tsoar 3puzziaas ay aso tui ot Tutsi 216i me etps2 | 2oeat ge Ttaeae aura a8 T8080T 1382T",
+          "cells": {}
+        },
+        {
+          "row_index": 69,
+          "row_label": "70",
+          "raw_text": "so 47 75 12899 24002 Wiha) Ga coara 1zMit Se Sons 5600 a2 75H Sto TB °",
+          "cells": {}
+        },
+        {
+          "row_index": 70,
+          "row_label": "71",
+          "raw_text": "rion Corporate",
+          "cells": {}
+        },
+        {
+          "row_index": 71,
+          "row_label": "72",
+          "raw_text": "Tat as $1202 27288 Ost 2 34207 T9ONS ae Assur Mean 8 e202 BAM TaIa2 tHe) a BaeaT TH08D",
+          "cells": {}
+        },
+        {
+          "row_index": 72,
+          "row_label": "73",
+          "raw_text": "S22 M9 soz 2157 tosor we 39:16 14559 ta soos taa7 M4 Goad zea? 7 aos 2048 aH oasee 12018",
+          "cells": {}
+        },
+        {
+          "row_index": 73,
+          "row_label": "74",
+          "raw_text": "23 5 teed 22425 04s 33 star t0a7 a2 Sass arse ag 74130 ta0aK HB Sango teas Hh 95987t289t",
+          "cells": {}
+        },
+        {
+          "row_index": 74,
+          "row_label": "75",
+          "raw_text": "Go 4 se 120s amas 41250 se 35037 Nou 38 S340 Hatt ay Treat 10S 49 GabSD 13882 ae HONKHH 12798",
+          "cells": {}
+        },
+        {
+          "row_index": 75,
+          "row_label": "76",
+          "raw_text": "Dison pn Shoo Boys",
+          "cells": {}
+        },
+        {
+          "row_index": 76,
+          "row_label": "77",
+          "raw_text": "Tt 8 sOrsd NSTI 08524 § 30359 tomge 7 NaI? ten @ S275) 10005 § amar Hose 8 Tanst 14000",
+          "cells": {}
+        },
+        {
+          "row_index": 77,
+          "row_label": "78",
+          "raw_text": "2 15 065s 2044s osha 9 M37 M2 AY Maes 127 40 GODT TASK 42 THUD Hse 1H zEHa | H0800",
+          "cells": {}
+        },
+        {
+          "row_index": 78,
+          "row_label": "79",
+          "raw_text": "2 3 4 oosn ase tyrte 37 34220 14015 2852100 Sanat am Gants 12745 barton tne ae eabte 12007",
+          "cells": {}
+        },
+        {
+          "row_index": 79,
+          "row_label": "80",
+          "raw_text": "S34 70 20a 25540 10455 a7 donee 13801 Gt A299. Haz4o ab 74055 t2naa be bans aea0 a2 SunsO 1728",
+          "cells": {}
+        },
+        {
+          "row_index": 80,
+          "row_label": "81",
+          "raw_text": "% 5 e222 24020 1046 76 AtSED 1949-70 SLID 19540 SA 7aOT Ya8K a7 GaDOL tone az toteaD tate",
+          "cells": {}
+        },
+        {
+          "row_index": 81,
+          "row_label": "82",
+          "raw_text": "Mot 2 OS7H0 15262 05452 3 25516 19416 3 ano S420 9 SItSS Yanor 3 BYEo2 so4e 9 72te2r0800",
+          "cells": {}
+        },
+        {
+          "row_index": 82,
+          "row_label": "83",
+          "raw_text": "22 6 toss 1570s OSGI 4 Suns osm «§ Atsso tM $52 tos 4 62E08 Ta 4 TaDOe 10188",
+          "cells": {}
+        },
+        {
+          "row_index": 83,
+          "row_label": "84",
+          "raw_text": "63 § 00a 20107 Soot 7 Sos48 T0939 6 ea3qD HOHE 7 Sanak HtSek 7 GabO 0921775029 10524",
+          "cells": {}
+        },
+        {
+          "row_index": 84,
+          "row_label": "85",
+          "raw_text": "A 4 sy 2008 25559 THOS os t83E tats 73 ars 4919 TO Task tzzs9 66 0uBS0 11850 a TO2R 1324",
+          "cells": {}
+        },
+        {
+          "row_index": 85,
+          "row_label": "86",
+          "raw_text": "re ee er",
+          "cells": {}
+        },
+        {
+          "row_index": 86,
+          "row_label": "87",
+          "raw_text": "2 me star Bios soozt me aise tation as Sa3ca tara 2 Gsazt tante 8 aaese tanya e237 1270",
+          "cells": {}
+        },
+        {
+          "row_index": 87,
+          "row_label": "88",
+          "raw_text": "3309 i235 Puts tinal a4 AtTI2 1455872 62229 20517 w) OzmOT 20538 go FONTS aDOE a N2AST UNDKR",
+          "cells": {}
+        },
+        {
+          "row_index": 88,
+          "row_label": "89",
+          "raw_text": "14 74259",
+          "cells": {}
+        },
+        {
+          "row_index": 89,
+          "row_label": "90",
+          "raw_text": "12 1 M8 ore7 20060 12022 am 4054S 19598 SH AID 19525 at Tarde Yunan 69 asTas 12058 a SOaTSK 13008",
+          "cells": {}
+        },
+        {
+          "row_index": 90,
+          "row_label": "91",
+          "raw_text": "wale",
+          "cells": {}
+        },
+        {
+          "row_index": 91,
+          "row_label": "92",
+          "raw_text": "ee ee er ee er er",
+          "cells": {}
+        },
+        {
+          "row_index": 92,
+          "row_label": "93",
+          "raw_text": "ao 2s 13055 9007 12612 G0 49689 13845 a7 GOTT DTS 702125 NSNIS a7 85040 1354 BL TTADI0 14838",
+          "cells": {}
+        },
+        {
+          "row_index": 93,
+          "row_label": "94",
+          "raw_text": "on",
+          "cells": {}
+        },
+        {
+          "row_index": 94,
+          "row_label": "95",
+          "raw_text": "rr ee er ee ee ee rr",
+          "cells": {}
+        },
+        {
+          "row_index": 95,
+          "row_label": "96",
+          "raw_text": "bo 2 ft toss 2tez9 14050 fe ganz2 tansy 5 2100 2140 79 emmy 5027 ws fOIOS tase a THIS LO",
+          "cells": {}
+        },
+        {
+          "row_index": 96,
+          "row_label": "97",
+          "raw_text": "we 3 ae 1342 32020 Sas0s He SSID 13544 $0 71995 THN 86 GNM 202 HE HOa60! 19K17 a2 2220 19610",
+          "cells": {}
+        },
+        {
+          "row_index": 97,
+          "row_label": "98",
+          "raw_text": "Bt te oz 22015 19059 ae 39325 1401 48 10ND H847 mo Gand MHeaT Ye TonsT 12tI M7 81059 HH980",
+          "cells": {}
+        },
+        {
+          "row_index": 98,
+          "row_label": "99",
+          "raw_text": "BB 2 43 sooty ast35 $002 tH 32500 M927 42 eased 13138 te 6254s T2908 AS Fors? sata as 9170) 1048",
+          "cells": {}
+        },
+        {
+          "row_index": 99,
+          "row_label": "100",
+          "raw_text": "3 a sisie a2zt4 10586 30 35202 T204B a7 SN 10M ab GaetT T2304 2M BoDM SSR OTBSTTaTa8",
+          "cells": {}
+        },
+        {
+          "row_index": 100,
+          "row_label": "101",
+          "raw_text": "4 $5 tua 362 tote a7 san2i trio f7 szzm6 Yuais 91 usa 2258 a5 2631 Stoo 30 Tome) 13400",
+          "cells": {}
+        },
+        {
+          "row_index": 101,
+          "row_label": "102",
+          "raw_text": "tS ee tasae 22752 tant a2 AON 19823 SHI Om a2 TH247 N91 89547 12300 4a OGRE? 12670",
+          "cells": {}
+        },
+        {
+          "row_index": 102,
+          "row_label": "103",
+          "raw_text": "7 Ge 12205 22707 toso1 ae 3a7OI S957 9259737 SSO 98 75297 S500 SO Sora! 12006 Sa To2s47 12408",
+          "cells": {}
+        },
+        {
+          "row_index": 103,
+          "row_label": "104",
+          "raw_text": "te 7 me tty 29150 14040 as 41436 tanon @) stay osu as 75425 DMIs 76 8499 1958 O92 Tzz",
+          "cells": {}
+        },
+        {
+          "row_index": 104,
+          "row_label": "105",
+          "raw_text": "fe 0 7 12090 23730 tora] osm t2ra5 &8 Sum 15427 TAGE 14826 7 OS05 12055 oF ITH 12200",
+          "cells": {}
+        },
+        {
+          "row_index": 105,
+          "row_label": "106",
+          "raw_text": "70 8 70 12604 24nd 12000 40 41919 12695 es 62525 21207 ta BISCO 15037 AB NOOBS! 15243 aS HTSRSBSaSc7",
+          "cells": {}
+        },
+        {
+          "row_index": 106,
+          "row_label": "107",
+          "raw_text": "roses 04denr crane ssnawacsets ruareeacuessier ene",
+          "cells": {}
+        },
+        {
+          "row_index": 107,
+          "row_label": "108",
+          "raw_text": "seam 2 eam Kansan woucowe eiunieca Qucisher! 90 So Tahoe SA",
+          "cells": {}
+        },
+        {
+          "row_index": 108,
+          "row_label": "109",
+          "raw_text": "aH steam Sab “7 cneo Sige Senos ‘aMecninee team Tate",
+          "cells": {}
+        },
+        {
+          "row_index": 109,
+          "row_label": "110",
+          "raw_text": "soeam erase ‘eugiinng Seba Toney Haoer 29ste0",
+          "cells": {}
+        },
+        {
+          "row_index": 110,
+          "row_label": "111",
+          "raw_text": "sano rious 8 “do Pontaroe Senses rts save med",
+          "cells": {}
+        },
+        {
+          "row_index": 111,
+          "row_label": "112",
+          "raw_text": "sare BeteomWeonty ‘oes canine Rewy 7aRsc ars ties Ber Nae",
+          "cells": {}
+        },
+        {
+          "row_index": 112,
+          "row_label": "113",
+          "raw_text": "7 Sha Me Ste bard 51¥0u Con Runt cant ow Eneps $5YV Gossenes",
+          "cells": {}
+        },
+        {
+          "row_index": 113,
+          "row_label": "114",
+          "raw_text": "suse 3oLoey coe ‘Roxane WS ies Co Stents s0N0 Tae HS",
+          "cells": {}
+        },
+        {
+          "row_index": 114,
+          "row_label": "115",
+          "raw_text": "steam 10H Seat ‘beta Than cota, suerward 6 97 cept aes",
+          "cells": {}
+        },
+        {
+          "row_index": 115,
+          "row_label": "116",
+          "raw_text": "10s Lass Seances ‘tion Sere To eeu",
+          "cells": {}
+        },
+        {
+          "row_index": 116,
+          "row_label": "117",
+          "raw_text": "fine BITRE Engen sate fensTe 7700 Fests",
+          "cells": {}
+        },
+        {
+          "row_index": 117,
+          "row_label": "118",
+          "raw_text": "12 Sep Team Buen S60 sen and 8 Manes",
+          "cells": {}
+        },
+        {
+          "row_index": 118,
+          "row_label": "119",
+          "raw_text": "nies steam cana ‘7a Peers zeus Zh",
+          "cells": {}
+        },
+        {
+          "row_index": 119,
+          "row_label": "120",
+          "raw_text": "“i Quest S00 docTusee osm Werden",
+          "cells": {}
+        },
+        {
+          "row_index": 120,
+          "row_label": "121",
+          "raw_text": "ssh 27 Srna Ce soGvivahyies 1 Rough chs of Co",
+          "cells": {}
+        },
+        {
+          "row_index": 121,
+          "row_label": "122",
+          "raw_text": "sReoneny saQeeisene Ran coo Tues Rue e20more 8",
+          "cells": {}
+        },
+        {
+          "row_index": 122,
+          "row_label": "123",
+          "raw_text": "Paste effete rin crower 2016076 A",
+          "cells": {}
+        },
+        {
+          "row_index": 123,
+          "row_label": "124",
+          "raw_text": "shegang sooner Ran e200 Fyn Sine aH Fn en",
+          "cells": {}
+        },
+        {
+          "row_index": 124,
+          "row_label": "125",
+          "raw_text": "soMins sponte 3.0. Matas tLe ‘stars Pur Speers",
+          "cells": {}
+        },
+        {
+          "row_index": 125,
+          "row_label": "126",
+          "raw_text": "mote ne “aus iecond xt Tooe ay H0 Puy Pees",
+          "cells": {}
+        },
+        {
+          "row_index": 126,
+          "row_label": "127",
+          "raw_text": "Pade ‘aT ici Rotor Too 7H lees at Goosen",
+          "cells": {}
+        },
+        {
+          "row_index": 127,
+          "row_label": "128",
+          "raw_text": "z2seensi exer Pra! oream Out Gas enon Dogs",
+          "cells": {}
+        }
+      ],
+      "text": "2002\nTon Pe PoceTTineLeg Tine LepTine Pica Tene tapTina aca Tine Lap Tina Pico Tne Leg Time Pike Tene LagTine Pca Tint Lag Tina\numes Ow L93 Lagi eg Len? Uepz Leo Lap LapSLage Lap Let LagS Lap Lap Lag Lag Lanny? kag?\nvision Open en\not 1 08525 47s oat 4 24525 osnay 4 34088 ora 4 Aspe Toso 2 Geman Term 1 Tos toe\nM2 4 oss 49st ososr 2 Dagse osn2n «2 35nte tane2 2 asrst toa9 t Goned tanee 2 Teeue T0089\nS73 7 toro» orm osos2 6 30038 csn25 4 atuar 11951 4 Sane MTar@ Garte THBt2 8 Tstad 108m\na 4 a8 10837 pied Oger a2 ast ona to 4atat teas 8 Sasse t4es7 @ estay eee 8 Panon 1048\n2 8 tH 20545 Oto 40 31040 045s 8 es0ce 1925855582 12548 4 THRO! 12809 Ha BAOAT s0h8\nso © 3 05723 ora tou25 a 325 Hiz08 § auBsT 13691 1H S86 tosat ap 72937 tate 13 stan Ree\n27m 11225 2am Fora as 34M 12349 251500 13TH AN Ga3s6 Hse ay T4929 T9830 we tag? Tan\n8 M6 yea 29962 1050 dogs HHO mB «SDD aks MH GOTI | Sz8a BH TsRae 2105 20 eaBor 1737\nsos a tarts 24529 font me antes tanan @@ Sasay tao? go Ta00e taeae ab cana? tem at set a8\nS110 6s 124923680 nat ge ote 1400 66 Samos t40s0 3 Tne? tans a2 caste 1a5i7 90 forma tat\nMe 13732 Psyd5 MisN) mA ADK 14009 Be GMD 40D Fe TStMG sare1 TH Boras $1000 @@ toae7 ante\naoe as viene paves aizr aa 4201 150mm GONE 2G] HH Tone Taras a otter tang es TOatat stat\nae sa 77 1255128640 19050 od OD tant ge 63KOD Shon ap aorzs tate TH paszn tan0s rs 100% 124s\na1 182) 2190) sora mua 1516 30 Sod 13047 az aNzE Ta52K ap aanes Tante 36 estan 2084\n22 6 12245 23nA7 V9601 674539 9TH Th Sab22 taped G]THEMA tS as Saeed 12840 as ToOnaS 12048\n40 3 55 1700 2365 t15%3 Go 3sna7 12072 ap Sati Seak 773196 13825 G8 9onsD sant gs fO4tz0 1300\n38 4 $3 14239 25500 $1223 aS 44027 12425 Fe onziNassd Ga PazaT 1378 ea 9stOS tanaD 7B th0Tae 13Eae\nGe 5 m1 sgnse zante tar2e an 45500 13604 Os 6201 SADA] a Oanay taTae ne 9msas asa aD Hheoae Tati\nion 3: Med\na1 7 1004921099 nose te 3037 NTS HH Asta8 13001 12 oles 088 8 TORK tomar to BIRO 0N88\n62 2 me sas 2774s $9508 at 39820 Hos az Aaete ssa 43 Sshaa toeat fH 7orsE ones 8 aztsa ter?\n9 3 a7 tress 22235 torst Bt Sarsy vis $1657 13900 a8 Gate tis2 He 7a7aD asm te nares 14010\nM4 Me ez 22210 horas ay 3azor 13057 mF Sts Yante m Gani7 ta0si bs Tani? ta7eD a Goat taste\nGo a4 tira 25055 t4395 st aan So a4 Sot] sass 47 Ganae fanz ag BONN 124 23 9zTAT 12401\n6 4 11795 24029 1254 70 35838 607 as 82050 S95 as Gaga SNM 29 8920 ara 39 95KaT 1087\nS57 9 S088 21300 toss 43 33019 740 43 SION t9982 49 Sanat 14820 20 GtTaD. atiD a7 9aEot 12011\n48 a7 s0eas 2arse osnze mo 336m teen we 52120 teas 90 uo 24st aT 81000 tse2 as badass\n2 0 Mo viszs zane tnt 3B aasst 12215 9452612 teat Porae tanta a azan aM a Based Zit\n7 10 as ieee 21935 to51 2 3540 13405 ay a2] MOD AG 7002 12ND BaD Ta gk Sabie OTST\na7 sy ta asge zaszz rand ot 35725 12108 ay 3121 1855 7OOS tats ae aus) tae ak estat 12TH\na BNO 22128 tor S15 Siem a5 siz tasa7 M1 ato taaue aa panos atte\nB13 bo via 23106 T4755 GB 35820 t27te ag SOY Fase TSR tarsi at ama 12te@ a7 baree 124%\n9 M4 38 4500 Pirat toast tg 3o3e 1640 to Sted Sasa a7 Guan 19937 a2 ezdat aT 34 YoonG) 13028\na8 18 so 12195 2204 tora 47 4001 13105 61 Sas00 Sanat aa Fantt Saas a4 aabab 2057 q@ foOntT 11820\n851 a utes? 22628 tet ab 35340 12615 4] S5t30 20047 aa 74790 49300 Me natze 138m a? Toons tzu\nM7 eh 12220 7287 tossh MM Hom 1921 G2 SAM aM HY 72090 TarHe so RapeD 9tM aa totean varus\nYe 10 Gh zes3 22087 Toren ay Suara teas Mt ras3aeat Me roege tarts ot osngo aaa gr tesete tases\nW819 40 10695 2asts 12240 49 35082 2207 36 Sari Su6a7 sa Pata sapat SH eSTSS 362 se T0289 12538\n7 20 a 1308229637 10527 a ont 13515 G2 Sunt) 19910 ap 72016 Haron aa eamts 1300) a T0282 13953\n18:25 ae 13640 29428 os73y op 3sse 12090 ae 27m tae MS PIIAT tates 4] Beaed H9037 a8 TOES ADE\n% 2 67 12529 23050 10530 52 KoMCH T3308 67 $3020 13521 a] 7073 tape a7 OSI? sanes at 102882 13535\n2 $4059 25631 TR 2 ora THD GO Sara] tuts Se T20sH Haste ah soRtD Tan go toca t0u8\n6 24 ae $3440 30NA7 12707 st 4aoso 1482 9 tem 128t0 7H Passk 127s Ga 91809 T9018 Jo toaned tH03e\nba 2 aa S172 22122 YOUN a7 Sa7ud 52522 43 SSRIS BOT 4 7azdo 43425 G]euetD 12930 og toad $4024\n70 2 m9 $1095 245K 10425 45 «S960 S984 a4 Senge SanaT aa 72119 tagar a2 SoesE Tazz az fo3ee2 19227\n2 63 saps 24624 19538 794121812554 G4 —GOMG 14920 GS T3547 ta7aT G4 60810 19023 we 10KRSD 12549\n2 7 12750 24129 HB) TE N92} 13NSE GE GOT LAROT GA 72H 408 GF B60 tae M4 S0ADGT 12817\n26 20 se 202720137 14110 oe 35522 1245 4S OSH 20850 ae PattY t35s9 ee ort aaa a? t0dead 138\n7 90 re 12525 30zas 1342) 92 4aGts 12127 M602 nonaT we Tssz2 12640 Te Ga4sD t3eaB M4 «1050S 1808\nso 31 ae vives zeae Taree am a2ste 13893 TH ona HarzT ae Passo Gael! 72 guns tase Te Tosete 13120\nwe 32 Mt 3322 22459 HIST a4 38ST SDH $0 SaDMd SaDST a7 74020 STAI GEORGE S238 Gs YO5RI TaS28\nB33 4 14605 3451813013 as Soom t5tso 84 Azo Hans5 at bioee tanao co eanas 27a Te T0sba7 12190,\n42m 7 12605 25089 taste am doze 12731 Fe ane aaa ay Porat tas Ga 9MROT 128M8 at HH0800 BOTH\ne435 e7 33520 Dara vans? gt 4268919741 78 GTM 20255 OS 82920 15ST wo Goa SOND Te HhtEaa 12058\n77 9% ee 2515 2as2t_ 1200 77 42559 14029 G0 64216 S623 72 7ar30 95M TO Some NS8GE Te Th2et8\" 13555\nS237 7 izea7 22777 oma aw 4oLT Is SBMS 219M TE O1042 T4800 Jo 9sros ez) a tta802 12887\nzo 38 th 13228 24125 Too 44273 GO) ea GBD SSD 7381820 2eDMd OD EON aes wy Traot Tans\nB99 M4 15620 Pansy 1243 71 ieIB 1331 GB «G35 ZONK a2 ABST ZORR M HO1027 9658 we tras? ta20\nso 2 127000 2am 45 HS 41SI 13S a7 BYPs zouaT 77 ate 2a ta TOOrM) Haat a H12e57 t2E8T\n40 Se Hsh24 39357 asm se Sons sae sa GapoT Sats a2 Ga1z0 sat oa Hoes aTss oy t20e90 12982\n422 1 19004 73549 tose GA 470M ASH 77 «G84 2045 BE 8552 67OD wo HOIST 49s go T2ORST tasat\nGo «3 om 1265325705 15000 a azo44 tanae oh Satur 20550 att30 toned at f0OE0) 15730 a tEonst D00st\n45 4 op 15158 30042 sa7as 3 5073S t57s) 99 7aba2 20047 a antsy tanta wp TOTO 40st a HEaD4? S489\n74s 92 14022 Ponso 182d a8 50886 21005 H6—7ATHD. 200 BS BSDED 42D BH HOSEA SKIT aa TBSMe 20838\n65 46 sz tsoar 3puzziaas ay aso tui ot Tutsi 216i me etps2 | 2oeat ge Ttaeae aura a8 T8080T 1382T\nso 47 75 12899 24002 Wiha) Ga coara 1zMit Se Sons 5600 a2 75H Sto TB °\nrion Corporate\nTat as $1202 27288 Ost 2 34207 T9ONS ae Assur Mean 8 e202 BAM TaIa2 tHe) a BaeaT TH08D\nS22 M9 soz 2157 tosor we 39:16 14559 ta soos taa7 M4 Goad zea? 7 aos 2048 aH oasee 12018\n23 5 teed 22425 04s 33 star t0a7 a2 Sass arse ag 74130 ta0aK HB Sango teas Hh 95987t289t\nGo 4 se 120s amas 41250 se 35037 Nou 38 S340 Hatt ay Treat 10S 49 GabSD 13882 ae HONKHH 12798\nDison pn Shoo Boys\nTt 8 sOrsd NSTI 08524 § 30359 tomge 7 NaI? ten @ S275) 10005 § amar Hose 8 Tanst 14000\n2 15 065s 2044s osha 9 M37 M2 AY Maes 127 40 GODT TASK 42 THUD Hse 1H zEHa | H0800\n2 3 4 oosn ase tyrte 37 34220 14015 2852100 Sanat am Gants 12745 barton tne ae eabte 12007\nS34 70 20a 25540 10455 a7 donee 13801 Gt A299. Haz4o ab 74055 t2naa be bans aea0 a2 SunsO 1728\n% 5 e222 24020 1046 76 AtSED 1949-70 SLID 19540 SA 7aOT Ya8K a7 GaDOL tone az toteaD tate\nMot 2 OS7H0 15262 05452 3 25516 19416 3 ano S420 9 SItSS Yanor 3 BYEo2 so4e 9 72te2r0800\n22 6 toss 1570s OSGI 4 Suns osm «§ Atsso tM $52 tos 4 62E08 Ta 4 TaDOe 10188\n63 § 00a 20107 Soot 7 Sos48 T0939 6 ea3qD HOHE 7 Sanak HtSek 7 GabO 0921775029 10524\nA 4 sy 2008 25559 THOS os t83E tats 73 ars 4919 TO Task tzzs9 66 0uBS0 11850 a TO2R 1324\nre ee er\n2 me star Bios soozt me aise tation as Sa3ca tara 2 Gsazt tante 8 aaese tanya e237 1270\n3309 i235 Puts tinal a4 AtTI2 1455872 62229 20517 w) OzmOT 20538 go FONTS aDOE a N2AST UNDKR\n14 74259\n12 1 M8 ore7 20060 12022 am 4054S 19598 SH AID 19525 at Tarde Yunan 69 asTas 12058 a SOaTSK 13008\nwale\nee ee er ee er er\nao 2s 13055 9007 12612 G0 49689 13845 a7 GOTT DTS 702125 NSNIS a7 85040 1354 BL TTADI0 14838\non\nrr ee er ee ee ee rr\nbo 2 ft toss 2tez9 14050 fe ganz2 tansy 5 2100 2140 79 emmy 5027 ws fOIOS tase a THIS LO\nwe 3 ae 1342 32020 Sas0s He SSID 13544 $0 71995 THN 86 GNM 202 HE HOa60! 19K17 a2 2220 19610\nBt te oz 22015 19059 ae 39325 1401 48 10ND H847 mo Gand MHeaT Ye TonsT 12tI M7 81059 HH980\nBB 2 43 sooty ast35 $002 tH 32500 M927 42 eased 13138 te 6254s T2908 AS Fors? sata as 9170) 1048\n3 a sisie a2zt4 10586 30 35202 T204B a7 SN 10M ab GaetT T2304 2M BoDM SSR OTBSTTaTa8\n4 $5 tua 362 tote a7 san2i trio f7 szzm6 Yuais 91 usa 2258 a5 2631 Stoo 30 Tome) 13400\ntS ee tasae 22752 tant a2 AON 19823 SHI Om a2 TH247 N91 89547 12300 4a OGRE? 12670\n7 Ge 12205 22707 toso1 ae 3a7OI S957 9259737 SSO 98 75297 S500 SO Sora! 12006 Sa To2s47 12408\nte 7 me tty 29150 14040 as 41436 tanon @) stay osu as 75425 DMIs 76 8499 1958 O92 Tzz\nfe 0 7 12090 23730 tora] osm t2ra5 &8 Sum 15427 TAGE 14826 7 OS05 12055 oF ITH 12200\n70 8 70 12604 24nd 12000 40 41919 12695 es 62525 21207 ta BISCO 15037 AB NOOBS! 15243 aS HTSRSBSaSc7\nroses 04denr crane ssnawacsets ruareeacuessier ene\nseam 2 eam Kansan woucowe eiunieca Qucisher! 90 So Tahoe SA\naH steam Sab “7 cneo Sige Senos ‘aMecninee team Tate\nsoeam erase ‘eugiinng Seba Toney Haoer 29ste0\nsano rious 8 “do Pontaroe Senses rts save med\nsare BeteomWeonty ‘oes canine Rewy 7aRsc ars ties Ber Nae\n7 Sha Me Ste bard 51¥0u Con Runt cant ow Eneps $5YV Gossenes\nsuse 3oLoey coe ‘Roxane WS ies Co Stents s0N0 Tae HS\nsteam 10H Seat ‘beta Than cota, suerward 6 97 cept aes\n10s Lass Seances ‘tion Sere To eeu\nfine BITRE Engen sate fensTe 7700 Fests\n12 Sep Team Buen S60 sen and 8 Manes\nnies steam cana ‘7a Peers zeus Zh\n“i Quest S00 docTusee osm Werden\nssh 27 Srna Ce soGvivahyies 1 Rough chs of Co\nsReoneny saQeeisene Ran coo Tues Rue e20more 8\nPaste effete rin crower 2016076 A\nshegang sooner Ran e200 Fyn Sine aH Fn en\nsoMins sponte 3.0. Matas tLe ‘stars Pur Speers\nmote ne “aus iecond xt Tooe ay H0 Puy Pees\nPade ‘aT ici Rotor Too 7H lees at Goosen\nz2seensi exer Pra! oream Out Gas enon Dogs\n"
+    }
+  ]
+}
