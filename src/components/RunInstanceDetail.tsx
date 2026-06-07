@@ -104,12 +104,51 @@ const uniqueTags = (tags: string[]) => {
   return [...tagsByKey.values()];
 };
 
+function getRunHistoricalAverageMinutes(
+  legVersionStats: Tables<"v_leg_version_stats">[],
+  legNumber: number,
+  legVersion: number
+) {
+  const legStat = legVersionStats.find(
+    (stat) => stat.leg_number === legNumber && stat.leg_version === legVersion
+  );
+
+  if (!legStat?.total_time || !legStat.runs) {
+    return null;
+  }
+
+  const averageMinutes = legStat.total_time / legStat.runs;
+  return Number.isFinite(averageMinutes) && averageMinutes > 0 ? averageMinutes : null;
+}
+
+function formatAverageDelta(
+  actualMinutes: number | null | undefined,
+  averageMinutes: number | null | undefined
+) {
+  if (!actualMinutes || !averageMinutes) {
+    return "N/A";
+  }
+
+  const deltaMinutes = actualMinutes - averageMinutes;
+  if (!Number.isFinite(deltaMinutes)) {
+    return "N/A";
+  }
+
+  const totalSeconds = Math.round(Math.abs(deltaMinutes) * 60);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  const sign = deltaMinutes > 0 ? "+" : deltaMinutes < 0 ? "−" : "±";
+  const suffix = deltaMinutes > 0 ? " slower" : deltaMinutes < 0 ? " faster" : " on avg";
+
+  return `${sign}${minutes}:${String(seconds).padStart(2, "0")}${suffix}`;
+}
+
 const RunInstanceDetail: React.FC = () => {
   const { runnerName, year, legNumber, version } = useParams({
     from: "/runs/$runnerName/$year/$legNumber/$version",
   });
   const {
-    data: { legDefinitions, legResultObservations, results, yearlySummary },
+    data: { legDefinitions, legResultObservations, legVersionStats, results, yearlySummary },
     loading,
     error,
   } = useRelayData();
@@ -195,6 +234,11 @@ const RunInstanceDetail: React.FC = () => {
   );
   const legDefinition = legDefinitions.find(
     (leg) => leg.number === selectedLegNumber && leg.version === selectedVersion
+  );
+  const legHistoricalAverageMinutes = getRunHistoricalAverageMinutes(
+    legVersionStats,
+    selectedLegNumber,
+    selectedVersion
   );
   const yearlyRace = yearlySummary.find((race) => race.year === selectedYear);
   const observedRunnerId =
@@ -539,6 +583,11 @@ const RunInstanceDetail: React.FC = () => {
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3 lg:grid-cols-4">
             <Metric label="Runner" value={runnerName} icon={<User className="h-4 w-4" />} />
             <Metric label="Lap Time" value={officialResult.lap_time || "N/A"} icon={<Clock className="h-4 w-4" />} />
+            <Metric
+              label="Vs Historical Avg"
+              value={formatAverageDelta(officialResult.time_in_minutes, legHistoricalAverageMinutes)}
+              icon={<Clock className="h-4 w-4" />}
+            />
             <Metric label="Pace" value={formatPace(officialResult.pace || 0)} icon={<Activity className="h-4 w-4" />} />
             <Metric
               label="Grade Adjusted Pace"

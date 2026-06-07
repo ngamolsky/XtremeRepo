@@ -21,6 +21,7 @@ export const LegPill: React.FC<LegPillProps> = ({
         legNumber: leg.toString(),
         version: version.toString(),
       }}
+      aria-label={`View Leg ${leg} v${version} details`}
       className={className}
       onClick={(e) => e.stopPropagation()}
     >

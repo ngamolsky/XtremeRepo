@@ -1,5 +1,5 @@
 import { Link, useParams } from "@tanstack/react-router";
-import { Award, BarChart, ChevronDown, ExternalLink, Map, Users } from "lucide-react";
+import { Award, BarChart, ChevronDown, Clock, ExternalLink, Map, Users } from "lucide-react";
 import React from "react";
 import {
   CartesianGrid,
@@ -43,6 +43,35 @@ const getFallbackCourseUrl = (legNumber: number, version: number) =>
 
 const getFallbackMapEmbedUrl = (legNumber: number, version: number) =>
   version === 2 ? fallbackMapEmbedUrls[legNumber] : undefined;
+
+function getLegHistoricalAverageMinutes(
+  legStat: { runs: number | null; total_time: number | null } | null | undefined
+) {
+  if (!legStat?.total_time || !legStat.runs) {
+    return null;
+  }
+
+  const averageMinutes = legStat.total_time / legStat.runs;
+  return Number.isFinite(averageMinutes) && averageMinutes > 0 ? averageMinutes : null;
+}
+
+function formatDurationFromMinutes(minutes: number | null | undefined) {
+  if (!minutes || !Number.isFinite(minutes)) {
+    return "N/A";
+  }
+
+  const totalSeconds = Math.round(minutes * 60);
+  const hours = Math.floor(totalSeconds / 3600);
+  const remainingSeconds = totalSeconds % 3600;
+  const mins = Math.floor(remainingSeconds / 60);
+  const secs = remainingSeconds % 60;
+
+  if (hours > 0) {
+    return `${hours}:${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+  }
+
+  return `${mins}:${String(secs).padStart(2, "0")}`;
+}
 
 const LegDetail: React.FC = () => {
   const { legNumber, version } = useParams({
@@ -114,6 +143,7 @@ const LegDetail: React.FC = () => {
     legStat?.elevation_gain ??
     legDefinition?.elevation_gain;
   const formattedElevation = formatFeet(displayElevation);
+  const historicalAverageMinutes = getLegHistoricalAverageMinutes(legStat);
 
   // Prepare data for the performance chart
   const performanceData = legData
@@ -215,7 +245,7 @@ const LegDetail: React.FC = () => {
       )}
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
         <StatCard
           detail={bestPaceAttribution}
           icon={<Award className="w-6 h-6 text-yellow-600" />}
@@ -226,6 +256,11 @@ const LegDetail: React.FC = () => {
           icon={<BarChart className="w-6 h-6 text-blue-600" />}
           label="Average Pace"
           value={legStat?.average_pace ? formatPace(legStat.average_pace) : "N/A"}
+        />
+        <StatCard
+          icon={<Clock className="w-6 h-6 text-purple-600" />}
+          label="Historical Average"
+          value={formatDurationFromMinutes(historicalAverageMinutes)}
         />
         <StatCard
           icon={<Map className="w-6 h-6 text-green-600" />}

@@ -23,6 +23,7 @@ import { supabase } from "../lib/supabase";
 import { Tables } from "../types/database.types";
 import Breadcrumbs from "./Breadcrumbs";
 import CommentsSection from "./CommentsSection";
+import { LegPill } from "./LegPill";
 
 type AlbumSummary = Tables<"v_race_photo_album_summary">;
 type RacePhoto = Tables<"race_photos">;
@@ -351,7 +352,19 @@ const RaceDetailView: React.FC = () => {
                   <tbody className="divide-y divide-gray-100 bg-white dark:divide-slate-800 dark:bg-slate-900">
                     {liveProjection.legs.map((leg) => (
                       <tr key={leg.legNumber}>
-                        <td className="px-4 py-3 font-medium text-gray-900 dark:text-slate-100">Leg {leg.legNumber}</td>
+                        <td className="px-4 py-3 font-medium text-gray-900 dark:text-slate-100">
+                          {leg.legVersion ? (
+                            <LegPill
+                              leg={leg.legNumber}
+                              version={leg.legVersion}
+                              className="inline-flex items-center rounded-full bg-primary-50 px-2.5 py-1 text-xs font-semibold text-primary-700 transition-colors hover:bg-primary-100 hover:text-primary-800 dark:bg-primary-950/40 dark:text-primary-200"
+                            >
+                              Leg {leg.legNumber} v{leg.legVersion}
+                            </LegPill>
+                          ) : (
+                            <>Leg {leg.legNumber}</>
+                          )}
+                        </td>
                         <td className="px-4 py-3 text-gray-700 dark:text-slate-300">
                           <span
                             className={`rounded-full px-2.5 py-1 text-xs font-medium ${
@@ -601,17 +614,13 @@ const RaceLegGroupRow: React.FC<{ group: RaceLegGroup; raceYear: number }> = ({
   <div className="grid gap-4 py-5 first:pt-0 last:pb-0 sm:grid-cols-[7rem_minmax(0,1fr)]">
     <div>
       {group.legVersion ? (
-        <Link
-          to="/legs/$legNumber/$version"
-          params={{
-            legNumber: String(group.legNumber),
-            version: String(group.legVersion),
-          }}
-          aria-label={`View Leg ${group.legNumber} v${group.legVersion} details`}
-          className="text-sm font-semibold text-primary-700 hover:text-primary-800"
+        <LegPill
+          leg={group.legNumber}
+          version={group.legVersion}
+          className="inline-flex items-center rounded-full bg-primary-50 px-3 py-1 text-sm font-semibold text-primary-700 transition-colors hover:bg-primary-100 hover:text-primary-800 dark:bg-primary-950/40 dark:text-primary-200"
         >
-          Leg {group.legNumber} (v{group.legVersion})
-        </Link>
+          Leg {group.legNumber} v{group.legVersion}
+        </LegPill>
       ) : (
         <p className="text-sm font-semibold text-gray-900">Leg {group.legNumber}</p>
       )}

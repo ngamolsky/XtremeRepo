@@ -39,6 +39,7 @@ export type RaceResultStatus = {
 
 export type LiveProjectionLeg = {
   legNumber: number;
+  legVersion: number | null;
   minutes: number | null;
   displayTime: string;
   status: "reported" | "estimated" | "missing_estimate";
@@ -156,6 +157,7 @@ export function getNaiveLiveProjection(
       reportedLegCount += 1;
       legs.push({
         legNumber,
+        legVersion: reportedLeg.leg_version,
         minutes: reportedMinutes,
         displayTime: formatDuration(reportedMinutes),
         status: "reported",
@@ -174,6 +176,7 @@ export function getNaiveLiveProjection(
       estimatedLegCount += 1;
       legs.push({
         legNumber,
+        legVersion: targetLegVersion,
         minutes: estimatedMinutes,
         displayTime: formatDuration(estimatedMinutes),
         status: "estimated",
@@ -184,6 +187,7 @@ export function getNaiveLiveProjection(
 
     legs.push({
       legNumber,
+      legVersion: currentLegVersionByNumber.get(legNumber) ?? null,
       minutes: null,
       displayTime: "N/A",
       status: "missing_estimate",

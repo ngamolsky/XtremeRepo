@@ -5,20 +5,26 @@ const source = readFileSync(new URL("../src/components/RaceDetailView.tsx", impo
 
 assert.match(
   source,
-  /const RaceLegGroupRow[\s\S]*<Link[\s\S]*to="\/legs\/\$legNumber\/\$version"/,
-  "race detail leg group headers should link to the leg detail route"
+  /import \{ LegPill \} from "\.\/LegPill";/,
+  "race detail should import the shared leg pill link component"
 );
 
 assert.match(
   source,
-  /params=\{\{[\s\S]*legNumber: String\(group\.legNumber\)[\s\S]*version: String\(group\.legVersion\)[\s\S]*\}\}/,
-  "race detail leg links should pass the displayed leg number and version as route params"
+  /const RaceLegGroupRow[\s\S]*<LegPill[\s\S]*leg=\{group\.legNumber\}[\s\S]*version=\{group\.legVersion\}/,
+  "race detail leg group headers should render as linked leg pills"
 );
 
 assert.match(
   source,
-  /aria-label=\{`View Leg \$\{group\.legNumber\} v\$\{group\.legVersion\} details`\}/,
-  "race detail leg links should have a clear accessible label"
+  /liveProjection\.legs\.map[\s\S]*<LegPill[\s\S]*leg=\{leg\.legNumber\}[\s\S]*version=\{leg\.legVersion\}/,
+  "race detail live projection leg labels should render as linked leg pills"
+);
+
+assert.match(
+  source,
+  /Leg \{group\.legNumber\} v\{group\.legVersion\}/,
+  "race detail leg group pills should show the displayed leg number and version"
 );
 
 console.log("race detail leg link tests passed");
