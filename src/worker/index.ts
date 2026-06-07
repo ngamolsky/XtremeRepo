@@ -176,6 +176,24 @@ type HistoricalResultSearchResponse = HistoricalResultSearchMatch &
     canonicalRace: HistoricalResultCanonicalRace;
   };
 
+type HistoricalResultSearchViewRow = HistoricalResultSearchEvidence & HistoricalResultSearchMatch;
+
+type HistoricalSearchViewClient = {
+  from: (relation: "v_result_search") => {
+    select: (columns: string) => HistoricalSearchViewQuery;
+  };
+};
+
+type HistoricalSearchViewQuery = PromiseLike<{
+  data: HistoricalResultSearchViewRow[] | null;
+  error: DataQueryError | null;
+}> & {
+  in: (column: string, values: unknown[]) => HistoricalSearchViewQuery;
+  eq: (column: string, value: unknown) => HistoricalSearchViewQuery;
+  or: (filters: string) => HistoricalSearchViewQuery;
+  limit: (count: number) => HistoricalSearchViewQuery;
+};
+
 type HistoricalSearchRpcClient = {
   rpc: (
     functionName: "match_result_search_chunks",
@@ -609,7 +627,11 @@ async function searchHistoricalResults(
     throw new Error(error.message);
   }
 
-  const results = await enrichHistoricalResultMatches(client, data || []);
+  const lexicalMatches = await fetchLexicalHistoricalMatches(client, input, matchCount);
+  const results = await enrichHistoricalResultMatches(
+    client,
+    mergeHistoricalMatches(lexicalMatches, data || [], matchCount)
+  );
   return {
     query,
     model: RESULT_SEARCH_EMBEDDING_MODEL,
@@ -655,6 +677,117 @@ async function embedHistoricalResultsQuery(query: string, apiKey: string): Promi
   return embedding.map((value) => Number(value));
 }
 
+async function fetchLexicalHistoricalMatches(
+  client: DataClient,
+  input: HistoricalResultsSearchRequestBody,
+  matchCount: number
+): Promise<HistoricalResultSearchMatch[]> {
+  const terms = buildHistoricalLexicalTerms(String(input.query || ""));
+  if (terms.length === 0) {
+    return [];
+  }
+
+  let query = (client as unknown as HistoricalSearchViewClient)
+    .from("v_result_search")
+    .select(
+      "id, source_id, document_id, raw_row_id, year, chunk_type, chunk_text, team_name, runner_name, bib, division, leg_number, leg_version, overall_place, division_place, embedding_model, embedded_at"
+    );
+
+  const year = nullablePositiveInteger(input.year);
+  const legNumber = nullablePositiveInteger(input.legNumber);
+  const legVersion = nullablePositiveInteger(input.legVersion);
+  const chunkType = typeof input.chunkType === "string" && input.chunkType ? input.chunkType : null;
+  if (year != null) {
+    query = query.eq("year", year);
+  }
+  if (legNumber != null) {
+    query = query.eq("leg_number", legNumber);
+  }
+  if (legVersion != null) {
+    query = query.eq("leg_version", legVersion);
+  }
+  if (chunkType) {
+    query = query.eq("chunk_type", chunkType);
+  }
+
+  const orFilters = terms
+    .flatMap((term) => ["chunk_text", "team_name", "runner_name", "bib", "division"].map((column) => `${column}.ilike.%${term}%`))
+    .join(",");
+  const { data, error } = await query.or(orFilters).limit(Math.min(Math.max(matchCount * 4, 20), 100));
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return (data || [])
+    .map((row) => ({
+      id: row.id,
+      source_id: row.source_id,
+      document_id: row.document_id,
+      raw_row_id: row.raw_row_id,
+      year: row.year,
+      chunk_type: row.chunk_type,
+      chunk_text: row.chunk_text,
+      team_name: row.team_name,
+      runner_name: row.runner_name,
+      bib: row.bib,
+      division: row.division,
+      leg_number: row.leg_number,
+      leg_version: row.leg_version,
+      overall_place: row.overall_place,
+      division_place: row.division_place,
+      embedding_model: row.embedding_model,
+      embedded_at: row.embedded_at,
+      similarity: scoreHistoricalLexicalMatch(row, terms),
+    }))
+    .sort((left, right) => (right.similarity ?? 0) - (left.similarity ?? 0));
+}
+
+function mergeHistoricalMatches(
+  primary: HistoricalResultSearchMatch[],
+  secondary: HistoricalResultSearchMatch[],
+  matchCount: number
+): HistoricalResultSearchMatch[] {
+  const merged = new Map<string, HistoricalResultSearchMatch>();
+  for (const match of [...primary, ...secondary]) {
+    if (!merged.has(match.id)) {
+      merged.set(match.id, match);
+    }
+  }
+  return [...merged.values()].slice(0, Math.min(Math.max(matchCount, 1), 100));
+}
+
+function buildHistoricalLexicalTerms(query: string): string[] {
+  const terms = query
+    .toLowerCase()
+    .split(/[^a-z0-9]+/)
+    .map((term) => term.trim())
+    .filter((term) => term.length >= 3);
+  const expanded = new Set(terms);
+  if (expanded.has("xtreme")) {
+    expanded.add("extreme");
+  }
+  if (expanded.has("extreme")) {
+    expanded.add("xtreme");
+  }
+  return [...expanded].slice(0, 8).map(escapeHistoricalIlikeTerm);
+}
+
+function escapeHistoricalIlikeTerm(term: string): string {
+  return term.replace(/[%*,()]/g, "");
+}
+
+function scoreHistoricalLexicalMatch(
+  row: HistoricalResultSearchMatch,
+  terms: string[]
+): number {
+  const haystack = [row.team_name, row.runner_name, row.bib, row.division, row.chunk_text]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+  const matches = terms.filter((term) => haystack.includes(term.toLowerCase())).length;
+  return 1 + matches / Math.max(terms.length, 1);
+}
+
 async function enrichHistoricalResultMatches(
   client: DataClient,
   matches: HistoricalResultSearchMatch[]
@@ -663,7 +796,7 @@ async function enrichHistoricalResultMatches(
     return [];
   }
 
-  const { data, error } = await client
+  const { data, error } = await (client as unknown as HistoricalSearchViewClient)
     .from("v_result_search")
     .select("id, source_url, local_path, original_filename, document_name, document_type, page_number, sheet_index, row_index")
     .in(
@@ -908,9 +1041,12 @@ function parseHistoricalWhitespaceFields(chunkText: string): ParsedHistoricalPer
   const beforeTimes = firstTime ? value.slice(0, firstTime.index).trim() : value;
   const { division, beforeDivision } = extractHistoricalDivision(beforeTimes);
   const leading = beforeDivision.match(/^\s*(\d+)\s+(\S+)\s+(.+)$/);
-  const place = leading ? parseIntegerText(leading[1]) : null;
-  const bib = leading?.[2] ?? null;
-  const nameBlob = leading?.[3]?.trim() || beforeDivision.trim() || null;
+  const secondTokenIsNumeric = Boolean(leading?.[2] && /^\d+$/.test(leading[2]));
+  const place = leading && secondTokenIsNumeric ? parseIntegerText(leading[1]) : null;
+  const bib = leading ? (secondTokenIsNumeric ? leading[2] : leading[1]) : null;
+  const nameBlob = leading
+    ? (secondTokenIsNumeric ? leading[3] : `${leading[2]} ${leading[3]}`).trim()
+    : beforeDivision.trim() || null;
   const teamName = nameBlob ? extractRepeatedLeadingPhrase(nameBlob) || nameBlob : null;
 
   return {

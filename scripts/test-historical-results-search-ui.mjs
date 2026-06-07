@@ -42,5 +42,8 @@ assert.match(workerSource, /searchHistoricalResults: tool/, "agent should expose
 assert.match(workerSource, /simplifyHistoricalSearchResults/, "agent tool should return structured performance-oriented search results");
 assert.match(workerSource, /enrichCanonicalRaceLinks/, "search API should join embedded source matches to existing canonical races");
 assert.match(workerSource, /matchMethod: "year_bib"/, "canonical race joins should record the year+bib association method");
+assert.match(workerSource, /fetchLexicalHistoricalMatches/, "search API should blend lexical exact matches with semantic matches");
+assert.match(workerSource, /expanded\.add\("extreme"\)/, "historical search should treat Xtreme and Extreme spellings as aliases");
+assert.match(workerSource, /secondTokenIsNumeric/, "whitespace parser should support result rows with bib but no explicit place column");
 
 console.log("historical results search UI tests passed");

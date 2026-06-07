@@ -411,7 +411,7 @@ function inferChunkType(rawText = "") {
 
 function inferTeamName(rawText = "") {
   const parts = rawText.split("|").map((part) => part.trim()).filter(Boolean);
-  return parts.find((part) => /xtreme|falcon|team/i.test(part)) || null;
+  return parts.find((part) => /(?:x|ex)treme|falcon|team/i.test(part)) || null;
 }
 
 function inferLegNumber(rawText = "") {

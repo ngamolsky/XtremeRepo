@@ -23,5 +23,6 @@ assert.match(script, /documentChunk/, "loader should create document-level chunk
 assert.match(script, /rowChunk/, "loader should create row-level chunks");
 assert.match(script, /import_type: "load"/, "loader should audit DB loads in import_runs");
 assert.match(script, /insertExtractionWarnings/, "loader should preserve extraction warnings in import_warnings");
+assert.match(script, /\(\?:x\|ex\)treme\|falcon\|team/, "loader should recognize official-source misspelling Extreme Falcons as the Xtreme team alias");
 
 console.log("result extraction loader tests passed");
