@@ -226,7 +226,11 @@ const HistoricalResultsSearchView: React.FC = () => {
         </div>
 
         <div className="mt-5 space-y-4">
-          {results.map((result) => (
+          {results.map((result) => {
+            const displayedLegs = getDisplayedLegPerformances(result);
+            const legSourceLabel = result.canonicalRace?.legs.length ? "Linked team performance" : "Official source splits";
+
+            return (
             <article
               key={result.id}
               className="rounded-xl border border-gray-200 p-4 dark:border-slate-800 dark:bg-slate-900/40"
@@ -256,18 +260,21 @@ const HistoricalResultsSearchView: React.FC = () => {
               </div>
 
               <div className="mt-4">
-                <div className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
-                  Leg performance records
+                <div className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
+                  <span>Leg performance records</span>
+                  <span className="rounded-full border border-gray-200 px-2 py-0.5 text-[11px] normal-case text-gray-600 dark:border-slate-700 dark:text-slate-300">
+                    {legSourceLabel}
+                  </span>
                 </div>
-                {result.canonicalRace?.legs.length ? (
+                {displayedLegs.length ? (
                   <div className="mt-2 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-                    {result.canonicalRace?.legs.map((leg) => (
+                    {displayedLegs.map((leg) => (
                       <div
-                        key={`${leg.legNumber || "leg"}-${leg.legVersion || 1}-${leg.runnerName || "runner"}`}
+                        key={leg.key}
                         className="rounded-lg bg-gray-50 px-3 py-2 text-sm dark:bg-slate-950/70"
                       >
                         <div className="flex flex-wrap items-center gap-2">
-                          {leg.legNumber ? (
+                          {leg.isCanonical && leg.legNumber ? (
                             <LegPill
                               leg={leg.legNumber}
                               version={leg.legVersion || 1}
@@ -276,8 +283,8 @@ const HistoricalResultsSearchView: React.FC = () => {
                               Leg {leg.legNumber}v{leg.legVersion || 1}
                             </LegPill>
                           ) : (
-                            <span className="rounded-full bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-600 dark:bg-slate-900 dark:text-slate-300">
-                              Leg ?
+                            <span className="rounded-full bg-sky-50 px-2.5 py-1 text-xs font-semibold text-sky-700 dark:bg-sky-950/50 dark:text-sky-200">
+                              Official Leg {leg.legNumber || "?"}
                             </span>
                           )}
                           {leg.runnerName ? (
@@ -288,34 +295,67 @@ const HistoricalResultsSearchView: React.FC = () => {
                             >
                               {leg.runnerName}
                             </Link>
-                          ) : (
-                            <span className="rounded-full bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-600 dark:bg-slate-900 dark:text-slate-300">
-                              Unknown runner
-                            </span>
-                          )}
+                          ) : null}
                         </div>
                         <div className="mt-2 font-semibold text-gray-900 dark:text-slate-50">
-                          {leg.lapTime || "—"}
+                          {leg.timeText || "—"}
                         </div>
                         <div className="text-xs text-gray-500 dark:text-slate-400">
-                          {leg.pace ? formatPace(leg.pace) : "No pace"}
+                          {leg.detailText}
                         </div>
                       </div>
                     ))}
                   </div>
                 ) : (
                   <p className="mt-2 text-sm text-gray-600 dark:text-slate-300">
-                    No linked leg performance records for this race yet.
+                    This official race record has no leg split times imported yet.
                   </p>
                 )}
               </div>
             </article>
-          ))}
+            );
+          })}
         </div>
       </section>
     </div>
   );
 };
+
+type DisplayedLegPerformance = {
+  detailText: string;
+  isCanonical: boolean;
+  key: string;
+  legNumber: number | null;
+  legVersion: number | null;
+  runnerName: string | null;
+  timeText: string | null;
+};
+
+function getDisplayedLegPerformances(result: SearchResult): DisplayedLegPerformance[] {
+  if (result.canonicalRace?.legs.length) {
+    return result.canonicalRace.legs.map((leg) => ({
+      detailText: leg.pace ? formatPace(leg.pace) : "Linked official team performance",
+      isCanonical: true,
+      key: `canonical-${leg.legNumber || "leg"}-${leg.legVersion || 1}-${leg.runnerName || "runner"}`,
+      legNumber: leg.legNumber,
+      legVersion: leg.legVersion,
+      runnerName: leg.runnerName,
+      timeText: leg.lapTime,
+    }));
+  }
+
+  return (result.performance?.legPerformances || [])
+    .filter((leg) => leg.status === "recorded" || leg.timeText)
+    .map((leg) => ({
+      detailText: "Official source split",
+      isCanonical: false,
+      key: `source-${leg.legNumber}-${leg.timeText || "missing"}`,
+      legNumber: leg.legNumber,
+      legVersion: null,
+      runnerName: null,
+      timeText: leg.timeText,
+    }));
+}
 
 function formatPace(value: number | null): string {
   if (value == null || !Number.isFinite(value) || value <= 0) {

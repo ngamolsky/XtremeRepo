@@ -631,8 +631,8 @@ async function fetchHistoricalTeamResultMatches(
     throw new Error(error.message);
   }
 
-  return (data || [])
-    .map((row) => ({
+  return collapseHistoricalDuplicateMatches(
+    (data || []).map((row) => ({
       id: row.id,
       source_id: row.source_id,
       document_id: row.document_id,
@@ -650,8 +650,59 @@ async function fetchHistoricalTeamResultMatches(
       division_place: row.division_place,
       similarity: scoreHistoricalLexicalMatch(row, terms),
     }))
+  )
     .sort((left, right) => (right.similarity ?? 0) - (left.similarity ?? 0))
     .slice(0, matchCount);
+}
+
+function collapseHistoricalDuplicateMatches(
+  matches: HistoricalResultSearchMatch[]
+): HistoricalResultSearchMatch[] {
+  const bestByKey = new Map<string, HistoricalResultSearchMatch>();
+  const unkeyed: HistoricalResultSearchMatch[] = [];
+
+  for (const match of matches) {
+    const key = historicalDuplicateMatchKey(match);
+    if (!key) {
+      unkeyed.push(match);
+      continue;
+    }
+
+    const existing = bestByKey.get(key);
+    if (!existing || scoreHistoricalMatchCompleteness(match) > scoreHistoricalMatchCompleteness(existing)) {
+      bestByKey.set(key, match);
+    }
+  }
+
+  return [...bestByKey.values(), ...unkeyed];
+}
+
+function historicalDuplicateMatchKey(match: HistoricalResultSearchMatch): string | null {
+  const performance = buildHistoricalPerformance(match);
+  const year = typeof match.year === "number" ? match.year : null;
+  const bib = normalizeHistoricalBibNumber(performance.bib || match.bib);
+  const teamName = normalizeHistoricalSearchKey(performance.teamName || match.team_name);
+  if (!year || bib == null || !teamName) {
+    return null;
+  }
+  return `${year}:${bib}:${teamName}`;
+}
+
+function scoreHistoricalMatchCompleteness(match: HistoricalResultSearchMatch): number {
+  const performance = buildHistoricalPerformance(match);
+  const officialSplitCount = performance.legPerformances.filter((leg) => leg.timeText).length;
+  return (
+    (match.similarity ?? 0) +
+    (performance.totalTimeText ? 5 : 0) +
+    officialSplitCount * 2 +
+    (performance.division ? 1 : 0) +
+    (performance.leaderboardPlace ? 0.5 : 0)
+  );
+}
+
+function normalizeHistoricalSearchKey(value: string | null | undefined): string | null {
+  const normalized = value?.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim().replace(/\s+/g, " ");
+  return normalized || null;
 }
 
 function buildHistoricalLexicalTerms(query: string): string[] {

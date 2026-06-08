@@ -29,7 +29,10 @@ assert.match(componentSource, /Race record/, "search results should render each 
 assert.match(componentSource, /canonicalRace/, "search result typing should include joined canonical race payloads");
 assert.match(componentSource, /import \{ LegPill \}/, "nested leg performances should use shared clickable LegPill links");
 assert.match(componentSource, /to="\/runners\/\$runnerName"/, "nested leg performances should render clickable runner pills");
-assert.match(componentSource, /result\.canonicalRace\?\.legs/, "search result cards should be driven by nested canonical leg performance records");
+assert.match(componentSource, /official source splits/i, "search results should clearly label official source-file leg splits when they are not linked to our canonical race data");
+assert.match(componentSource, /getDisplayedLegPerformances/, "search result cards should fall back to official source leg times when canonical leg links are unavailable");
+assert.match(componentSource, /result\.canonicalRace\?\.legs/, "search result cards should still prefer nested canonical leg performance records when available");
+assert.doesNotMatch(componentSource, /No linked leg performance records for this race yet\./, "search result cards should not imply there are no official leg splits just because our canonical performance data is not linked");
 assert.doesNotMatch(componentSource, /Source row text/, "search results should not show source-row evidence in the simplified card");
 assert.doesNotMatch(componentSource, /formatSimilarity/, "search results should not show text score details in the simplified card");
 assert.doesNotMatch(componentSource, /<Evidence\b/, "search results should not render the old evidence grid");
@@ -48,6 +51,8 @@ assert.match(workerSource, /expanded\.add\("extreme"\)/, "historical search shou
 assert.match(workerSource, /team_name\.ilike\.%\$\{term\}%/, "historical search should still substring-match team names");
 assert.match(workerSource, /chunk_text\.ilike\.\$\{term\}%/, "historical search should use prefix-only source text fallback so short terms do not match inside unrelated team names like Smiles");
 assert.match(workerSource, /isHistoricalTimeText/, "historical search should validate parsed total times before showing them as totals");
-assert.doesNotMatch(workerSource, /const totalTimeText = parsed\.totalTimeText \|\| null;/, "historical search should not display parsed team text as total time");
+assert.match(workerSource, /collapseHistoricalDuplicateMatches/, "historical search should collapse duplicate rows for the same year/bib/team across division/overall tables");
+assert.match(workerSource, /historicalDuplicateMatchKey/, "historical duplicate collapse should key race records by normalized year, bib, and team");
+assert.match(workerSource, /scoreHistoricalMatchCompleteness/, "duplicate collapse should prefer the row with official times and richer parsed data");
 
 console.log("historical results search UI tests passed");
