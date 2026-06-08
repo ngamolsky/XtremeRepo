@@ -5,6 +5,7 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
+  Cell,
   Legend,
   Line,
   LineChart,
@@ -14,6 +15,7 @@ import {
   YAxis,
 } from "recharts";
 import { useRelayData } from "../hooks/useRelayData";
+import { buildDashboardPerformanceData } from "../lib/dashboardPerformance";
 import { StatCard } from "./StatCard";
 
 const chartAxisColor = "var(--chart-axis)";
@@ -28,7 +30,7 @@ const chartTooltipStyle = {
 
 const Dashboard: React.FC = () => {
   const {
-    data: { yearlySummary, results },
+    data: { yearlySummary, results, legResultObservations },
     loading,
     error,
   } = useRelayData();
@@ -56,6 +58,12 @@ const Dashboard: React.FC = () => {
     );
   }
 
+  const dashboardPerformance = buildDashboardPerformanceData(
+    yearlySummary,
+    results,
+    legResultObservations
+  );
+
   // Calculate stats from real data
   const latestPerformance = yearlySummary[0];
   const bestOverallPercentile =
@@ -81,14 +89,15 @@ const Dashboard: React.FC = () => {
     }))
     .reverse();
 
-  const currentYear = latestPerformance?.year || new Date().getFullYear();
-  const latestRaceResults = results.filter(
-    (result) => result.year === currentYear
-  );
-  const legPerformanceData = latestRaceResults.map((result) => ({
-    leg: `Leg ${result.leg_number}`,
-    time: result.time_in_minutes,
-    runner: result.runner_name || "Missing Runner Name",
+  const currentYear = dashboardPerformance.currentYear;
+  const legPerformanceData = dashboardPerformance.latestRaceEntries.map((entry) => ({
+    fill: entry.resultType === "self_reported" ? "#d97706" : "#3b82f6",
+    leg: entry.leg,
+    resultType: entry.resultType,
+    status: entry.label,
+    time: entry.time,
+    timeText: entry.timeText,
+    runner: entry.runner,
   }));
 
   return (
@@ -108,7 +117,7 @@ const Dashboard: React.FC = () => {
         <StatCard
           icon={<Calendar className="w-6 h-6" />}
           label="Total Races"
-          value={yearlySummary.length.toString()}
+          value={dashboardPerformance.totalRaces.toString()}
         />
         <StatCard
           icon={<Trophy className="w-6 h-6" />}
@@ -122,7 +131,7 @@ const Dashboard: React.FC = () => {
         <StatCard
           icon={<Clock className="w-6 h-6" />}
           label="Latest Time"
-          value={latestPerformance?.total_time?.toString() || "N/A"}
+          value={dashboardPerformance.latestTime || latestPerformance?.total_time?.toString() || "N/A"}
         />
         <StatCard
           icon={<TrendingUp className="w-6 h-6" />}
@@ -212,9 +221,14 @@ const Dashboard: React.FC = () => {
 
         {/* Leg Performance */}
         <div className="card p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            Latest Race - Leg Performance ({currentYear})
-          </h3>
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-slate-50">
+              Latest Race - Leg Performance ({currentYear})
+            </h3>
+            {legPerformanceData.some((entry) => entry.resultType === "self_reported") ? (
+              <SelfReportedBadge />
+            ) : null}
+          </div>
           {legPerformanceData.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
               <BarChart
@@ -244,12 +258,16 @@ const Dashboard: React.FC = () => {
                       : String(value);
 
                     return [
-                      `${formattedValue} min`,
+                      `${formattedValue} min${props?.payload?.status ? ` · ${props.payload.status}` : ""}`,
                       `Time (${props?.payload?.runner || "Unknown Runner"})`,
                     ];
                   }}
                 />
-                <Bar dataKey="time" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="time" fill="#3b82f6" radius={[4, 4, 0, 0]}>
+                  {legPerformanceData.map((entry) => (
+                    <Cell key={`${entry.leg}-${entry.runner}-${entry.status}`} fill={entry.fill} />
+                  ))}
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
           ) : (
@@ -261,14 +279,18 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Recent Performance Summary */}
-      {yearlySummary.length > 0 && (
+      {dashboardPerformance.yearlyRows.length > 0 && (
         <div className="card p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-slate-50 mb-4">
             Year-over-Year Performance
           </h3>
+          <div className="mb-4 flex flex-wrap items-center gap-2 text-sm text-gray-600 dark:text-slate-300">
+            <SelfReportedBadge />
+            <span>Shown only until official race results replace them.</span>
+          </div>
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+            <table className="min-w-full divide-y divide-gray-200 dark:divide-slate-800">
+              <thead className="bg-gray-50 dark:bg-slate-900/70">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Year
@@ -287,37 +309,45 @@ const Dashboard: React.FC = () => {
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {yearlySummary.map((perf, idx) => (
+              <tbody className="divide-y divide-gray-200 bg-white dark:divide-slate-800 dark:bg-slate-950">
+                {dashboardPerformance.yearlyRows.map((perf, idx) => (
                   <tr
-                    key={idx}
+                    key={`${perf.year}-${perf.resultType}`}
                     className={
                       idx % 2 === 0
-                        ? "bg-white"
-                        : "bg-gray-50 hover:bg-gray-100"
+                        ? "bg-white dark:bg-slate-950"
+                        : "bg-gray-50 hover:bg-gray-100 dark:bg-slate-900/50 dark:hover:bg-slate-900"
                     }
                   >
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      <Link
-                        to="/races/$year"
-                        params={{ year: String(perf.year) }}
-                        className="text-primary-700 hover:text-primary-800"
-                      >
-                        {perf.year}
-                      </Link>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-slate-100">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Link
+                          to="/races/$year"
+                          params={{ year: String(perf.year) }}
+                          className="text-primary-700 hover:text-primary-800 dark:text-primary-300 dark:hover:text-primary-200"
+                        >
+                          {perf.year}
+                        </Link>
+                        {perf.resultType === "self_reported" ? <SelfReportedBadge compact /> : null}
+                      </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {perf.total_time?.toString()}
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-slate-100">
+                      {perf.totalTime || "—"}
+                      {perf.resultType === "self_reported" && perf.selfReportedLegCount > 0 ? (
+                        <span className="ml-2 text-xs text-amber-800 dark:text-amber-200">
+                          ({perf.selfReportedLegCount} self-reported leg{perf.selfReportedLegCount === 1 ? "" : "s"})
+                        </span>
+                      ) : null}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {perf.average_pace?.toString()}
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-slate-100">
+                      {perf.averagePace || "—"}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {perf.overall_place} of {perf.overall_teams}
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-slate-100">
+                      {formatPlacement(perf.overallPlace, perf.overallTeams)}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {perf.division_place} of {perf.division_teams} (
-                      {perf.division})
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-slate-100">
+                      {formatPlacement(perf.divisionPlace, perf.divisionTeams)}
+                      {perf.division ? ` (${perf.division})` : ""}
                     </td>
                   </tr>
                 ))}
@@ -329,5 +359,28 @@ const Dashboard: React.FC = () => {
     </div>
   );
 };
+
+const SelfReportedBadge: React.FC<{ compact?: boolean }> = ({ compact = false }) => (
+  <span
+    className={`inline-flex items-center rounded-full border border-amber-300 bg-amber-100 font-semibold text-amber-900 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-100 ${
+      compact ? "px-2 py-0.5 text-[11px]" : "px-3 py-1 text-xs"
+    }`}
+  >
+    Self Reported
+  </span>
+);
+
+function formatPlacement(place: number | null, teams: number | null): string {
+  if (place === null && teams === null) {
+    return "—";
+  }
+  if (place === null) {
+    return `— of ${teams}`;
+  }
+  if (teams === null) {
+    return String(place);
+  }
+  return `${place} of ${teams}`;
+}
 
 export default Dashboard;
