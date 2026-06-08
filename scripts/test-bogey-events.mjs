@@ -29,6 +29,7 @@ const {
   buildRunnerBogeySummary,
   filterBogeyEventsForPerformance,
   formatBogeyEventSummary,
+  formatBogeyScore,
 } = sandbox.module.exports;
 
 const events = [
@@ -77,6 +78,7 @@ const summary = buildRunnerBogeySummary("Nikita", events);
 assert.equal(summary.passedCount, 1, "runner summary should count teams the runner passed");
 assert.equal(summary.passedByCount, 1, "runner summary should count teams that passed the runner");
 assert.equal(summary.net, 0, "net bogeys should be passed minus passed-by");
+assert.equal(formatBogeyScore(summary), "0 (+1 / -1)", "runner formatter should show net first, then positive/negative split");
 assert.equal(summary.sameStartAssumedCount, 1, "summary should retain same-start assumption count");
 assert.equal(summary.knownStartOffsetCount, 1, "summary should retain known-start-offset count");
 
@@ -87,7 +89,7 @@ const legEvents = filterBogeyEventsForPerformance(events, {
   legVersion: 1,
 });
 assert.equal(legEvents.length, 2, "performance filter should return only events on the selected runner leg");
-assert.equal(formatBogeyEventSummary(legEvents), "+1 / -1", "performance formatter should show passed and passed-by counts");
-assert.equal(formatBogeyEventSummary([]), "0", "empty performance formatter should return 0");
+assert.equal(formatBogeyEventSummary(legEvents), "0 (+1 / -1)", "performance formatter should show net first, then passed and passed-by counts");
+assert.equal(formatBogeyEventSummary([]), "0 (+0 / -0)", "empty performance formatter should return zero score with split counts");
 
 console.log("bogey event helper tests passed");

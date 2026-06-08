@@ -49,9 +49,13 @@ export function filterBogeyEventsForPerformance(
   );
 }
 
+export function formatBogeyScore(summary: RunnerBogeySummary) {
+  return `${formatSignedNumber(summary.net)} (+${summary.passedCount} / -${summary.passedByCount})`;
+}
+
 export function formatBogeyEventSummary(events: BogeyEvent[]) {
   if (events.length === 0) {
-    return "0";
+    return "0 (+0 / -0)";
   }
 
   const summary = events.reduce<RunnerBogeySummary>(
@@ -59,7 +63,11 @@ export function formatBogeyEventSummary(events: BogeyEvent[]) {
     { ...emptySummary }
   );
 
-  return `+${summary.passedCount} / -${summary.passedByCount}`;
+  return formatBogeyScore(summary);
+}
+
+function formatSignedNumber(value: number) {
+  return value > 0 ? `+${value}` : `${value}`;
 }
 
 function addEventToSummary(

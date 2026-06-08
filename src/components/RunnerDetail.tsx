@@ -15,6 +15,7 @@ import { useRelayData } from "../hooks/useRelayData";
 import { supabase } from "../lib/supabase";
 import {
   buildRunnerBogeySummary,
+  formatBogeyScore,
 } from "../lib/bogeyStats";
 import {
   buildLegRadarData,
@@ -311,7 +312,7 @@ const RunnerDetail: React.FC = () => {
         <StatCard
           icon={<Target className="w-6 h-6 text-emerald-600" />}
           label="Bogeys"
-          value={`+${runnerBogeySummary.passedCount} / -${runnerBogeySummary.passedByCount}`}
+          value={formatBogeyScore(runnerBogeySummary)}
         />
         <StatCard
           icon={<MapIcon className="w-6 h-6 text-green-600" />}

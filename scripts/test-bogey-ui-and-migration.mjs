@@ -10,9 +10,11 @@ assert.equal(
 );
 
 const migrationNames = readdirSync("supabase/migrations").filter((name) => name.endsWith(".sql"));
-const bogeyMigrationName = migrationNames.find((name) => name.includes("bogey_events"));
-assert.ok(bogeyMigrationName, "a Supabase migration should introduce bogey event support");
-const bogeyMigration = readFileSync(path.join("supabase/migrations", bogeyMigrationName), "utf8");
+const bogeyMigrationNames = migrationNames.filter((name) => name.includes("bogey"));
+assert.ok(bogeyMigrationNames.length > 0, "Supabase migrations should introduce bogey event support");
+const bogeyMigration = bogeyMigrationNames
+  .map((name) => readFileSync(path.join("supabase/migrations", name), "utf8"))
+  .join("\n");
 
 assert.match(
   bogeyMigration,
@@ -53,6 +55,16 @@ assert.match(
   bogeyMigration,
   /passed_us/,
   "bogey events should include teams that passed us"
+);
+assert.match(
+  bogeyMigration,
+  /our_before_position_seconds >= other_before_position_seconds/,
+  "bogey calculation should count leg-1/tied-start passes instead of requiring a prior deficit"
+);
+assert.match(
+  bogeyMigration,
+  /our_before_position_seconds <= other_before_position_seconds/,
+  "bogey calculation should count leg-1/tied-start passed-by events instead of requiring a prior lead"
 );
 assert.doesNotMatch(
   bogeyMigration,
