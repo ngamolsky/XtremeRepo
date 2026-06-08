@@ -132,6 +132,17 @@ const Dashboard: React.FC = () => {
           icon={<Clock className="w-6 h-6" />}
           label="Latest Time"
           value={dashboardPerformance.latestTime || latestPerformance?.total_time?.toString() || "N/A"}
+          detail={
+            dashboardPerformance.latestTimeResultType === "self_reported" ? (
+              <div className="flex flex-wrap items-center gap-2">
+                <SelfReportedBadge compact />
+                <span className="text-amber-800 dark:text-amber-200">
+                  {dashboardPerformance.latestTimeSelfReportedLegCount} self-reported leg
+                  {dashboardPerformance.latestTimeSelfReportedLegCount === 1 ? "" : "s"}
+                </span>
+              </div>
+            ) : undefined
+          }
         />
         <StatCard
           icon={<TrendingUp className="w-6 h-6" />}
@@ -230,6 +241,7 @@ const Dashboard: React.FC = () => {
             ) : null}
           </div>
           {legPerformanceData.length > 0 ? (
+            <>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart
                 data={legPerformanceData}
@@ -270,6 +282,19 @@ const Dashboard: React.FC = () => {
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
+            {legPerformanceData.some((entry) => entry.resultType === "self_reported") ? (
+              <div className="mt-3 flex flex-wrap gap-2 text-xs text-gray-600 dark:text-slate-300">
+                {legPerformanceData
+                  .filter((entry) => entry.resultType === "self_reported")
+                  .map((entry) => (
+                    <span key={`self-dot-${entry.leg}-${entry.runner}`} className="inline-flex items-center gap-1.5">
+                      <SelfReportedDot />
+                      {entry.leg} · {entry.runner}
+                    </span>
+                  ))}
+              </div>
+            ) : null}
+            </>
           ) : (
             <div className="flex items-center justify-center h-64 text-gray-500">
               No leg performance data available
@@ -284,10 +309,6 @@ const Dashboard: React.FC = () => {
           <h3 className="text-lg font-semibold text-gray-900 dark:text-slate-50 mb-4">
             Year-over-Year Performance
           </h3>
-          <div className="mb-4 flex flex-wrap items-center gap-2 text-sm text-gray-600 dark:text-slate-300">
-            <SelfReportedBadge />
-            <span>Shown only until official race results replace them.</span>
-          </div>
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200 dark:divide-slate-800">
               <thead className="bg-gray-50 dark:bg-slate-900/70">
@@ -368,6 +389,13 @@ const SelfReportedBadge: React.FC<{ compact?: boolean }> = ({ compact = false })
   >
     Self Reported
   </span>
+);
+
+const SelfReportedDot: React.FC = () => (
+  <span
+    aria-hidden="true"
+    className="inline-block h-2.5 w-2.5 shrink-0 rounded-full bg-amber-600 ring-2 ring-amber-100 dark:bg-amber-300 dark:ring-amber-950"
+  />
 );
 
 function formatPlacement(place: number | null, teams: number | null): string {

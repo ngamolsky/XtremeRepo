@@ -616,7 +616,12 @@ async function fetchHistoricalTeamResultMatches(
 
   if (terms.length > 0) {
     const orFilters = terms
-      .flatMap((term) => ["team_name", "bib", "division", "chunk_text"].map((column) => `${column}.ilike.%${term}%`))
+      .flatMap((term) => [
+        `team_name.ilike.%${term}%`,
+        `bib.ilike.%${term}%`,
+        `division.ilike.%${term}%`,
+        `chunk_text.ilike.${term}%`,
+      ])
       .join(",");
     query = query.or(orFilters);
   }
@@ -862,7 +867,7 @@ function buildHistoricalPerformance(match: HistoricalResultSearchMatch): Histori
   const inferredTeamName = normalizeHistoricalTeamName(match.team_name, parsed.teamName);
   const teamName = inferredTeamName || parsed.teamName || null;
   const division = match.division || parsed.division || null;
-  const totalTimeText = parsed.totalTimeText || null;
+  const totalTimeText = isHistoricalTimeText(parsed.totalTimeText) ? parsed.totalTimeText : null;
   const legPerformances = parsed.legTimes.map((timeText, index) => ({
     legNumber: index + 1,
     label: `Leg ${index + 1}`,
@@ -962,6 +967,10 @@ function parseHistoricalWhitespaceFields(chunkText: string): ParsedHistoricalPer
 
 function stripHistoricalChunkPrefix(chunkText: string): string {
   return chunkText.replace(/^\d{4}\s+[^:]+:\s*/, "").trim();
+}
+
+function isHistoricalTimeText(value: string | null | undefined): value is string {
+  return Boolean(value && /^\d{1,2}:\d{2}(?::\d{2})?(?:\.\d+)?$/.test(value.trim()));
 }
 
 function extractHistoricalDivision(value: string): { division: string | null; beforeDivision: string } {

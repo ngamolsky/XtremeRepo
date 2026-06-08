@@ -146,6 +146,8 @@ assert.deepEqual(
 assert.equal(dashboard.latestRaceEntries[0].runner, "Self Runner One");
 assert.equal(dashboard.latestRaceEntries[0].label, "Self Reported");
 assert.equal(dashboard.latestTime, "2:16:00", "latest time card should sum visible latest race official/self-reported leg times");
+assert.equal(dashboard.latestTimeResultType, "self_reported", "latest time card should know when any visible latest-race time is self-reported");
+assert.equal(dashboard.latestTimeSelfReportedLegCount, 2, "latest time card should expose how many visible legs are self-reported");
 assert.equal(dashboard.totalRaces, 2, "total races should count provisional-only years alongside official years");
 
 assert.deepEqual(
@@ -160,6 +162,10 @@ assert.deepEqual(
 const dashboardSource = readFileSync(new URL("../src/components/Dashboard.tsx", import.meta.url), "utf8");
 assert.match(dashboardSource, /Self Reported/, "dashboard should label provisional values as Self Reported");
 assert.match(dashboardSource, /bg-amber-100[^"]*text-amber-900[^"]*dark:bg-amber-950[^"]*dark:text-amber-100/, "Self Reported label should use readable amber classes in light and dark mode");
+assert.match(dashboardSource, /label="Latest Time"[\s\S]*latestTimeResultType === "self_reported"[\s\S]*<SelfReportedBadge compact \/>/, "latest time stat card should show a Self Reported badge when latest time includes self-reported legs");
+assert.match(dashboardSource, /SelfReportedDot[\s\S]*bg-amber-600[\s\S]*dark:bg-amber-300/, "latest race chart should include a dark/light-safe amber dot for self-reported times");
+assert.doesNotMatch(dashboardSource, /Year-over-Year Performance[\s\S]{0,500}<SelfReportedBadge \/>/, "year-over-year section header should not label the whole table as self-reported");
+assert.match(dashboardSource, /perf\.resultType === "self_reported" \? <SelfReportedBadge compact \/> : null/, "year-over-year table should label only self-reported rows");
 assert.match(dashboardSource, /buildDashboardPerformanceData/, "dashboard component should use the shared dashboard performance helper");
 
 console.log("dashboard self-reported results tests passed");

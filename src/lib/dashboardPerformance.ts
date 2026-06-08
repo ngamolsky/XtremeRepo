@@ -36,6 +36,8 @@ export type DashboardPerformanceData = {
   currentYear: number;
   latestRaceEntries: DashboardLegPerformanceEntry[];
   latestTime: string | null;
+  latestTimeResultType: DashboardResultType;
+  latestTimeSelfReportedLegCount: number;
   totalRaces: number;
   yearlyRows: DashboardYearlyRow[];
 };
@@ -67,6 +69,10 @@ export function buildDashboardPerformanceData(
   const currentYear =
     Array.from(allYears).sort((a, b) => b - a)[0] ?? new Date().getFullYear();
   const latestRaceEntries = buildLatestRaceEntries(currentYear, results, observations);
+  const latestTimeSelfReportedLegCount = latestRaceEntries.filter(
+    (entry) => entry.resultType === "self_reported"
+  ).length;
+  const latestTimeResultType: DashboardResultType = latestTimeSelfReportedLegCount > 0 ? "self_reported" : "official";
   const latestTime = formatMinutes(
     latestRaceEntries.reduce((sum, entry) => sum + (entry.time ?? 0), 0)
   );
@@ -84,6 +90,8 @@ export function buildDashboardPerformanceData(
     currentYear,
     latestRaceEntries,
     latestTime,
+    latestTimeResultType,
+    latestTimeSelfReportedLegCount,
     totalRaces: yearlyRows.length,
     yearlyRows,
   };

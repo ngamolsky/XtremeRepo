@@ -45,5 +45,9 @@ assert.match(workerSource, /simplifyHistoricalSearchResults/, "agent tool should
 assert.match(workerSource, /enrichCanonicalRaceLinks/, "search API should still join source matches to existing canonical races");
 assert.match(workerSource, /matchMethod: "year_bib"/, "canonical race joins should record the year+bib association method");
 assert.match(workerSource, /expanded\.add\("extreme"\)/, "historical search should treat Xtreme and Extreme spellings as aliases");
+assert.match(workerSource, /team_name\.ilike\.%\$\{term\}%/, "historical search should still substring-match team names");
+assert.match(workerSource, /chunk_text\.ilike\.\$\{term\}%/, "historical search should use prefix-only source text fallback so short terms do not match inside unrelated team names like Smiles");
+assert.match(workerSource, /isHistoricalTimeText/, "historical search should validate parsed total times before showing them as totals");
+assert.doesNotMatch(workerSource, /const totalTimeText = parsed\.totalTimeText \|\| null;/, "historical search should not display parsed team text as total time");
 
 console.log("historical results search UI tests passed");

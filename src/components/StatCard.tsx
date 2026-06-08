@@ -1,7 +1,7 @@
 import React from "react";
 
 interface StatCardProps {
-  detail?: string;
+  detail?: React.ReactNode;
   icon: React.ReactNode;
   label: string;
   value: string;
@@ -15,9 +15,9 @@ export const StatCard: React.FC<StatCardProps> = ({ detail, icon, label, value }
         <h3 className="text-sm font-medium text-gray-500 uppercase">{label}</h3>
         <p className="mt-1 text-2xl font-bold text-gray-900">{value}</p>
         {detail && (
-          <p className="mt-2 truncate text-xs text-gray-500" title={detail}>
+          <div className="mt-2 text-xs text-gray-500">
             {detail}
-          </p>
+          </div>
         )}
       </div>
     </div>
