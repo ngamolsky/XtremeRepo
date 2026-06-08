@@ -10,7 +10,9 @@ assert.equal(
 );
 
 const migrationNames = readdirSync("supabase/migrations").filter((name) => name.endsWith(".sql"));
-const bogeyMigrationNames = migrationNames.filter((name) => name.includes("bogey"));
+const bogeyMigrationNames = migrationNames.filter(
+  (name) => name.includes("bogey") || name.includes("partial_official") || name.includes("prefer_2022")
+);
 assert.ok(bogeyMigrationNames.length > 0, "Supabase migrations should introduce bogey event support");
 const bogeyMigration = bogeyMigrationNames
   .map((name) => readFileSync(path.join("supabase/migrations", name), "utf8"))
@@ -66,6 +68,26 @@ assert.match(
   /our_before_position_seconds <= other_before_position_seconds/,
   "bogey calculation should count leg-1/tied-start passed-by events instead of requiring a prior lead"
 );
+assert.match(
+  bogeyMigration,
+  /representative_team_results/,
+  "bogey calculation should de-duplicate duplicate extracted ranking-section rows"
+);
+assert.match(
+  bogeyMigration,
+  /positive_split_count > 0/,
+  "bogey calculation should support official partial split rows instead of requiring seven complete legs"
+);
+assert.match(
+  bogeyMigration,
+  /2022 official spreadsheet partial split support for bogeys/,
+  "migration should backfill 2022 partial spreadsheet splits for bogey calculations"
+);
+assert.match(
+  bogeyMigration,
+  /prefer the official spreadsheet's explicit partial split availability/,
+  "migration should prefer 2022 spreadsheet dash/missing split availability over curated canonical split backfills"
+);
 assert.doesNotMatch(
   bogeyMigration,
   /division\s*=/i,
@@ -91,5 +113,9 @@ const workerSource = readFileSync("src/worker/index.ts", "utf8");
 assert.match(workerSource, /v_bogey_events/, "Falco worker should be aware of v_bogey_events");
 assert.match(workerSource, /bogey/i, "Falco prompt/tool context should describe bogey semantics");
 assert.match(workerSource, /same-start inferred/i, "Falco should label missing start offsets as same-start inferred");
+
+const bogeyNotes = readFileSync("docs/bogey-source-data-notes.md", "utf8");
+assert.match(bogeyNotes, /2022 Xtreme Falcons/, "repo should document the 2022 canonical source mismatch");
+assert.match(bogeyNotes, /spreadsheet's available split values as canonical/, "repo should document source-spreadsheet precedence for 2022 bogeys");
 
 console.log("bogey UI and migration tests passed");
