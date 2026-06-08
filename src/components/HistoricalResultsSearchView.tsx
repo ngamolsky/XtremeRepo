@@ -81,13 +81,13 @@ type SearchResponse = {
 };
 
 const exampleQueries = [
-  "Xtreme Falcons Vasan leg 4",
-  "West Valley masters team 2025",
-  "women open Tahoe relay lap 7",
+  "Xtreme Falcons",
+  "Extreme Falcons 2024",
+  "Mixed Open 2024",
 ];
 
 const HistoricalResultsSearchView: React.FC = () => {
-  const [query, setQuery] = React.useState("Xtreme Falcons Vasan leg 4");
+  const [query, setQuery] = React.useState("");
   const [year, setYear] = React.useState("");
   const [results, setResults] = React.useState<SearchResult[]>([]);
   const [status, setStatus] = React.useState<"idle" | "loading" | "success" | "error">("idle");
@@ -129,10 +129,13 @@ const HistoricalResultsSearchView: React.FC = () => {
         throw new Error(payload.error || "Historical results search failed.");
       }
 
-      setResults(payload.results || []);
+      const nextResults = payload.results || [];
+      setResults(nextResults);
       setStatus("success");
       setMessage(
-        `Found ${(payload.results || []).length} matching historical team result${(payload.results || []).length === 1 ? "" : "s"}.`
+        nextResults.length === 0
+          ? "No matching historical team results found. If this looks wrong, the source year may not be imported yet or the query may be too narrow."
+          : `Found ${nextResults.length} matching historical team result${nextResults.length === 1 ? "" : "s"}.`
       );
     } catch (error) {
       setResults([]);
