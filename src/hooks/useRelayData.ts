@@ -9,6 +9,7 @@ type SupabaseRowsResponse<T> = {
 };
 
 export type RelayData = {
+  bogeyEvents: Tables<"v_bogey_events">[];
   legDefinitions: Tables<"leg_definitions">[];
   legResultObservations: Tables<"v_leg_result_observations_with_pace">[];
   results: Tables<"v_results_with_pace">[];
@@ -44,6 +45,7 @@ const readOptionalRows = <T>(
 
 export const useRelayData = () => {
   const [data, setData] = useState<RelayData>({
+    bogeyEvents: [],
     legDefinitions: [],
     legResultObservations: [],
     results: [],
@@ -84,6 +86,7 @@ export const useRelayData = () => {
         setError(null);
 
         const [
+          bogeyEventsRes,
           legDefinitionsRes,
           legResultObservationsRes,
           resultsRes,
@@ -92,6 +95,7 @@ export const useRelayData = () => {
           legVersionStatsRes,
           yearlySummaryRes,
         ] = await Promise.all([
+          supabase.from("v_bogey_events").select("*"),
           supabase.from("leg_definitions").select("*"),
           supabase.from("v_leg_result_observations_with_pace").select("*"),
           supabase.from("v_results_with_pace").select("*"),
@@ -113,6 +117,7 @@ export const useRelayData = () => {
         }
 
         setData({
+          bogeyEvents: readOptionalRows(bogeyEventsRes, "v_bogey_events"),
           legDefinitions: legDefinitionsRes.data || [],
           legResultObservations: readOptionalRows(
             legResultObservationsRes,

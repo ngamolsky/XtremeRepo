@@ -6,12 +6,17 @@ import {
   Map as MapIcon,
   PlusCircle,
   Tag,
+  Target,
   Trash2,
   User,
   X,
 } from "lucide-react";
 import React, { useEffect, useMemo, useState } from "react";
 import { useRelayData } from "../hooks/useRelayData";
+import {
+  filterBogeyEventsForPerformance,
+  formatBogeyEventSummary,
+} from "../lib/bogeyStats";
 import {
   formatGradeAdjustedPace,
   getGradeAdjustedPace,
@@ -148,7 +153,7 @@ const RunInstanceDetail: React.FC = () => {
     from: "/runs/$runnerName/$year/$legNumber/$version",
   });
   const {
-    data: { legDefinitions, legResultObservations, legVersionStats, results, yearlySummary },
+    data: { bogeyEvents, legDefinitions, legResultObservations, legVersionStats, results, yearlySummary },
     loading,
     error,
   } = useRelayData();
@@ -206,6 +211,12 @@ const RunInstanceDetail: React.FC = () => {
       result.leg_number === selectedLegNumber &&
       result.leg_version === selectedVersion
   );
+  const performanceBogeyEvents = filterBogeyEventsForPerformance(bogeyEvents, {
+    runnerName,
+    year: selectedYear,
+    legNumber: selectedLegNumber,
+    legVersion: selectedVersion,
+  });
   const routeObservations = legResultObservations.filter(
     (observation) =>
       observation.runner_name === runnerName &&
@@ -583,13 +594,19 @@ const RunInstanceDetail: React.FC = () => {
           </h2>
         </div>
         {officialResult ? (
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-3 lg:grid-cols-4">
+          <>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3 lg:grid-cols-4">
             <Metric label="Runner" value={runnerName} icon={<User className="h-4 w-4" />} />
             <Metric label="Lap Time" value={officialResult.lap_time || "N/A"} icon={<Clock className="h-4 w-4" />} />
             <Metric
               label="Vs Historical Avg"
               value={formatAverageDelta(officialResult.time_in_minutes, legHistoricalAverageMinutes)}
               icon={<Clock className="h-4 w-4" />}
+            />
+            <Metric
+              label="Bogeys"
+              value={formatBogeyEventSummary(performanceBogeyEvents)}
+              icon={<Target className="h-4 w-4" />}
             />
             <Metric label="Pace" value={formatPace(officialResult.pace || 0)} icon={<Activity className="h-4 w-4" />} />
             <Metric
@@ -622,7 +639,25 @@ const RunInstanceDetail: React.FC = () => {
             >
               View leg result
             </Link>
-          </div>
+            </div>
+            <div className="mt-4 rounded-lg bg-gray-50 p-4 text-sm text-gray-600">
+              <p>
+                Bogeys are inferred per-leg passes from official source splits. Start-wave differences may affect inferred physical passes when team start offsets are missing.
+              </p>
+              {performanceBogeyEvents.length > 0 && (
+                <ul className="mt-3 space-y-1">
+                  {performanceBogeyEvents.slice(0, 8).map((event) => (
+                    <li key={event.event_id}>
+                      {event.event_type === "passed_by_us" ? "Passed" : "Passed by"}{" "}
+                      {event.other_bib ? `#${event.other_bib} ` : ""}
+                      {event.other_team_name || "unknown team"}
+                      {event.time_basis === "same_start_assumed" ? " · same-start inferred" : " · start offsets known"}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </>
         ) : (
           <p className="text-sm text-gray-600">
             No official result is recorded for this leg performance.

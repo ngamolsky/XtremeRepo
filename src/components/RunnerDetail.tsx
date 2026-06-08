@@ -1,5 +1,5 @@
 import { Link, useParams } from "@tanstack/react-router";
-import { Award, BarChart, Calendar, ChevronDown, LogOut, Map as MapIcon } from "lucide-react";
+import { Award, BarChart, Calendar, ChevronDown, LogOut, Map as MapIcon, Target } from "lucide-react";
 import React from "react";
 import {
   CartesianGrid,
@@ -13,6 +13,9 @@ import {
 import { useIsMyProfile } from "../hooks/useIsMyProfile";
 import { useRelayData } from "../hooks/useRelayData";
 import { supabase } from "../lib/supabase";
+import {
+  buildRunnerBogeySummary,
+} from "../lib/bogeyStats";
 import {
   buildLegRadarData,
   buildLegRadarVersionOptions,
@@ -43,7 +46,7 @@ const chartTooltipStyle = {
 const RunnerDetail: React.FC = () => {
   const { runnerName } = useParams({ from: "/runners/$runnerName" });
   const {
-    data: { legDefinitions, legResultObservations, runnerStats, results, participations },
+    data: { bogeyEvents, legDefinitions, legResultObservations, runnerStats, results, participations },
     loading,
     error,
   } = useRelayData();
@@ -54,6 +57,7 @@ const RunnerDetail: React.FC = () => {
   );
 
   const runnerStat = runnerStats.find((r) => r.runner_name === runnerName);
+  const runnerBogeySummary = buildRunnerBogeySummary(runnerName, bogeyEvents);
   const runnerResults = results.filter((r) => r.runner_name === runnerName);
   const runnerRaceBreakdown = React.useMemo(
     () => buildRunnerRaceBreakdown(runnerName, results, legResultObservations),
@@ -293,7 +297,7 @@ const RunnerDetail: React.FC = () => {
       </section>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
         <StatCard
           icon={<Award className="w-6 h-6 text-yellow-600" />}
           label="Best Pace"
@@ -303,6 +307,11 @@ const RunnerDetail: React.FC = () => {
           icon={<BarChart className="w-6 h-6 text-blue-600" />}
           label="Average Pace"
           value={runnerStat?.average_pace ? formatPace(runnerStat.average_pace) : "N/A"}
+        />
+        <StatCard
+          icon={<Target className="w-6 h-6 text-emerald-600" />}
+          label="Bogeys"
+          value={`+${runnerBogeySummary.passedCount} / -${runnerBogeySummary.passedByCount}`}
         />
         <StatCard
           icon={<MapIcon className="w-6 h-6 text-green-600" />}
@@ -315,6 +324,14 @@ const RunnerDetail: React.FC = () => {
           value={yearsCompeted.toString()}
         />
       </div>
+      {runnerBogeySummary.passedCount + runnerBogeySummary.passedByCount > 0 && (
+        <p className="text-sm text-gray-600">
+          Bogeys are teams passed (+) and teams that passed this runner (-) by leg. {" "}
+          {runnerBogeySummary.sameStartAssumedCount > 0
+            ? `${runnerBogeySummary.sameStartAssumedCount} same-start inferred event${runnerBogeySummary.sameStartAssumedCount === 1 ? "" : "s"} may differ from physical on-course passes if wave starts were offset.`
+            : "All displayed bogey events have known start offsets."}
+        </p>
+      )}
 
       {/* Performance Chart */}
       <div className="card p-6">

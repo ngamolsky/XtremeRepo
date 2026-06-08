@@ -57,6 +57,30 @@ export type Database = MergeDeep<
             primary_time: string | null
           }
         }
+        v_bogey_events: {
+          Row: {
+            event_id: string
+            year: number
+            runner_id: string | null
+            runner_name: string | null
+            leg_number: number
+            leg_version: number
+            event_type: "passed_by_us" | "passed_us"
+            other_team_result_id: string
+            other_team_name: string | null
+            other_bib: string | null
+            other_division: string | null
+            seconds_swung: number | null
+            our_elapsed_before_seconds: number
+            our_elapsed_after_seconds: number
+            other_elapsed_before_seconds: number
+            other_elapsed_after_seconds: number
+            our_start_offset_seconds: number | null
+            other_start_offset_seconds: number | null
+            start_offsets_known: boolean
+            time_basis: "known_start_offsets" | "same_start_assumed"
+          }
+        }
       }
     }
   }

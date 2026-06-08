@@ -40,7 +40,9 @@
     "test:information-hierarchy-links": "node scripts/test-information-hierarchy-links-and-leg-results.mjs",
     "results:import-csv": "node scripts/supabase/import-historical-team-results-csv.mjs",
     "test:historical-results-simple-import": "node scripts/test-historical-results-simple-import.mjs",
-    "test:dashboard-self-reported": "node scripts/test-dashboard-self-reported-results.mjs"
+    "test:dashboard-self-reported": "node scripts/test-dashboard-self-reported-results.mjs",
+    "test:bogey-events": "node scripts/test-bogey-events.mjs",
+    "test:bogey-ui-and-migration": "node scripts/test-bogey-ui-and-migration.mjs"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.81",
