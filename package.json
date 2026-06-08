@@ -42,7 +42,8 @@
     "test:historical-results-simple-import": "node scripts/test-historical-results-simple-import.mjs",
     "test:dashboard-self-reported": "node scripts/test-dashboard-self-reported-results.mjs",
     "test:bogey-events": "node scripts/test-bogey-events.mjs",
-    "test:bogey-ui-and-migration": "node scripts/test-bogey-ui-and-migration.mjs"
+    "test:bogey-ui-and-migration": "node scripts/test-bogey-ui-and-migration.mjs",
+    "test:ui-ia-foundation": "node scripts/test-ui-ia-foundation.mjs"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.81",

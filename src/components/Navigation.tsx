@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { BarChart3, Camera, Flag, Menu, Search, Trophy, User, Users, X } from "lucide-react";
+import { Camera, Flag, Footprints, Menu, Search, Trophy, User, Users, X } from "lucide-react";
 import React from "react";
 import { getActiveNavId } from "../lib/navigation";
 import ThemeToggle from "./ThemeToggle";
@@ -10,12 +10,11 @@ const Navigation: React.FC = () => {
   });
 
   const tabs = [
-    { id: "dashboard", label: "Dashboard", icon: BarChart3, path: "/" },
-    { id: "team", label: "Team", icon: Users, path: "/team" },
-    { id: "legs", label: "Legs", icon: BarChart3, path: "/legs" },
     { id: "races", label: "Races", icon: Flag, path: "/races" },
-    { id: "search", label: "Search", icon: Search, path: "/historical-results-search" },
+    { id: "legs", label: "Legs", icon: Footprints, path: "/legs" },
+    { id: "runners", label: "Runners", icon: Users, path: "/runners" },
     { id: "photos", label: "Photos", icon: Camera, path: "/photos" },
+    { id: "search", label: "Search", icon: Search, path: "/historical-results-search" },
   ];
 
   const activeTabId = getActiveNavId(pathname);
@@ -32,7 +31,7 @@ const Navigation: React.FC = () => {
           {/* Logo */}
           <Link
             to="/"
-            aria-label="Go to dashboard"
+            aria-label="Go to races"
             className="flex min-w-0 items-center space-x-3 rounded-lg transition-colors hover:bg-gray-50 dark:hover:bg-slate-900"
           >
             <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-700 rounded-lg flex items-center justify-center">

@@ -1,26 +1,28 @@
-export type PrimaryNavId = "dashboard" | "team" | "legs" | "races" | "search" | "photos" | "profile";
+export type PrimaryNavId = "races" | "legs" | "runners" | "photos" | "search" | "profile";
 
 const nestedRouteParents: Record<string, PrimaryNavId> = {
-  runners: "team",
-  runs: "team",
+  dashboard: "races",
+  history: "races",
+  runners: "runners",
+  runs: "races",
+  team: "runners",
   "historical-results-search": "search",
 };
 
 const directRouteIds = new Set<PrimaryNavId>([
-  "dashboard",
-  "team",
-  "legs",
   "races",
-  "search",
+  "legs",
+  "runners",
   "photos",
+  "search",
   "profile",
 ]);
 
 export const getActiveNavId = (pathname: string): PrimaryNavId => {
   const firstSegment = pathname.replace(/^\/+/, "").split("/")[0] || "";
 
-  if (!firstSegment || firstSegment === "dashboard") {
-    return "dashboard";
+  if (!firstSegment) {
+    return "races";
   }
 
   if (firstSegment in nestedRouteParents) {
@@ -31,5 +33,5 @@ export const getActiveNavId = (pathname: string): PrimaryNavId => {
     return firstSegment as PrimaryNavId;
   }
 
-  return "dashboard";
+  return "races";
 };

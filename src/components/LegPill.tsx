@@ -1,11 +1,13 @@
 import { Link } from "@tanstack/react-router";
 import React from "react";
+import { formatLegLabel } from "../lib/legVersion";
 
 interface LegPillProps {
   leg: number;
   version: number;
   className?: string;
-  children: React.ReactNode;
+  children?: React.ReactNode;
+  showVersion?: boolean;
 }
 
 export const LegPill: React.FC<LegPillProps> = ({
@@ -13,6 +15,7 @@ export const LegPill: React.FC<LegPillProps> = ({
   version,
   className,
   children,
+  showVersion = false,
 }) => {
   return (
     <Link
@@ -21,11 +24,11 @@ export const LegPill: React.FC<LegPillProps> = ({
         legNumber: leg.toString(),
         version: version.toString(),
       }}
-      aria-label={`View Leg ${leg} v${version} details`}
+      aria-label={`View ${formatLegLabel(leg, version, { alwaysShowVersion: true })} details`}
       className={className}
       onClick={(e) => e.stopPropagation()}
     >
-      {children}
+      {children ?? formatLegLabel(leg, version, { alwaysShowVersion: showVersion })}
     </Link>
   );
 };
