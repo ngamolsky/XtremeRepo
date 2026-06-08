@@ -1,6 +1,8 @@
+import { Link } from "@tanstack/react-router";
 import React from "react";
 import { Search } from "lucide-react";
 import { supabase } from "../lib/supabase";
+import { LegPill } from "./LegPill";
 
 type LegPerformance = {
   legNumber: number;
@@ -157,7 +159,7 @@ const HistoricalResultsSearchView: React.FC = () => {
               Historical Results Search
             </h2>
             <p className="mt-2 text-sm leading-6 text-gray-600 dark:text-slate-300">
-              Search the one-off imported Lake Tahoe Relay team-result rows. Use this for all-team performance lookup and comparisons, then inspect the preserved source row evidence when needed.
+              Search imported Lake Tahoe Relay team-result rows and show the matching race record with its nested leg performance records.
             </p>
           </div>
         </div>
@@ -224,118 +226,89 @@ const HistoricalResultsSearchView: React.FC = () => {
         </div>
 
         <div className="mt-5 space-y-4">
-          {results.map((result, index) => (
+          {results.map((result) => (
             <article
               key={result.id}
               className="rounded-xl border border-gray-200 p-4 dark:border-slate-800 dark:bg-slate-900/40"
             >
-              <div className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
-                <span>#{index + 1}</span>
-                <span>{formatSimilarity(result.similarity)} text score</span>
-                <span>{result.year || "Unknown year"}</span>
-                <span>{result.chunk_type || "chunk"}</span>
-                {result.leg_number ? <span>Leg {result.leg_number}v{result.leg_version || 1}</span> : null}
-              </div>
-
-              <div className="mt-4 grid gap-3 md:grid-cols-[220px_1fr]">
-                <div className="rounded-lg bg-gray-50 p-3 dark:bg-slate-950/70">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
                   <div className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
-                    Team total
+                    Race record
                   </div>
-                  <div className="mt-1 text-xl font-bold text-gray-900 dark:text-slate-50">
-                    {result.performance?.totalTimeText || "—"}
-                  </div>
-                  <div className="mt-2 text-sm text-gray-600 dark:text-slate-300">
-                    {result.performance?.teamName || result.team_name || "Unknown team"}
-                    {result.performance?.leaderboardPlace ? ` · place ${result.performance.leaderboardPlace}` : ""}
+                  <h3 className="mt-1 text-xl font-bold text-gray-900 dark:text-slate-50">
+                    {result.year || "Unknown year"} · {result.performance?.teamName || result.team_name || "Unknown team"}
+                  </h3>
+                  <div className="mt-2 flex flex-wrap gap-2 text-sm text-gray-600 dark:text-slate-300">
+                    {result.performance?.bib || result.bib ? <span>Bib {result.performance?.bib || result.bib}</span> : null}
+                    {result.performance?.division || result.division ? <span>{result.performance?.division || result.division}</span> : null}
+                    {result.performance?.leaderboardPlace ? <span>Place {result.performance.leaderboardPlace}</span> : null}
                   </div>
                 </div>
-
-                <div className="rounded-lg bg-gray-50 p-3 dark:bg-slate-950/70">
+                <div className="rounded-xl bg-gray-50 px-4 py-3 text-right dark:bg-slate-950/70">
                   <div className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
-                    Leg performance
+                    Total
                   </div>
+                  <div className="mt-1 text-2xl font-bold text-gray-900 dark:text-slate-50">
+                    {result.performance?.totalTimeText || result.canonicalRace?.totalTime || "—"}
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-4">
+                <div className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
+                  Leg performance records
+                </div>
+                {result.canonicalRace?.legs.length ? (
                   <div className="mt-2 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-                    {(result.performance?.legPerformances || []).map((leg) => (
-                      <div key={leg.legNumber} className="rounded-md bg-white px-3 py-2 dark:bg-slate-900">
-                        <div className="text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
-                          {leg.label}
+                    {result.canonicalRace?.legs.map((leg) => (
+                      <div
+                        key={`${leg.legNumber || "leg"}-${leg.legVersion || 1}-${leg.runnerName || "runner"}`}
+                        className="rounded-lg bg-gray-50 px-3 py-2 text-sm dark:bg-slate-950/70"
+                      >
+                        <div className="flex flex-wrap items-center gap-2">
+                          {leg.legNumber ? (
+                            <LegPill
+                              leg={leg.legNumber}
+                              version={leg.legVersion || 1}
+                              className="rounded-full bg-primary-50 px-2.5 py-1 text-xs font-semibold text-primary-700 hover:bg-primary-100 dark:bg-primary-950/50 dark:text-primary-200 dark:hover:bg-primary-900/70"
+                            >
+                              Leg {leg.legNumber}v{leg.legVersion || 1}
+                            </LegPill>
+                          ) : (
+                            <span className="rounded-full bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-600 dark:bg-slate-900 dark:text-slate-300">
+                              Leg ?
+                            </span>
+                          )}
+                          {leg.runnerName ? (
+                            <Link
+                              to="/runners/$runnerName"
+                              params={{ runnerName: leg.runnerName }}
+                              className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-950/50 dark:text-emerald-200 dark:hover:bg-emerald-900/70"
+                            >
+                              {leg.runnerName}
+                            </Link>
+                          ) : (
+                            <span className="rounded-full bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-600 dark:bg-slate-900 dark:text-slate-300">
+                              Unknown runner
+                            </span>
+                          )}
                         </div>
-                        <div className="mt-1 font-semibold text-gray-900 dark:text-slate-50">
-                          {leg.timeText || "—"}
+                        <div className="mt-2 font-semibold text-gray-900 dark:text-slate-50">
+                          {leg.lapTime || "—"}
+                        </div>
+                        <div className="text-xs text-gray-500 dark:text-slate-400">
+                          {leg.pace ? formatPace(leg.pace) : "No pace"}
                         </div>
                       </div>
                     ))}
                   </div>
-                </div>
+                ) : (
+                  <p className="mt-2 text-sm text-gray-600 dark:text-slate-300">
+                    No linked leg performance records for this race yet.
+                  </p>
+                )}
               </div>
-
-              {result.canonicalRace?.linked ? (
-                <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 p-4 dark:border-emerald-900/70 dark:bg-emerald-950/30">
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <div>
-                      <div className="text-xs font-semibold uppercase tracking-wide text-emerald-700 dark:text-emerald-300">
-                        Linked canonical Xtreme record
-                      </div>
-                      <div className="mt-1 text-sm text-emerald-950 dark:text-emerald-50">
-                        Matched by year + bib ({result.canonicalRace.year}, bib {result.canonicalRace.bib}).
-                        {result.canonicalRace.overallPlace
-                          ? ` Overall ${result.canonicalRace.overallPlace}/${result.canonicalRace.overallTeams || "?"}`
-                          : ""}
-                        {result.canonicalRace.divisionPlace
-                          ? ` · Division ${result.canonicalRace.divisionPlace}/${result.canonicalRace.divisionTeams || "?"}`
-                          : ""}
-                      </div>
-                    </div>
-                    {result.canonicalRace.runners.length ? (
-                      <div className="text-right text-sm font-semibold text-emerald-900 dark:text-emerald-100">
-                        {result.canonicalRace.runners.join(" · ")}
-                      </div>
-                    ) : null}
-                  </div>
-
-                  {result.canonicalRace.legs.length ? (
-                    <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-                      {result.canonicalRace.legs.map((leg) => (
-                        <div
-                          key={`${leg.legNumber || "leg"}-${leg.legVersion || 1}`}
-                          className="rounded-md bg-white px-3 py-2 text-sm dark:bg-slate-900"
-                        >
-                          <div className="text-[11px] font-semibold uppercase tracking-wide text-emerald-700 dark:text-emerald-300">
-                            Leg {leg.legNumber || "?"}v{leg.legVersion || 1}
-                          </div>
-                          <div className="mt-1 font-semibold text-gray-900 dark:text-slate-50">
-                            {leg.runnerName || "Unknown runner"}
-                          </div>
-                          <div className="mt-1 text-gray-600 dark:text-slate-300">
-                            {leg.lapTime || "—"}{leg.pace ? ` · ${formatPace(leg.pace)}` : ""}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : null}
-                </div>
-              ) : null}
-
-              <details className="mt-4">
-                <summary className="cursor-pointer text-sm font-semibold text-gray-700 dark:text-slate-200">
-                  Source row text
-                </summary>
-                <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-gray-800 dark:text-slate-100">
-                  {result.chunk_text}
-                </p>
-              </details>
-
-              <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
-                <Evidence label="Team" value={result.performance?.teamName || result.team_name} />
-                <Evidence label="Runner" value={result.performance?.runnerName || result.runner_name} />
-                <Evidence label="Bib" value={result.performance?.bib || result.bib} />
-                <Evidence label="Division" value={result.performance?.division || result.division} />
-                <Evidence label="Total time" value={result.performance?.totalTimeText} />
-                <Evidence label="Pace" value={result.performance?.paceText} />
-                <Evidence label="Difference" value={result.performance?.differenceText} />
-                <Evidence label="Row" value={result.row_label} />
-              </dl>
             </article>
           ))}
         </div>
@@ -343,22 +316,6 @@ const HistoricalResultsSearchView: React.FC = () => {
     </div>
   );
 };
-
-const Evidence: React.FC<{ label: string; value?: string | null }> = ({ label, value }) => (
-  <div>
-    <dt className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
-      {label}
-    </dt>
-    <dd className="mt-1 break-words text-gray-800 dark:text-slate-100">{value || "—"}</dd>
-  </div>
-);
-
-function formatSimilarity(value: number | null): string {
-  if (value == null || !Number.isFinite(value)) {
-    return "—";
-  }
-  return value.toFixed(3);
-}
 
 function formatPace(value: number | null): string {
   if (value == null || !Number.isFinite(value) || value <= 0) {

@@ -18,17 +18,21 @@ assert.match(navSource, /Search/, "navigation should label the historical search
 
 const componentSource = readFileSync("src/components/HistoricalResultsSearchView.tsx", "utf8");
 assert.match(componentSource, /Historical Results Search/, "search page should have a clear heading");
-assert.match(componentSource, /one-off imported Lake Tahoe Relay team-result rows|Search the one-off imported/, "search page should explain the simple imported-row model");
+assert.match(componentSource, /matching race record with its nested leg performance records/, "search page should explain the simplified race-record results model");
 assert.doesNotMatch(componentSource, /semantic search/i, "search UI should not present embeddings as the search mechanism");
 assert.doesNotMatch(componentSource, /Embedding query/, "search UI should not embed queries");
 assert.match(componentSource, /\/api\/historical-results\/search/, "search page should call the worker search API");
 assert.match(componentSource, /useState\(""\)/, "search query input should start blank instead of auto-searching a stale default query");
 assert.doesNotMatch(componentSource, /useState\("Xtreme Falcons Vasan leg 4"\)/, "search query input should not preload the old embedding-era default query");
 assert.match(componentSource, /No matching historical team results found/, "search UI should explicitly explain true zero-result responses");
-assert.match(componentSource, /Team total/, "search results should emphasize underlying team total time");
-assert.match(componentSource, /Source row text/, "source row text should be available but de-emphasized");
-assert.match(componentSource, /Linked canonical Xtreme record/, "linked canonical race data should be shown when search evidence matches an existing race");
+assert.match(componentSource, /Race record/, "search results should render each match as a race record");
 assert.match(componentSource, /canonicalRace/, "search result typing should include joined canonical race payloads");
+assert.match(componentSource, /import \{ LegPill \}/, "nested leg performances should use shared clickable LegPill links");
+assert.match(componentSource, /to="\/runners\/\$runnerName"/, "nested leg performances should render clickable runner pills");
+assert.match(componentSource, /result\.canonicalRace\?\.legs/, "search result cards should be driven by nested canonical leg performance records");
+assert.doesNotMatch(componentSource, /Source row text/, "search results should not show source-row evidence in the simplified card");
+assert.doesNotMatch(componentSource, /formatSimilarity/, "search results should not show text score details in the simplified card");
+assert.doesNotMatch(componentSource, /<Evidence\b/, "search results should not render the old evidence grid");
 
 const workerSource = readFileSync("src/worker/index.ts", "utf8");
 assert.match(workerSource, /\/api\/historical-results\/search/, "worker should expose historical search API route");
