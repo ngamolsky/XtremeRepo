@@ -49,6 +49,41 @@ assert.match(
   /View performance/,
   "race detail performance links should use the Leg Performance wording instead of vague Open labels"
 );
+assert.match(
+  raceDetail,
+  /import EntityPill from "\.\/EntityPill";/,
+  "race detail should use shared EntityPill styling for race-centered entity links"
+);
+assert.match(
+  raceDetail,
+  /import SourceBadge from "\.\/SourceBadge";/,
+  "race detail should use shared SourceBadge styling for official and self-reported sources"
+);
+assert.match(
+  raceDetail,
+  /<EntityPill[\s\S]*category="runner"[\s\S]*to="\/runners\/\$runnerName"[\s\S]*params=\{\{ runnerName \}\}/,
+  "race detail observed runner links should be runner entity pills"
+);
+assert.match(
+  raceDetail,
+  /<EntityPill[\s\S]*category="performance"[\s\S]*to="\/runs\/\$runnerName\/\$year\/\$legNumber\/\$version"[\s\S]*View performance/,
+  "race detail leg performance action should be a performance entity pill"
+);
+assert.match(
+  raceDetail,
+  /<SourceBadge[\s\S]*kind=\{entry\.kind === "official" \? "official" : "self-reported"\}/,
+  "race detail entry source badges should map to the shared source taxonomy"
+);
+assert.doesNotMatch(
+  raceDetail,
+  /Leg \{group\.legNumber\} v\{group\.legVersion\}/,
+  "race detail leg group pills should let LegPill hide the current/default version when unambiguous"
+);
+assert.doesNotMatch(
+  raceDetail,
+  /Leg \{leg\.legNumber\} v\{leg\.legVersion\}/,
+  "race detail live projection leg pills should let LegPill hide the current/default version when unambiguous"
+);
 
 assert.match(
   legDetail,

@@ -21,10 +21,16 @@ assert.match(
   "race detail live projection leg labels should render as linked leg pills"
 );
 
-assert.match(
+assert.doesNotMatch(
   source,
   /Leg \{group\.legNumber\} v\{group\.legVersion\}/,
-  "race detail leg group pills should show the displayed leg number and version"
+  "race detail leg group pills should defer display text to LegPill so current/default versions can be hidden"
+);
+
+assert.doesNotMatch(
+  source,
+  /Leg \{leg\.legNumber\} v\{leg\.legVersion\}/,
+  "race detail live projection pills should defer display text to LegPill so current/default versions can be hidden"
 );
 
 console.log("race detail leg link tests passed");

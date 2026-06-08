@@ -23,7 +23,9 @@ import { supabase } from "../lib/supabase";
 import { Tables } from "../types/database.types";
 import Breadcrumbs from "./Breadcrumbs";
 import CommentsSection from "./CommentsSection";
+import EntityPill from "./EntityPill";
 import { LegPill } from "./LegPill";
+import SourceBadge from "./SourceBadge";
 
 type AlbumSummary = Tables<"v_race_photo_album_summary">;
 type RacePhoto = Tables<"race_photos">;
@@ -357,10 +359,8 @@ const RaceDetailView: React.FC = () => {
                             <LegPill
                               leg={leg.legNumber}
                               version={leg.legVersion}
-                              className="inline-flex items-center rounded-full bg-primary-50 px-2.5 py-1 text-xs font-semibold text-primary-700 transition-colors hover:bg-primary-100 hover:text-primary-800 dark:bg-primary-950/40 dark:text-primary-200"
-                            >
-                              Leg {leg.legNumber} v{leg.legVersion}
-                            </LegPill>
+                              className="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 transition-colors hover:bg-emerald-100 hover:text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200"
+                            />
                           ) : (
                             <>Leg {leg.legNumber}</>
                           )}
@@ -506,14 +506,15 @@ const RaceDetailView: React.FC = () => {
               {observedRunnerNames.length > 0 ? (
                 <div className="flex flex-wrap gap-2">
                   {observedRunnerNames.map((runnerName) => (
-                    <Link
+                    <EntityPill
                       key={runnerName}
+                      category="runner"
                       to="/runners/$runnerName"
                       params={{ runnerName }}
-                      className="rounded-full bg-primary-50 px-3 py-1 text-sm text-primary-700 transition-colors hover:bg-primary-100 hover:text-primary-800"
+                      ariaLabel={`View ${runnerName} runner profile`}
                     >
                       {runnerName}
-                    </Link>
+                    </EntityPill>
                   ))}
                 </div>
               ) : (
@@ -619,10 +620,8 @@ const RaceLegGroupRow: React.FC<{ group: RaceLegGroup; raceYear: number }> = ({
         <LegPill
           leg={group.legNumber}
           version={group.legVersion}
-          className="inline-flex items-center rounded-full bg-primary-50 px-3 py-1 text-sm font-semibold text-primary-700 transition-colors hover:bg-primary-100 hover:text-primary-800 dark:bg-primary-950/40 dark:text-primary-200"
-        >
-          Leg {group.legNumber} v{group.legVersion}
-        </LegPill>
+          className="inline-flex items-center rounded-full bg-emerald-50 px-3 py-1 text-sm font-semibold text-emerald-700 transition-colors hover:bg-emerald-100 hover:text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200"
+        />
       ) : (
         <p className="text-sm font-semibold text-gray-900">Leg {group.legNumber}</p>
       )}
@@ -672,7 +671,8 @@ const RaceLegEntryRow: React.FC<{ entry: RaceLegEntry; raceYear: number }> = ({
         </p>
       </div>
       {entry.runnerName && entry.legVersion ? (
-        <Link
+        <EntityPill
+          category="performance"
           to="/runs/$runnerName/$year/$legNumber/$version"
           params={{
             runnerName: entry.runnerName,
@@ -680,10 +680,10 @@ const RaceLegEntryRow: React.FC<{ entry: RaceLegEntry; raceYear: number }> = ({
             legNumber: String(entry.legNumber),
             version: String(entry.legVersion),
           }}
-          className="text-sm font-medium text-primary-700 hover:text-primary-800"
+          ariaLabel={`View ${entry.runnerName} ${raceYear} Leg ${entry.legNumber} performance`}
         >
           View performance
-        </Link>
+        </EntityPill>
       ) : null}
     </div>
 
@@ -735,15 +735,11 @@ const EntrySourceBadge: React.FC<{ entry: RaceLegEntry }> = ({ entry }) => {
         }`;
 
   return (
-    <span
-      className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${
-        entry.kind === "official"
-          ? "bg-emerald-50 text-emerald-700"
-          : "bg-amber-50 text-amber-800"
-      }`}
-    >
-      {label}
-    </span>
+    <SourceBadge
+      kind={entry.kind === "official" ? "official" : "self-reported"}
+      label={label}
+      title={entry.kind === "official" ? "Official race result" : "Self-reported race-day evidence"}
+    />
   );
 };
 
