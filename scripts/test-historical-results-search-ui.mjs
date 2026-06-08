@@ -54,5 +54,8 @@ assert.match(workerSource, /isHistoricalTimeText/, "historical search should val
 assert.match(workerSource, /collapseHistoricalDuplicateMatches/, "historical search should collapse duplicate rows for the same year/bib/team across division/overall tables");
 assert.match(workerSource, /historicalDuplicateMatchKey/, "historical duplicate collapse should key race records by normalized year, bib, and team");
 assert.match(workerSource, /scoreHistoricalMatchCompleteness/, "duplicate collapse should prefer the row with official times and richer parsed data");
+assert.match(workerSource, /firstTimeIndex = fields\.findIndex\(\(field\) => isHistoricalTimeText\(field\)\)/, "pipe parser should locate the first real time instead of assuming fixed columns");
+assert.match(workerSource, /fields\.slice\(firstTimeIndex \+ 1, firstTimeIndex \+ 8\)/, "pipe parser should read the seven official leg splits after the total time");
+assert.match(workerSource, /extractRepeatedLeadingPhrase\(teamNameBlob\)/, "pipe parser should collapse repeated team-name runner columns into one team name");
 
 console.log("historical results search UI tests passed");

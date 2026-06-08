@@ -963,16 +963,23 @@ type ParsedHistoricalPerformanceText = {
 function parseHistoricalPerformanceText(chunkText: string): ParsedHistoricalPerformanceText {
   const fields = parseHistoricalPipeFields(chunkText);
   if (fields.length > 0) {
+    const firstTimeIndex = fields.findIndex((field) => isHistoricalTimeText(field));
+    const totalTimeText = firstTimeIndex >= 0 ? fields[firstTimeIndex] : null;
+    const beforeTimeFields = firstTimeIndex >= 0 ? fields.slice(0, firstTimeIndex) : fields;
+    const division = beforeTimeFields.length >= 4 ? beforeTimeFields[beforeTimeFields.length - 1] || null : fields[3] || null;
+    const teamNameBlob = beforeTimeFields.slice(2, Math.max(3, beforeTimeFields.length - 1)).join(" ").trim();
+    const teamName = teamNameBlob ? extractRepeatedLeadingPhrase(teamNameBlob) || fields[2] || teamNameBlob : fields[2] || null;
+
     return {
       place: parseIntegerText(fields[0]),
       bib: fields[1] || null,
-      teamName: fields[2] || null,
-      division: fields[3] || null,
-      totalTimeText: fields[4] || null,
-      legTimes: fields.slice(5, 12),
-      differenceText: fields[12] || null,
-      percentBackText: fields[13] || null,
-      paceText: fields[17] || null,
+      teamName,
+      division,
+      totalTimeText,
+      legTimes: firstTimeIndex >= 0 ? fields.slice(firstTimeIndex + 1, firstTimeIndex + 8) : [],
+      differenceText: firstTimeIndex >= 0 ? fields[firstTimeIndex + 8] || null : null,
+      percentBackText: firstTimeIndex >= 0 ? fields[firstTimeIndex + 9] || null : null,
+      paceText: firstTimeIndex >= 0 ? fields[firstTimeIndex + 13] || null : null,
     };
   }
 
