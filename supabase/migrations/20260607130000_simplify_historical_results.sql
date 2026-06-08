@@ -33,6 +33,14 @@ DROP TABLE IF EXISTS public.historical_result_matches CASCADE;
 DROP TABLE IF EXISTS public.canonical_team_results CASCADE;
 DROP TABLE IF EXISTS public.canonical_leg_results CASCADE;
 
+-- Remove operational records from the deleted embedding pipeline before tightening
+-- constraints around the simpler annual import flow.
+DELETE FROM public.import_warnings
+WHERE entity_type = 'embedding'
+   OR import_run_id IN (SELECT id FROM public.import_runs WHERE import_type = 'embed');
+DELETE FROM public.import_runs
+WHERE import_type = 'embed';
+
 ALTER TABLE public.import_runs DROP CONSTRAINT IF EXISTS import_runs_import_type_check;
 ALTER TABLE public.import_runs ADD CONSTRAINT import_runs_import_type_check CHECK (
   import_type = ANY (ARRAY[
