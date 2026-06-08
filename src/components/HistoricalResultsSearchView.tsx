@@ -80,15 +80,6 @@ type SearchResponse = {
   error?: string;
 };
 
-const chunkTypeOptions = [
-  { value: "", label: "All chunks" },
-  { value: "team_result", label: "Team results" },
-  { value: "leg_result", label: "Leg results" },
-  { value: "source_summary", label: "Source summaries" },
-  { value: "row", label: "Raw rows / OCR" },
-  { value: "ocr_block", label: "OCR blocks" },
-];
-
 const exampleQueries = [
   "Xtreme Falcons Vasan leg 4",
   "West Valley masters team 2025",
@@ -98,10 +89,9 @@ const exampleQueries = [
 const HistoricalResultsSearchView: React.FC = () => {
   const [query, setQuery] = React.useState("Xtreme Falcons Vasan leg 4");
   const [year, setYear] = React.useState("");
-  const [chunkType, setChunkType] = React.useState("team_result");
   const [results, setResults] = React.useState<SearchResult[]>([]);
   const [status, setStatus] = React.useState<"idle" | "loading" | "success" | "error">("idle");
-  const [message, setMessage] = React.useState("Run a semantic search over embedded historical result source chunks.");
+  const [message, setMessage] = React.useState("Search structured annual historical result rows.");
 
   const runSearch = React.useCallback(async () => {
     const trimmedQuery = query.trim();
@@ -112,7 +102,7 @@ const HistoricalResultsSearchView: React.FC = () => {
     }
 
     setStatus("loading");
-    setMessage("Embedding query and searching historical source evidence…");
+    setMessage("Searching imported historical team results…");
 
     try {
       const { data } = await supabase.auth.getSession();
@@ -131,26 +121,25 @@ const HistoricalResultsSearchView: React.FC = () => {
           query: trimmedQuery,
           matchCount: 12,
           year: year ? Number(year) : null,
-          chunkType: chunkType || null,
         }),
       });
       const payload = (await response.json()) as SearchResponse;
 
       if (!response.ok || payload.error) {
-        throw new Error(payload.error || "Historical semantic search failed.");
+        throw new Error(payload.error || "Historical results search failed.");
       }
 
       setResults(payload.results || []);
       setStatus("success");
       setMessage(
-        `Found ${(payload.results || []).length} semantic match${(payload.results || []).length === 1 ? "" : "es"}. Model: ${payload.model || "text-embedding-3-small"}.`
+        `Found ${(payload.results || []).length} matching historical team result${(payload.results || []).length === 1 ? "" : "s"}.`
       );
     } catch (error) {
       setResults([]);
       setStatus("error");
-      setMessage(error instanceof Error ? error.message : "Historical semantic search failed.");
+      setMessage(error instanceof Error ? error.message : "Historical results search failed.");
     }
-  }, [chunkType, query, year]);
+  }, [query, year]);
 
   return (
     <div className="space-y-6">
@@ -159,18 +148,18 @@ const HistoricalResultsSearchView: React.FC = () => {
           <div className="max-w-3xl">
             <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-primary-50 px-3 py-1 text-sm font-semibold text-primary-700 dark:bg-primary-950/40 dark:text-primary-200">
               <Search className="h-4 w-4" />
-              Historical source discovery
+              Historical team results
             </div>
             <h2 className="text-3xl font-bold text-gray-900 dark:text-slate-50">
               Historical Results Search
             </h2>
             <p className="mt-2 text-sm leading-6 text-gray-600 dark:text-slate-300">
-              Semantic search over embedded Lake Tahoe Relay historical source chunks. Use it for fuzzy discovery, then inspect the source filename, document, and row evidence before treating a result as canonical.
+              Search the one-off imported Lake Tahoe Relay team-result rows. Use this for all-team performance lookup and comparisons, then inspect the preserved source row evidence when needed.
             </p>
           </div>
         </div>
 
-        <div className="mt-6 grid gap-4 lg:grid-cols-[1fr_160px_220px_auto]">
+        <div className="mt-6 grid gap-4 lg:grid-cols-[1fr_160px_auto]">
           <label className="block">
             <span className="text-sm font-semibold text-gray-700 dark:text-slate-200">Search query</span>
             <input
@@ -182,7 +171,7 @@ const HistoricalResultsSearchView: React.FC = () => {
                 }
               }}
               className="mt-2 w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:ring-primary-900"
-              placeholder="runner, team, category, leg, or messy historical wording"
+              placeholder="team, bib, division, year, or source wording"
             />
           </label>
 
@@ -194,21 +183,6 @@ const HistoricalResultsSearchView: React.FC = () => {
               className="mt-2 w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:ring-primary-900"
               placeholder="Any"
             />
-          </label>
-
-          <label className="block">
-            <span className="text-sm font-semibold text-gray-700 dark:text-slate-200">Chunk type</span>
-            <select
-              value={chunkType}
-              onChange={(event) => setChunkType(event.target.value)}
-              className="mt-2 w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:ring-primary-900"
-            >
-              {chunkTypeOptions.map((option) => (
-                <option key={option.value || "all"} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
           </label>
 
           <button
@@ -254,7 +228,7 @@ const HistoricalResultsSearchView: React.FC = () => {
             >
               <div className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
                 <span>#{index + 1}</span>
-                <span>{formatSimilarity(result.similarity)} similarity</span>
+                <span>{formatSimilarity(result.similarity)} text score</span>
                 <span>{result.year || "Unknown year"}</span>
                 <span>{result.chunk_type || "chunk"}</span>
                 {result.leg_number ? <span>Leg {result.leg_number}v{result.leg_version || 1}</span> : null}
@@ -342,7 +316,7 @@ const HistoricalResultsSearchView: React.FC = () => {
 
               <details className="mt-4">
                 <summary className="cursor-pointer text-sm font-semibold text-gray-700 dark:text-slate-200">
-                  Raw searchable text
+                  Source row text
                 </summary>
                 <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-gray-800 dark:text-slate-100">
                   {result.chunk_text}

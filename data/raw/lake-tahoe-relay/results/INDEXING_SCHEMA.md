@@ -1,45 +1,44 @@
 # Historical result indexing schema
 
-This schema supports importing historical Lake Tahoe Relay source files without mixing messy source data directly into the app's canonical `placements` and `results` tables.
+This schema supports a deliberately simple annual import process for historical Lake Tahoe Relay source files. The goal is not autonomous canonicalization for every possible format. The source files are preserved, then a one-off assisted parser/CSV import creates searchable team-result rows.
 
-Migration: `supabase/migrations/20260607100000_add_historical_result_index.sql`
+Migrations:
+
+- `supabase/migrations/20260607100000_add_historical_result_index.sql` creates the original raw source evidence tables.
+- `supabase/migrations/20260607130000_simplify_historical_results.sql` removes embedding/chunk search and adds the simple team-result archive.
 
 ## Data layers
 
 1. Source evidence
-   - `raw_result_sources`: one row per downloaded file, with source URL, local path, type, bytes, SHA-256, and extraction status.
+   - `raw_result_sources`: one row per downloaded/uploaded file, with source URL/local path, type, bytes, SHA-256, and extraction status.
    - `raw_result_documents`: sheets, PDF pages, image scans, or text/html sections inside a source file.
    - `raw_result_cells`: spreadsheet/table cells with row/column coordinates and raw values.
-   - `raw_result_rows`: row-level extraction with raw text, cells JSON, parser status, and full-text search vector.
+   - `raw_result_rows`: row-level extraction with raw text and cells JSON.
 
-2. Search layer
-   - `result_search_chunks`: app/search-friendly text chunks linked back to source rows/documents/files.
-   - Supports ordinary Postgres full-text search via `search_vector`.
-   - Includes `embedding vector(1536)` for semantic search with pgvector once an embedding job is added. A vector ANN index can be added later once the deployed pgvector operator/index support is confirmed.
-   - View: `v_result_search` joins chunks to source/document/row metadata.
+2. Searchable team-result rows
+   - `historical_team_results`: one row per team result from a source year.
+   - Important fields: year, raw/normalized team name, bib, division, overall/division place, total time, raw source text, and `is_our_team` candidate flag.
+   - `v_historical_team_results_search`: joins team results back to source/document metadata for the app and agent search endpoint.
 
-3. Parsed historical entities
-   - `historical_teams`: one team entry in one historical source year.
-   - `historical_leg_results`: one parsed team-leg result, optionally matched to an app runner.
-   - View: `v_historical_leg_results_with_source` exposes parsed leg results with source evidence.
+3. Optional split rows
+   - `historical_leg_splits`: optional per-leg split rows when a year's source includes clean split data.
+   - This can be populated by a one-off script for that year's format; it is not required for team-total search.
 
-4. Matching/review support
-   - `historical_runner_aliases`: suggested/confirmed raw runner-name to canonical runner mappings.
-   - `historical_team_aliases`: normalized team-name/canonical-team mappings.
-   - `import_runs`: extraction/parse/normalize/embed/load job audit log.
-   - `import_warnings`: review queue for parse errors, OCR issues, ambiguous matches, etc.
+4. Our-team link
+   - `our_team_result_links`: one manual or agent-reviewed link per year from the historical source row to the Xtreme/Falcons team result.
+   - This avoids pretending generic embeddings can decide team identity. For our own team, confirm the annual row using bib/year/name/source evidence.
 
-## Why this is separate from canonical app tables
+5. Audit/review
+   - `import_runs`: extraction/load job audit log.
+   - `import_warnings`: review notes for parse errors, OCR issues, ambiguous rows, etc.
 
-The existing app tables are optimized for the user's team and current race views:
+## Import path
 
-- `placements` is keyed by `year`.
-- `results` is keyed by `(year, leg_number)`.
+Raw file -> extracted rows or cleaned CSV -> `historical_team_results` -> optional `our_team_result_links` -> app/agent search.
 
-The historical Lake Tahoe Relay files contain many teams per year and inconsistent formats across spreadsheets, PDFs, and image scans. Historical rows should therefore be parsed into staging/indexing tables first, then reviewed/promoted into canonical app data only when confidence is high.
+Use:
 
-## Promotion path
+- `npm run results:load-extracted` for extracted JSON files.
+- `npm run results:import-csv -- --file cleaned-results.csv --year YYYY` for an ad hoc cleaned annual CSV.
 
-Raw file -> extracted rows/chunks -> parsed historical teams/results -> alias matching/review -> optional promotion into canonical `results`/`placements`.
-
-A future import script should populate these tables in order and record each step in `import_runs`/`import_warnings`.
+Embeddings are intentionally not part of this path. The database uses structured filters and boring text/trigram search over imported team-result rows.

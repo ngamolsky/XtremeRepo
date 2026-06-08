@@ -29,7 +29,7 @@ const summary = {
   documents: 0,
   rows: 0,
   cells: 0,
-  chunks: 0,
+  teamResults: 0,
   warnings: 0,
 };
 
@@ -43,17 +43,17 @@ try {
     summary.documents += loaded.documents;
     summary.rows += loaded.rows;
     summary.cells += loaded.cells;
-    summary.chunks += loaded.chunks;
+    summary.teamResults += loaded.teamResults;
     summary.warnings += loaded.warnings;
 
     console.log(
-      `[${extraction.source.year}] loaded source=${loaded.sourceId} documents=${loaded.documents}, rows=${loaded.rows}, cells=${loaded.cells}, chunks=${loaded.chunks}, warnings=${loaded.warnings}`
+      `[${extraction.source.year}] loaded source=${loaded.sourceId} documents=${loaded.documents}, rows=${loaded.rows}, cells=${loaded.cells}, teamResults=${loaded.teamResults}, warnings=${loaded.warnings}`
     );
   }
 
   await finishImportRun(client, importRunId, "success", summary);
   console.log(
-    `Loaded ${summary.files} extraction file(s) into ${target.mode} (${target.projectRef}): sources=${summary.sources}, documents=${summary.documents}, rows=${summary.rows}, cells=${summary.cells}, chunks=${summary.chunks}, warnings=${summary.warnings}`
+    `Loaded ${summary.files} extraction file(s) into ${target.mode} (${target.projectRef}): sources=${summary.sources}, documents=${summary.documents}, rows=${summary.rows}, cells=${summary.cells}, teamResults=${summary.teamResults}, warnings=${summary.warnings}`
   );
 } catch (error) {
   await finishImportRun(client, importRunId, "failed", summary, error.message);
@@ -117,17 +117,14 @@ async function loadExtraction(client, extraction, importRunId, args) {
   }
 
   const warnings = await insertExtractionWarnings(client, importRunId, sourceId, extraction);
-  const chunks = [];
+  const teamResults = [];
   let documentCount = 0;
   let rowCount = 0;
   let cellCount = 0;
 
-  chunks.push(sourceSummaryChunk(sourceId, extraction));
-
   for (const document of extraction.documents || []) {
     const documentId = await insertDocument(client, sourceId, document);
     documentCount += 1;
-    chunks.push(documentChunk(sourceId, documentId, extraction, document));
 
     const cells = (document.cells || []).map((cell) => ({
       source_id: sourceId,
@@ -151,11 +148,23 @@ async function loadExtraction(client, extraction, importRunId, args) {
     rowCount += insertedRows.length;
 
     for (const insertedRow of insertedRows) {
-      chunks.push(rowChunk(sourceId, documentId, insertedRow.id, extraction, document, insertedRow.originalRow));
+      const parsedTeamResult = parseHistoricalTeamResultRow({
+        sourceId,
+        documentId,
+        rawRowId: insertedRow.id,
+        importRunId,
+        year: extraction.source.year,
+        raceName: "Lake Tahoe Relay",
+        document,
+        row: insertedRow.originalRow,
+      });
+      if (parsedTeamResult) {
+        teamResults.push(parsedTeamResult);
+      }
     }
   }
 
-  await insertBatches(client, "result_search_chunks", chunks);
+  await insertBatches(client, "historical_team_results", teamResults);
   await updateSourceStatus(client, sourceId, extraction);
 
   return {
@@ -163,7 +172,7 @@ async function loadExtraction(client, extraction, importRunId, args) {
     documents: documentCount,
     rows: rowCount,
     cells: cellCount,
-    chunks: chunks.length,
+    teamResults: teamResults.length,
     warnings,
   };
 }
@@ -206,7 +215,7 @@ async function upsertSource(client, extraction) {
 }
 
 async function deleteExistingSourceExtraction(client, sourceId) {
-  await checkedDelete(client.from("result_search_chunks").delete().eq("source_id", sourceId), "result_search_chunks");
+  await checkedDelete(client.from("historical_team_results").delete().eq("source_id", sourceId), "historical_team_results");
   await checkedDelete(client.from("raw_result_documents").delete().eq("source_id", sourceId), "raw_result_documents");
 }
 
@@ -299,65 +308,132 @@ async function insertExtractionWarnings(client, importRunId, sourceId, extractio
   return warningRows.length;
 }
 
-function sourceSummaryChunk(sourceId, extraction) {
-  const source = extraction.source;
-  return {
-    source_id: sourceId,
-    year: source.year,
-    chunk_type: "source_summary",
-    chunk_text: `${source.year} Lake Tahoe Relay historical result source ${source.original_filename || path.basename(source.filename)} ${source.file_type} ${extraction.summary.rows} extracted rows ${extraction.summary.cells} extracted cells`,
-    structured_json: {
-      source_url: source.source_url,
-      final_url: source.final_url,
-      filename: source.filename,
-      file_type: source.file_type,
-      extraction_status: extraction.extraction.status,
-      extraction_method: extraction.extraction.method,
-      summary: extraction.summary,
-    },
-  };
-}
+function parseHistoricalTeamResultRow({ sourceId, documentId, rawRowId, importRunId, year, raceName, document, row }) {
+  const rawText = (row.raw_text || "").trim();
+  if (!rawText || !/\b\d{1,2}:\d{2}(?::\d{2})?(?:\.\d+)?\b/.test(rawText)) {
+    return null;
+  }
+  const parsed = rawText.includes("|") ? parsePipeTeamResult(rawText) : parseWhitespaceTeamResult(rawText);
+  if (!parsed || !parsed.teamName || !parsed.totalTimeText) {
+    return null;
+  }
 
-function documentChunk(sourceId, documentId, extraction, document) {
-  const label = document.name || (document.page_number ? `Page ${document.page_number}` : "Document");
-  return {
-    source_id: sourceId,
-    document_id: documentId,
-    year: extraction.source.year,
-    chunk_type: document.document_type === "pdf_page" ? "page" : document.document_type === "image" ? "ocr_block" : "sheet",
-    chunk_text: `${extraction.source.year} Lake Tahoe Relay ${label} ${document.document_type} ${document.row_count || 0} rows ${document.column_count || 0} columns`,
-    structured_json: {
-      document_type: document.document_type,
-      name: document.name,
-      sheet_index: document.sheet_index,
-      page_number: document.page_number,
-      row_count: document.row_count,
-      column_count: document.column_count,
-    },
-  };
-}
-
-function rowChunk(sourceId, documentId, rawRowId, extraction, document, row) {
   return {
     source_id: sourceId,
     document_id: documentId,
     raw_row_id: rawRowId,
-    year: extraction.source.year,
-    chunk_type: row.raw_text.length > 500 ? "notes" : inferChunkType(row.raw_text),
-    chunk_text: `${extraction.source.year} ${document.name || document.document_type} row ${row.row_label}: ${row.raw_text}`,
-    structured_json: {
+    import_run_id: importRunId,
+    year,
+    race_name: raceName,
+    row_index: row.row_index,
+    row_label: row.row_label,
+    team_name_raw: parsed.teamName,
+    team_name_normalized: normalizeName(parsed.teamName),
+    bib: parsed.bib,
+    division: parsed.division,
+    overall_place: parsed.overallPlace,
+    division_place: parsed.divisionPlace,
+    total_time_text: parsed.totalTimeText,
+    total_time_seconds: timeTextToSeconds(parsed.totalTimeText),
+    raw_text: rawText,
+    is_our_team: isOurTeamName(parsed.teamName),
+    metadata: {
       document_type: document.document_type,
       document_name: document.name,
       sheet_index: document.sheet_index,
       page_number: document.page_number,
-      row_index: row.row_index,
-      row_label: row.row_label,
+      parser: parsed.parser,
     },
-    team_name: inferTeamName(row.raw_text),
-    runner_name: null,
-    leg_number: inferLegNumber(row.raw_text),
-    leg_version: 1,
   };
+}
+
+function parsePipeTeamResult(rawText) {
+  const fields = rawText.split("|").map((field) => field.trim());
+  const timeIndex = fields.findIndex((field) => timeTextToSeconds(field) != null);
+  if (timeIndex === -1) {
+    return null;
+  }
+  const likelyTeamIndex = Math.max(0, timeIndex - 2);
+  return {
+    parser: "pipe",
+    overallPlace: parseInteger(fields[0]),
+    bib: fields[1] || null,
+    teamName: fields[2] || fields[likelyTeamIndex] || null,
+    division: fields[3] || null,
+    totalTimeText: fields[timeIndex] || null,
+    divisionPlace: null,
+  };
+}
+
+function parseWhitespaceTeamResult(rawText) {
+  const times = [...rawText.matchAll(/\b\d{1,2}:\d{2}(?::\d{2})?(?:\.\d+)?\b/g)];
+  const firstTime = times[0];
+  if (!firstTime) {
+    return null;
+  }
+  const beforeTime = rawText.slice(0, firstTime.index).trim();
+  const { division, beforeDivision } = extractDivision(beforeTime);
+  const leading = beforeDivision.match(/^\s*(\d+)\s+(\S+)\s+(.+)$/);
+  if (!leading) {
+    return null;
+  }
+  const secondTokenIsNumeric = /^\d+$/.test(leading[2]);
+  const overallPlace = secondTokenIsNumeric ? parseInteger(leading[1]) : null;
+  const bib = secondTokenIsNumeric ? leading[2] : leading[1];
+  const teamName = (secondTokenIsNumeric ? leading[3] : `${leading[2]} ${leading[3]}`).trim();
+  return {
+    parser: "whitespace",
+    overallPlace,
+    bib,
+    teamName,
+    division,
+    totalTimeText: firstTime[0],
+    divisionPlace: null,
+  };
+}
+
+function extractDivision(value) {
+  const divisionPattern = /\b((?:Mixed|Men'?s|Women'?s)\s+(?:Open|Masters(?:\s+\d+\+)?|Senior(?:s)?(?:\s+\d+\+)?|Ultra|Corporate|Family|Public Safety))\s*$/i;
+  const match = value.match(divisionPattern);
+  if (!match || match.index == null) {
+    return { division: null, beforeDivision: value.trim() };
+  }
+  return {
+    division: match[1].replace(/\s+/g, " ").trim(),
+    beforeDivision: value.slice(0, match.index).trim(),
+  };
+}
+
+function parseInteger(value) {
+  const parsed = Number.parseInt(String(value || ""), 10);
+  return Number.isInteger(parsed) ? parsed : null;
+}
+
+function timeTextToSeconds(value) {
+  const match = String(value || "").trim().match(/^(\d{1,2}):(\d{2})(?::(\d{2})(?:\.\d+)?)?$/);
+  if (!match) {
+    return null;
+  }
+  const first = Number(match[1]);
+  const second = Number(match[2]);
+  const third = match[3] == null ? null : Number(match[3]);
+  if (third == null) {
+    return first * 60 + second;
+  }
+  return first * 3600 + second * 60 + third;
+}
+
+function normalizeName(value) {
+  return String(value || "")
+    .toLowerCase()
+    .replace(/&/g, " and ")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim()
+    .replace(/\s+/g, " ");
+}
+
+function isOurTeamName(teamName) {
+  return /(?:x|ex)treme|falcon/i.test(teamName || "");
 }
 
 function cellsObject(cells) {
@@ -393,30 +469,6 @@ function inferRowKind(rawText = "") {
     return "notes";
   }
   return "unknown";
-}
-
-function inferChunkType(rawText = "") {
-  const kind = inferRowKind(rawText);
-  if (kind === "leg_result") {
-    return "leg_result";
-  }
-  if (kind === "team_summary" || kind === "division_summary") {
-    return "team_result";
-  }
-  if (kind === "notes") {
-    return "notes";
-  }
-  return "row";
-}
-
-function inferTeamName(rawText = "") {
-  const parts = rawText.split("|").map((part) => part.trim()).filter(Boolean);
-  return parts.find((part) => /(?:x|ex)treme|falcon|team/i.test(part)) || null;
-}
-
-function inferLegNumber(rawText = "") {
-  const match = rawText.match(/\bleg\s*([1-7])\b/i);
-  return match ? Number(match[1]) : null;
 }
 
 function compactObject(value) {

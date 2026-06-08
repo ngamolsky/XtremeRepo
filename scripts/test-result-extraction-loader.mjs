@@ -17,12 +17,13 @@ assert.match(script, /deleteExistingSourceExtraction/, "loader should support re
 assert.match(script, /\.from\("raw_result_documents"\)[\s\S]*\.insert/, "loader should insert raw_result_documents");
 assert.match(script, /insertBatches\(client, "raw_result_cells", cells\)/, "loader should insert raw_result_cells in batches");
 assert.match(script, /\.from\("raw_result_rows"\)[\s\S]*\.insert/, "loader should insert raw_result_rows");
-assert.match(script, /insertBatches\(client, "result_search_chunks", chunks\)/, "loader should create result_search_chunks for search and embeddings");
-assert.match(script, /sourceSummaryChunk/, "loader should create source summary chunks");
-assert.match(script, /documentChunk/, "loader should create document-level chunks");
-assert.match(script, /rowChunk/, "loader should create row-level chunks");
+assert.match(script, /insertBatches\(client, "historical_team_results", teamResults\)/, "loader should create direct historical team result rows");
+assert.doesNotMatch(script, /insertBatches\(client, "result_search_chunks"/, "loader should not create embedding search chunks");
+assert.match(script, /parseHistoricalTeamResultRow/, "loader should parse candidate team rows directly");
+assert.match(script, /parseWhitespaceTeamResult/, "loader should handle ad hoc whitespace official-result rows");
+assert.match(script, /secondTokenIsNumeric/, "loader should support result rows with bib but no explicit place column");
 assert.match(script, /import_type: "load"/, "loader should audit DB loads in import_runs");
 assert.match(script, /insertExtractionWarnings/, "loader should preserve extraction warnings in import_warnings");
-assert.match(script, /\(\?:x\|ex\)treme\|falcon\|team/, "loader should recognize official-source misspelling Extreme Falcons as the Xtreme team alias");
+assert.match(script, /\(\?:x\|ex\)treme\|falcon/, "loader should recognize official-source misspelling Extreme Falcons as the Xtreme team alias");
 
 console.log("result extraction loader tests passed");

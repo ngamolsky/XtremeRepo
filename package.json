@@ -18,12 +18,8 @@
     "photos:import": "node scripts/supabase/import-photos.mjs",
     "results:extract": "node scripts/lake-tahoe-relay/extract-results.mjs",
     "results:load-extracted": "node scripts/supabase/load-result-extractions.mjs",
-    "results:embed": "node scripts/supabase/embed-result-search-chunks.mjs",
-    "results:search": "node scripts/supabase/search-result-chunks.mjs",
     "test:result-extraction": "node scripts/test-result-extraction.mjs",
     "test:result-extraction-loader": "node scripts/test-result-extraction-loader.mjs",
-    "test:result-search-embedding": "node scripts/test-result-search-embedding.mjs",
-    "test:result-semantic-search": "node scripts/test-result-semantic-search.mjs",
     "test:historical-results-search-ui": "node scripts/test-historical-results-search-ui.mjs",
     "test:observation-null": "node scripts/test-observation-null-handling.mjs",
     "test:race-display-provisional": "node scripts/test-race-display-provisional-metrics.mjs",
@@ -41,7 +37,9 @@
     "test:agent-data-freshness": "node scripts/test-agent-data-freshness.mjs",
     "test:race-detail-leg-links": "node scripts/test-race-detail-leg-links.mjs",
     "test:leg-historical-average-display": "node scripts/test-leg-historical-average-display.mjs",
-    "test:information-hierarchy-links": "node scripts/test-information-hierarchy-links-and-leg-results.mjs"
+    "test:information-hierarchy-links": "node scripts/test-information-hierarchy-links-and-leg-results.mjs",
+    "results:import-csv": "node scripts/supabase/import-historical-team-results-csv.mjs",
+    "test:historical-results-simple-import": "node scripts/test-historical-results-simple-import.mjs"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.81",

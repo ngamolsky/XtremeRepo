@@ -179,7 +179,7 @@ type HistoricalResultSearchResponse = HistoricalResultSearchMatch &
 type HistoricalResultSearchViewRow = HistoricalResultSearchEvidence & HistoricalResultSearchMatch;
 
 type HistoricalSearchViewClient = {
-  from: (relation: "v_result_search") => {
+  from: (relation: "v_historical_team_results_search") => {
     select: (columns: string) => HistoricalSearchViewQuery;
   };
 };
@@ -193,31 +193,6 @@ type HistoricalSearchViewQuery = PromiseLike<{
   or: (filters: string) => HistoricalSearchViewQuery;
   limit: (count: number) => HistoricalSearchViewQuery;
 };
-
-type HistoricalSearchRpcClient = {
-  rpc: (
-    functionName: "match_result_search_chunks",
-    args: {
-      query_embedding: number[];
-      match_count: number;
-      filter_year: number | null;
-      filter_leg_number: number | null;
-      filter_leg_version: number | null;
-      filter_chunk_type: string | null;
-    }
-  ) => Promise<{ data: HistoricalResultSearchMatch[] | null; error: { message: string } | null }>;
-  from: (tableName: "v_result_search") => {
-    select: (columns: string) => {
-      in: (
-        column: "id",
-        values: string[]
-      ) => Promise<{ data: HistoricalResultSearchEvidence[] | null; error: { message: string } | null }>;
-    };
-  };
-};
-
-const RESULT_SEARCH_EMBEDDING_MODEL = "text-embedding-3-small";
-const RESULT_SEARCH_EMBEDDING_DIMENSIONS = 1536;
 
 type DataClient = ReturnType<typeof createClient<Database>>;
 type RunnerRow = Pick<Database["public"]["Tables"]["runners"]["Row"], "email" | "id" | "name">;
@@ -556,13 +531,6 @@ function createToolExecutionLimiter(maxConcurrent: number): ToolExecutionLimiter
 }
 
 async function handleHistoricalResultsSearch(request: Request, env: Env): Promise<Response> {
-  if (!env.OPENAI_API_KEY) {
-    return Response.json(
-      { error: "Historical semantic search needs OPENAI_API_KEY configured." },
-      { status: 500, headers: jsonHeaders }
-    );
-  }
-
   const body = await readHistoricalResultsSearchRequest(request);
   const query = typeof body.query === "string" ? body.query.trim() : "";
   if (!query) {
@@ -595,7 +563,7 @@ async function handleHistoricalResultsSearch(request: Request, env: Env): Promis
 
 async function searchHistoricalResults(
   client: DataClient,
-  env: Env,
+  _env: Env,
   input: HistoricalResultsSearchRequestBody
 ): Promise<{
   query: string;
@@ -603,38 +571,17 @@ async function searchHistoricalResults(
   resultCount: number;
   results: HistoricalResultSearchResponse[];
 }> {
-  if (!env.OPENAI_API_KEY) {
-    throw new Error("Historical semantic search needs OPENAI_API_KEY configured.");
-  }
-
   const query = typeof input.query === "string" ? input.query.trim() : "";
   if (!query) {
     throw new Error("Enter a search query.");
   }
 
-  const queryEmbedding = await embedHistoricalResultsQuery(query, env.OPENAI_API_KEY);
   const matchCount = clampInteger(input.matchCount, 10, 1, 50);
-  const { data, error } = await (client as unknown as HistoricalSearchRpcClient).rpc("match_result_search_chunks", {
-    query_embedding: queryEmbedding,
-    match_count: matchCount,
-    filter_year: nullablePositiveInteger(input.year),
-    filter_leg_number: nullablePositiveInteger(input.legNumber),
-    filter_leg_version: nullablePositiveInteger(input.legVersion),
-    filter_chunk_type: typeof input.chunkType === "string" && input.chunkType ? input.chunkType : null,
-  });
-
-  if (error) {
-    throw new Error(error.message);
-  }
-
-  const lexicalMatches = await fetchLexicalHistoricalMatches(client, input, matchCount);
-  const results = await enrichHistoricalResultMatches(
-    client,
-    mergeHistoricalMatches(lexicalMatches, data || [], matchCount)
-  );
+  const matches = await fetchHistoricalTeamResultMatches(client, input, matchCount);
+  const results = await enrichHistoricalResultMatches(client, matches);
   return {
     query,
-    model: RESULT_SEARCH_EMBEDDING_MODEL,
+    model: "structured-text",
     resultCount: results.length,
     results,
   };
@@ -650,70 +597,31 @@ async function readHistoricalResultsSearchRequest(
   }
 }
 
-async function embedHistoricalResultsQuery(query: string, apiKey: string): Promise<number[]> {
-  const response = await fetch("https://api.openai.com/v1/embeddings", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: RESULT_SEARCH_EMBEDDING_MODEL,
-      input: query,
-      dimensions: RESULT_SEARCH_EMBEDDING_DIMENSIONS,
-    }),
-  });
-
-  if (!response.ok) {
-    throw new Error(`OpenAI query embedding failed ${response.status}: ${await response.text()}`);
-  }
-
-  const body = (await response.json()) as { data?: Array<{ embedding?: unknown }> };
-  const embedding = body.data?.[0]?.embedding;
-  if (!Array.isArray(embedding) || embedding.length !== RESULT_SEARCH_EMBEDDING_DIMENSIONS) {
-    throw new Error("OpenAI returned an invalid query embedding.");
-  }
-
-  return embedding.map((value) => Number(value));
-}
-
-async function fetchLexicalHistoricalMatches(
+async function fetchHistoricalTeamResultMatches(
   client: DataClient,
   input: HistoricalResultsSearchRequestBody,
   matchCount: number
 ): Promise<HistoricalResultSearchMatch[]> {
   const terms = buildHistoricalLexicalTerms(String(input.query || ""));
-  if (terms.length === 0) {
-    return [];
-  }
-
   let query = (client as unknown as HistoricalSearchViewClient)
-    .from("v_result_search")
+    .from("v_historical_team_results_search")
     .select(
-      "id, source_id, document_id, raw_row_id, year, chunk_type, chunk_text, team_name, runner_name, bib, division, leg_number, leg_version, overall_place, division_place, embedding_model, embedded_at"
+      "id, source_id, document_id, raw_row_id, year, chunk_type, chunk_text, team_name, runner_name, bib, division, leg_number, leg_version, overall_place, division_place, source_url, local_path, original_filename, document_name, document_type, page_number, sheet_index, row_index"
     );
 
   const year = nullablePositiveInteger(input.year);
-  const legNumber = nullablePositiveInteger(input.legNumber);
-  const legVersion = nullablePositiveInteger(input.legVersion);
-  const chunkType = typeof input.chunkType === "string" && input.chunkType ? input.chunkType : null;
   if (year != null) {
     query = query.eq("year", year);
   }
-  if (legNumber != null) {
-    query = query.eq("leg_number", legNumber);
-  }
-  if (legVersion != null) {
-    query = query.eq("leg_version", legVersion);
-  }
-  if (chunkType) {
-    query = query.eq("chunk_type", chunkType);
+
+  if (terms.length > 0) {
+    const orFilters = terms
+      .flatMap((term) => ["team_name", "bib", "division", "chunk_text"].map((column) => `${column}.ilike.%${term}%`))
+      .join(",");
+    query = query.or(orFilters);
   }
 
-  const orFilters = terms
-    .flatMap((term) => ["chunk_text", "team_name", "runner_name", "bib", "division"].map((column) => `${column}.ilike.%${term}%`))
-    .join(",");
-  const { data, error } = await query.or(orFilters).limit(Math.min(Math.max(matchCount * 4, 20), 100));
+  const { data, error } = await query.limit(Math.min(Math.max(matchCount * 4, 20), 100));
   if (error) {
     throw new Error(error.message);
   }
@@ -725,35 +633,20 @@ async function fetchLexicalHistoricalMatches(
       document_id: row.document_id,
       raw_row_id: row.raw_row_id,
       year: row.year,
-      chunk_type: row.chunk_type,
+      chunk_type: "team_result",
       chunk_text: row.chunk_text,
       team_name: row.team_name,
-      runner_name: row.runner_name,
+      runner_name: null,
       bib: row.bib,
       division: row.division,
-      leg_number: row.leg_number,
-      leg_version: row.leg_version,
+      leg_number: null,
+      leg_version: null,
       overall_place: row.overall_place,
       division_place: row.division_place,
-      embedding_model: row.embedding_model,
-      embedded_at: row.embedded_at,
       similarity: scoreHistoricalLexicalMatch(row, terms),
     }))
-    .sort((left, right) => (right.similarity ?? 0) - (left.similarity ?? 0));
-}
-
-function mergeHistoricalMatches(
-  primary: HistoricalResultSearchMatch[],
-  secondary: HistoricalResultSearchMatch[],
-  matchCount: number
-): HistoricalResultSearchMatch[] {
-  const merged = new Map<string, HistoricalResultSearchMatch>();
-  for (const match of [...primary, ...secondary]) {
-    if (!merged.has(match.id)) {
-      merged.set(match.id, match);
-    }
-  }
-  return [...merged.values()].slice(0, Math.min(Math.max(matchCount, 1), 100));
+    .sort((left, right) => (right.similarity ?? 0) - (left.similarity ?? 0))
+    .slice(0, matchCount);
 }
 
 function buildHistoricalLexicalTerms(query: string): string[] {
@@ -761,7 +654,7 @@ function buildHistoricalLexicalTerms(query: string): string[] {
     .toLowerCase()
     .split(/[^a-z0-9]+/)
     .map((term) => term.trim())
-    .filter((term) => term.length >= 3);
+    .filter((term) => term.length >= 2);
   const expanded = new Set(terms);
   if (expanded.has("xtreme")) {
     expanded.add("extreme");
@@ -769,7 +662,7 @@ function buildHistoricalLexicalTerms(query: string): string[] {
   if (expanded.has("extreme")) {
     expanded.add("xtreme");
   }
-  return [...expanded].slice(0, 8).map(escapeHistoricalIlikeTerm);
+  return [...expanded].slice(0, 10).map(escapeHistoricalIlikeTerm);
 }
 
 function escapeHistoricalIlikeTerm(term: string): string {
@@ -780,12 +673,17 @@ function scoreHistoricalLexicalMatch(
   row: HistoricalResultSearchMatch,
   terms: string[]
 ): number {
+  if (terms.length === 0) {
+    return 1;
+  }
+  const teamName = (row.team_name || "").toLowerCase();
   const haystack = [row.team_name, row.runner_name, row.bib, row.division, row.chunk_text]
     .filter(Boolean)
     .join(" ")
     .toLowerCase();
   const matches = terms.filter((term) => haystack.includes(term.toLowerCase())).length;
-  return 1 + matches / Math.max(terms.length, 1);
+  const teamMatches = terms.filter((term) => teamName.includes(term.toLowerCase())).length;
+  return 1 + matches / Math.max(terms.length, 1) + teamMatches;
 }
 
 async function enrichHistoricalResultMatches(
@@ -797,7 +695,7 @@ async function enrichHistoricalResultMatches(
   }
 
   const { data, error } = await (client as unknown as HistoricalSearchViewClient)
-    .from("v_result_search")
+    .from("v_historical_team_results_search")
     .select("id, source_url, local_path, original_filename, document_name, document_type, page_number, sheet_index, row_index")
     .in(
       "id",
@@ -1836,7 +1734,7 @@ function buildSystemPrompt(
 
 Answer questions about relay race results, team members, legs, years, paces, and rankings. Use the provided tools before making factual claims about the data. Treat lower pace values as faster, and lower percentile values as better because they mean closer to the top of the field. Use Xtreme Falcons flavor: sound like a sharp race-day crew chief with punchy words like shred, rip, send it, dialed, stoked, hammer, full throttle, and locked in. Keep the vibe fun but never let it blur data quality, uncertainty, safety, or write permissions.
 
-When a question spans many years, prefer getRaceOverview or another aggregate tool over calling getYearResults once for every year. Only call getYearResults for specific years whose full leg-by-leg details are needed. Use searchHistoricalResults for questions about archived official source-file rows, fuzzy historical result discovery, team total time, bib/division/place, or per-leg split performance that may not exist in canonical app tables. Its results are structured around the underlying race performance; source row evidence is secondary provenance.
+When a question spans many years, prefer getRaceOverview or another aggregate tool over calling getYearResults once for every year. Only call getYearResults for specific years whose full leg-by-leg details are needed. Use searchHistoricalResults for questions about archived official team result rows, team total time, bib/division/place, and comparing other teams. Its results come from one-off imported structured team-result rows, not embeddings. Results are structured around the underlying race performance; source row evidence is secondary provenance.
 
 Current open race context: 2026 exists as the current Tahoe Relay race shell but has no official result data yet. Its known setup is race start time 07:00:00, no bib/division/place/team-total fields yet, and current course legs should default to leg version v2 unless the user or source explicitly says otherwise. Treat 2026 as the open race-day tracker: save supplied Garmin/Strava/Apple Watch/manual evidence as self recorded observations, use getYearResults(2026) for current provisional state, and never describe 2026 values as official until official result rows exist.
 
@@ -2095,7 +1993,7 @@ function createRelayTools(
     }),
     searchHistoricalResults: tool({
       description:
-        "Semantic search over archived historical Lake Tahoe Relay result rows. Use this for questions about old source-file results, team total time, bib/division/place, and per-leg split performance that are not in canonical app result tables.",
+        "Search structured one-off imported Lake Tahoe Relay historical team result rows. Use this for old source-file results, team total time, bib/division/place, and comparing other teams against the Xtreme/Falcons row.",
       inputSchema: jsonSchema<{
         query: string;
         matchCount?: number;
@@ -2108,7 +2006,7 @@ function createRelayTools(
         properties: {
           query: {
             type: "string",
-            description: "Natural-language query, team name, runner name, category, bib, or source wording.",
+            description: "Team name, bib, division, year-specific source wording, or simple comparison query.",
           },
           matchCount: {
             type: "number",
@@ -2126,11 +2024,6 @@ function createRelayTools(
             type: "number",
             description: "Optional relay leg version filter.",
           },
-          chunkType: {
-            type: "string",
-            enum: ["team_result", "leg_result", "source_summary", "row", "ocr_block"],
-            description: "Optional source chunk type. Use team_result for team totals and leg splits.",
-          },
         },
         required: ["query"],
         additionalProperties: false,
@@ -2139,7 +2032,6 @@ function createRelayTools(
         const search = await searchHistoricalResults(supabase, env, {
           ...input,
           matchCount: input.matchCount ?? 8,
-          chunkType: input.chunkType ?? "team_result",
         });
         return {
           query: search.query,
