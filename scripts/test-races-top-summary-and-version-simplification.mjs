@@ -18,8 +18,9 @@ const sandbox = { exports: {}, module: { exports: {} } };
 sandbox.exports = sandbox.module.exports;
 vm.runInNewContext(compiled, sandbox, { filename: "raceSummary.cjs" });
 
-const { getRacesTopSummary } = sandbox.module.exports;
+const { getRacesTopSummary, getRaceTimeSummary } = sandbox.module.exports;
 assert.equal(typeof getRacesTopSummary, "function", "race summary helper should export getRacesTopSummary");
+assert.equal(typeof getRaceTimeSummary, "function", "race summary helper should export getRaceTimeSummary");
 
 const summary = getRacesTopSummary([
   { year: 2021, total_time: "08:59:00", race_version: 1 },
@@ -83,6 +84,27 @@ assert.equal(
   "latest race should use official total time before provisional sources"
 );
 
+assert.deepEqual(
+  JSON.parse(JSON.stringify(getRaceTimeSummary({
+    year: 2026,
+    total_time: null,
+    latestRaceProjection: {
+      displayProjectedTotalTime: "08:40:00",
+      estimatedLegCount: 0,
+      projectedTotalMinutes: 520,
+      reportedLegCount: 7,
+    },
+  }))),
+  {
+    hasOfficialTime: false,
+    label: "Self-reported total",
+    source: "self_recorded",
+    time: "08:40:00",
+    year: 2026,
+  },
+  "per-race time summary should expose the same self-reported total used by the Latest race highlight card"
+);
+
 const historySource = readFileSync(new URL("../src/components/HistoryView.tsx", import.meta.url), "utf8");
 assert.match(historySource, /Years ran/, "Races top summary should label years ran exactly");
 assert.match(historySource, /Latest race/, "Races top summary should include latest race");
@@ -96,6 +118,10 @@ assert.match(historySource, /Best current-course time/, "Races top summary shoul
 assert.doesNotMatch(historySource, /Best Percentile/, "Races top summary should not include Best Percentile");
 assert.doesNotMatch(historySource, /Avg Percentile/, "Races top summary should not include Avg Percentile");
 assert.match(historySource, /getRacesTopSummary/, "Races page should use the shared top summary helper");
+assert.match(historySource, /getRaceTimeSummary/, "Races list cards should use the same per-race time summary precedence as the Latest race highlight card");
+assert.match(historySource, /race\.raceTimeSummary\?\.time \?\? "N\/A"/, "Races list cards should display self-reported or expected race time when official total time is missing");
+assert.match(historySource, /Self reported/, "Races list source badge should label complete provisional totals as self reported");
+assert.doesNotMatch(historySource, /Official Results/, "Races list source badge should use condensed Official copy instead of Official Results");
 assert.match(historySource, /to="\/races\/\$year"[\s\S]*aria-label=\{`Open \$\{race\.year\} Tahoe Relay race detail`\}/, "Individual race cards should link the whole card to race detail");
 assert.doesNotMatch(historySource, /toggleExpanded|expandedYear|ChevronDown|ChevronUp/, "Individual race cards should not use dropdown expansion state or chevrons");
 assert.doesNotMatch(historySource, /<span>Details<\/span>|<h4[^>]*>\s*Leg Results/, "Races list should not include a separate detail button or dropdown leg-results section");

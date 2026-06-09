@@ -7,8 +7,8 @@ import {
   getNaiveLiveProjection,
   getRaceDisplaySummary,
 } from "../lib/raceDisplay";
-import type { RaceResultStatus } from "../lib/raceDisplay";
-import { getRacesTopSummary } from "../lib/raceSummary";
+import { getRaceTimeSummary, getRacesTopSummary } from "../lib/raceSummary";
+import type { RaceTimeSummary } from "../lib/raceSummary";
 
 const HistoryView: React.FC = () => {
   const {
@@ -42,12 +42,16 @@ const HistoryView: React.FC = () => {
     const yearParticipations = participations.filter(
       (participation) => participation.year === race.year
     );
+    const latestRaceProjection = race.year
+      ? getNaiveLiveProjection(race.year, displayLegResults, results, legDefinitions)
+      : null;
     return {
       ...race,
       legResults: displayLegResults,
       resultSummary: getRaceDisplaySummary(race, displayLegResults),
-      latestRaceProjection: race.year
-        ? getNaiveLiveProjection(race.year, displayLegResults, results, legDefinitions)
+      latestRaceProjection,
+      raceTimeSummary: race.year
+        ? getRaceTimeSummary({ ...race, year: race.year, latestRaceProjection })
         : null,
       participantCount: yearParticipations.length || race.participant_count || 0,
     };
@@ -128,7 +132,7 @@ const HistoryView: React.FC = () => {
                       <h3 className="text-lg font-semibold text-gray-900 sm:text-xl">
                         {race.year} Tahoe Relay
                       </h3>
-                      <RaceStatusBadge status={race.resultSummary.status} />
+                      <RaceSourceBadge source={race.raceTimeSummary?.source ?? "pending"} />
                     </div>
                     <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-sm text-gray-600">
                       <span>Division: {race.division || "Pending"}</span>
@@ -147,8 +151,8 @@ const HistoryView: React.FC = () => {
 
                 <div className="flex flex-wrap items-center gap-3 lg:justify-end">
                   <div className="min-w-24 rounded-lg bg-gray-50 px-3 py-2 text-center transition-colors group-hover:bg-white">
-                    <p className="text-lg font-bold text-gray-900 sm:text-2xl">
-                      {race.resultSummary.displayTotalTime ?? "N/A"}
+                    <p className={`text-lg font-bold sm:text-2xl ${getLatestRaceTimeColor(race.raceTimeSummary?.source)}`}>
+                      {race.raceTimeSummary?.time ?? "N/A"}
                     </p>
                     <p className="text-sm text-gray-600">Total Time</p>
                   </div>
@@ -224,25 +228,42 @@ function getLatestRaceSourceBadgeColor(source: "official" | "self_recorded" | "e
   }
 }
 
-const RaceStatusBadge: React.FC<{ status: RaceResultStatus }> = ({ status }) => (
+const RaceSourceBadge: React.FC<{ source: RaceTimeSummary["source"] }> = ({ source }) => (
   <span
-    className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${getRaceStatusClass(
-      status
+    className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${getRaceSourceBadgeClass(
+      source
     )}`}
-    title={status.description}
   >
-    {status.label}
+    {getRaceSourceBadgeLabel(source)}
   </span>
 );
 
-function getRaceStatusClass(status: RaceResultStatus) {
-  if (status.tone === "official") {
-    return "bg-emerald-50 text-emerald-700";
+function getRaceSourceBadgeLabel(source: RaceTimeSummary["source"]) {
+  switch (source) {
+    case "official":
+      return "Official";
+    case "self_recorded":
+      return "Self reported";
+    case "expected":
+      return "Expected";
+    case "pending":
+    default:
+      return "Pending";
   }
-  if (status.tone === "partial") {
-    return "bg-blue-50 text-blue-700";
+}
+
+function getRaceSourceBadgeClass(source: RaceTimeSummary["source"]) {
+  switch (source) {
+    case "official":
+      return "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-200 dark:ring-emerald-800";
+    case "self_recorded":
+      return "bg-amber-50 text-amber-800 ring-1 ring-amber-200 dark:bg-amber-950/40 dark:text-amber-200 dark:ring-amber-800";
+    case "expected":
+      return "bg-sky-50 text-sky-700 ring-1 ring-sky-200 dark:bg-sky-950/40 dark:text-sky-200 dark:ring-sky-800";
+    case "pending":
+    default:
+      return "bg-slate-100 text-slate-700 ring-1 ring-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:ring-slate-700";
   }
-  return "bg-amber-50 text-amber-800";
 }
 
 export default HistoryView;

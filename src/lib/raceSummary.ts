@@ -15,7 +15,7 @@ type TimedRaceSummary = {
   time: string;
 };
 
-type LatestRaceSummary = {
+export type RaceTimeSummary = {
   hasOfficialTime: boolean;
   label: string;
   source: "official" | "self_recorded" | "expected" | "pending";
@@ -25,7 +25,7 @@ type LatestRaceSummary = {
 
 export type RacesTopSummary = {
   yearsRan: number;
-  latestRace: LatestRaceSummary | null;
+  latestRace: RaceTimeSummary | null;
   latestRaceWithTime: TimedRaceSummary | null;
   currentRaceVersion: number | null;
   bestCurrentCourseTime: TimedRaceSummary | null;
@@ -43,10 +43,10 @@ export function getRacesTopSummary(races: RaceSummaryInput[]): RacesTopSummary {
 
     return [{ year: race.year, time: race.total_time, raceVersion: race.race_version ?? 1 }];
   });
-  const latestRace = raceYears.reduce<LatestRaceSummary | null>(
+  const latestRace = raceYears.reduce<RaceTimeSummary | null>(
     (latest, race) =>
       latest === null || race.year > latest.year
-        ? getLatestRaceSummary(race)
+        ? getRaceTimeSummary(race)
         : latest,
     null
   );
@@ -77,7 +77,7 @@ export function getRacesTopSummary(races: RaceSummaryInput[]): RacesTopSummary {
   };
 }
 
-function getLatestRaceSummary(race: RaceSummaryInput & { year: number }): LatestRaceSummary {
+export function getRaceTimeSummary(race: RaceSummaryInput & { year: number }): RaceTimeSummary {
   if (race.total_time) {
     return {
       hasOfficialTime: true,
