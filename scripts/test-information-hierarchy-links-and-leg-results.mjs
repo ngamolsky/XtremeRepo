@@ -41,8 +41,18 @@ assert.match(
 );
 assert.match(
   raceDetail,
-  /to="\/runners\/\$runnerName"[\s\S]*params=\{\{ runnerName: entry\.runnerName \}\}/,
-  "race detail leg entry runner names should link to runner detail pages"
+  /<EntityPill[\s\S]*category="runner"[\s\S]*to="\/runners\/\$runnerName"[\s\S]*params=\{\{ runnerName: entry\.runnerName \}\}/,
+  "race detail leg entry runner names should be runner entity pills"
+);
+assert.match(
+  raceDetail,
+  /category="performance-entry"[\s\S]*to="\/leg-results\/\$resultType\/\$runnerName\/\$year\/\$legNumber\/\$resultId"[\s\S]*View leg result/,
+  "race detail official entries should link to their Leg Result detail page"
+);
+assert.match(
+  raceDetail,
+  /category="performance-entry"[\s\S]*to="\/leg-results\/\$resultType\/\$runnerName\/\$year\/\$legNumber\/\$resultId"[\s\S]*View\/edit entry/,
+  "race detail self-reported entries should link to editable Leg Result detail pages"
 );
 assert.match(
   raceDetail,

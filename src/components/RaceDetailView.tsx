@@ -49,6 +49,8 @@ type RaceLegEntry = {
   legVersion: number;
   pace: number | null;
   gradeAdjustedPace: number | null;
+  resultDetailId: string | null;
+  resultDetailType: "official" | "self-reported";
   runnerName: string | null;
   sourceLabel: string | null;
   sourceTags: string[];
@@ -656,34 +658,53 @@ const RaceLegEntryRow: React.FC<{ entry: RaceLegEntry; raceYear: number }> = ({
             <span className="text-xs text-gray-500">{formatEntryDate(entry.updatedAt)}</span>
           )}
         </div>
-        <p className="mt-2 text-base font-semibold text-gray-900">
+        <div className="mt-2">
           {entry.runnerName ? (
-            <Link
+            <EntityPill
+              category="runner"
               to="/runners/$runnerName"
               params={{ runnerName: entry.runnerName }}
-              className="text-primary-700 hover:text-primary-800"
+              ariaLabel={`View ${entry.runnerName} runner profile`}
             >
               {entry.runnerName}
-            </Link>
+            </EntityPill>
           ) : (
-            "Unknown runner"
+            <span className="text-base font-semibold text-gray-900">Unknown runner</span>
           )}
-        </p>
+        </div>
       </div>
-      {entry.runnerName && entry.legVersion ? (
-        <EntityPill
-          category="performance"
-          to="/runs/$runnerName/$year/$legNumber"
-          params={{
-            runnerName: entry.runnerName,
-            year: String(raceYear),
-            legNumber: String(entry.legNumber),
-          }}
-          ariaLabel={`View ${entry.runnerName} ${raceYear} Leg ${entry.legNumber} performance`}
-        >
-          View performance
-        </EntityPill>
-      ) : null}
+      <div className="flex flex-wrap gap-2">
+        {entry.runnerName && entry.legVersion ? (
+          <EntityPill
+            category="performance"
+            to="/runs/$runnerName/$year/$legNumber"
+            params={{
+              runnerName: entry.runnerName,
+              year: String(raceYear),
+              legNumber: String(entry.legNumber),
+            }}
+            ariaLabel={`View ${entry.runnerName} ${raceYear} Leg ${entry.legNumber} performance`}
+          >
+            View performance
+          </EntityPill>
+        ) : null}
+        {entry.runnerName && entry.resultDetailId ? (
+          <EntityPill
+            category="performance-entry"
+            to="/leg-results/$resultType/$runnerName/$year/$legNumber/$resultId"
+            params={{
+              resultType: entry.resultDetailType,
+              runnerName: entry.runnerName,
+              year: String(raceYear),
+              legNumber: String(entry.legNumber),
+              resultId: entry.resultDetailId,
+            }}
+            ariaLabel={`${entry.kind === "official" ? "View official" : "View or edit self reported"} ${entry.runnerName} ${raceYear} Leg ${entry.legNumber} result`}
+          >
+            {entry.kind === "official" ? "View leg result" : "View/edit entry"}
+          </EntityPill>
+        ) : null}
+      </div>
     </div>
 
     <dl className="mt-4 grid grid-cols-2 gap-3 text-sm sm:grid-cols-5">
@@ -849,6 +870,8 @@ function toOfficialEntry(result: OfficialResult): RaceLegEntry {
       distanceMiles: result.distance,
       elevationGainFeet: result.elevation_gain,
     }),
+    resultDetailId: getOfficialResultDetailId(result),
+    resultDetailType: "official",
     runnerName: result.runner_name,
     sourceLabel: null,
     sourceTags: [],
@@ -893,6 +916,8 @@ function toSelfRecordedEntry(observation: SelfRecordedObservation): RaceLegEntry
       distanceMiles: distance,
       elevationGainFeet: elevationGain,
     }),
+    resultDetailId: observation.id,
+    resultDetailType: "self-reported",
     runnerName: observation.runner_name,
     sourceLabel: observation.source_label,
     sourceTags: observation.source_tags ?? [],
@@ -910,6 +935,14 @@ function getAssumedEntryPace(time: string | null | undefined, distance: number |
 
   const minutes = parseTimeToMinutes(time);
   return minutes > 0 ? minutes / distance : null;
+}
+
+function getOfficialResultDetailId(result: OfficialResult) {
+  if (!result.runner_name || result.leg_number === null) {
+    return null;
+  }
+
+  return `${result.year}-${result.runner_name}-${result.leg_number}`;
 }
 
 function hasMeasuredObservationData(observation: SelfRecordedObservation) {
