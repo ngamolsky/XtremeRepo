@@ -26,7 +26,6 @@ COMMENT ON COLUMN public.placements.race_version IS
 
 CREATE OR REPLACE VIEW public.v_yearly_summary AS
  SELECT p.year,
-    p.race_version,
     tps.total_time,
     tps.average_pace,
     tps.improvement,
@@ -45,7 +44,8 @@ CREATE OR REPLACE VIEW public.v_yearly_summary AS
             ELSE NULL::double precision
         END AS division_percentile,
     COALESCE(yp.participant_count, (0)::bigint) AS participant_count,
-    COALESCE(tps.race_start_time, p.race_start_time) AS race_start_time
+    COALESCE(tps.race_start_time, p.race_start_time) AS race_start_time,
+    p.race_version
    FROM (public.placements p
      LEFT JOIN public.team_performance_summary tps ON ((tps.year = p.year)))
      LEFT JOIN ( SELECT race_participations.year,
