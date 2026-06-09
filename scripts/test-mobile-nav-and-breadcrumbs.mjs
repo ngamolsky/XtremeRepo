@@ -45,6 +45,8 @@ assert.match(navigationSource, /activeTabId === tab\.id[\s\S]*bg-primary-600/, "
 
 const breadcrumbSource = readFileSync(new URL("../src/components/Breadcrumbs.tsx", import.meta.url), "utf8");
 assert.match(breadcrumbSource, /aria-label="Breadcrumb"/, "breadcrumbs should expose breadcrumb navigation semantics");
+assert.doesNotMatch(breadcrumbSource, />Dashboard</, "breadcrumbs should not include Dashboard as a root crumb");
+assert.doesNotMatch(breadcrumbSource, /to="\/"/, "breadcrumbs should not force a root dashboard link");
 
 const nestedComponents = [
   ["RunnerDetail", "../src/components/RunnerDetail.tsx", "Runners", "to: \"/runners\""],
