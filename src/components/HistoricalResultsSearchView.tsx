@@ -280,7 +280,7 @@ const HistoricalResultsSearchView: React.FC = () => {
                               version={leg.legVersion || 1}
                               className="rounded-full bg-primary-50 px-2.5 py-1 text-xs font-semibold text-primary-700 hover:bg-primary-100 dark:bg-primary-950/50 dark:text-primary-200 dark:hover:bg-primary-900/70"
                             >
-                              Leg {leg.legNumber}v{leg.legVersion || 1}
+                              Leg {leg.legNumber}
                             </LegPill>
                           ) : (
                             <span className="rounded-full bg-sky-50 px-2.5 py-1 text-xs font-semibold text-sky-700 dark:bg-sky-950/50 dark:text-sky-200">

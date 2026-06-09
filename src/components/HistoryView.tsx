@@ -5,7 +5,6 @@ import {
   ChevronUp,
   Clock,
   Trophy,
-  Users,
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import React, { useState } from "react";
@@ -15,6 +14,7 @@ import {
   getRaceDisplaySummary,
 } from "../lib/raceDisplay";
 import type { DisplayLegResult, RaceResultStatus } from "../lib/raceDisplay";
+import { getRacesTopSummary } from "../lib/raceSummary";
 import { formatFeet, formatMiles, formatPace, formatSourceType } from "../lib/utils";
 import { LegPill } from "./LegPill";
 
@@ -65,23 +65,7 @@ const HistoryView: React.FC = () => {
     };
   });
 
-  const overallPercentiles = raceHistory
-    .map((race) => race.overall_percentile)
-    .filter((percentile): percentile is number => percentile !== null);
-  const officialTotalTimes = raceHistory
-    .map((race) => race.total_time?.toString())
-    .filter((time): time is string => Boolean(time));
-  const bestOverallPercentile =
-    overallPercentiles.length > 0 ? Math.min(...overallPercentiles) : null;
-  const averageOverallPercentile =
-    overallPercentiles.length > 0
-      ? overallPercentiles.reduce((sum, percentile) => sum + percentile, 0) /
-        overallPercentiles.length
-      : null;
-  const bestTime =
-    officialTotalTimes.length > 0
-      ? officialTotalTimes.reduce((min, time) => (time < min ? time : min))
-      : "N/A";
+  const topSummary = getRacesTopSummary(raceHistory);
 
   const toggleExpanded = (year: number) => {
     setExpandedYear(expandedYear === year ? null : year);
@@ -106,36 +90,31 @@ const HistoryView: React.FC = () => {
       </div>
 
       {/* Summary Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
         <div className="card p-6 text-center">
           <Calendar className="w-8 h-8 text-primary-600 mx-auto mb-3" />
           <h3 className="text-2xl font-bold text-gray-900">
-            {raceHistory.length}
+            {topSummary.yearsRan}
           </h3>
-          <p className="text-gray-600">Race Years</p>
+          <p className="text-gray-600">Years ran</p>
+        </div>
+        <div className="card p-6 text-center">
+          <Clock className="w-8 h-8 text-green-600 mx-auto mb-3" />
+          <h3 className="text-2xl font-bold text-gray-900">
+            {topSummary.latestRaceWithTime
+              ? `${topSummary.latestRaceWithTime.year} · ${topSummary.latestRaceWithTime.time}`
+              : "N/A"}
+          </h3>
+          <p className="text-gray-600">Latest race</p>
         </div>
         <div className="card p-6 text-center">
           <Trophy className="w-8 h-8 text-yellow-600 mx-auto mb-3" />
           <h3 className="text-2xl font-bold text-gray-900">
-            {bestOverallPercentile !== null
-              ? `Top ${Math.round(bestOverallPercentile)}%`
+            {topSummary.bestCurrentCourseTime
+              ? `${topSummary.bestCurrentCourseTime.year} · ${topSummary.bestCurrentCourseTime.time}`
               : "N/A"}
           </h3>
-          <p className="text-gray-600">Best Percentile</p>
-        </div>
-        <div className="card p-6 text-center">
-          <Clock className="w-8 h-8 text-green-600 mx-auto mb-3" />
-          <h3 className="text-2xl font-bold text-gray-900">{bestTime}</h3>
-          <p className="text-gray-600">Best Time</p>
-        </div>
-        <div className="card p-6 text-center">
-          <Users className="w-8 h-8 text-purple-600 mx-auto mb-3" />
-          <h3 className="text-2xl font-bold text-gray-900">
-            {averageOverallPercentile !== null
-              ? `Top ${Math.round(averageOverallPercentile)}%`
-              : "N/A"}
-          </h3>
-          <p className="text-gray-600">Avg Percentile</p>
+          <p className="text-gray-600">Best current-course time</p>
         </div>
       </div>
 
@@ -286,7 +265,7 @@ const HistoryView: React.FC = () => {
                                     version={leg.leg_version}
                                     className="inline-flex items-center rounded-full bg-primary-50 px-2.5 py-1 text-xs font-semibold text-primary-700 transition-colors hover:bg-primary-100 hover:text-primary-800"
                                   >
-                                    Leg {leg.leg_number} v{leg.leg_version}
+                                    Leg {leg.leg_number}
                                   </LegPill>
                                 ) : (
                                   "N/A"
@@ -333,12 +312,11 @@ const HistoryView: React.FC = () => {
                               <td className="px-4 py-2 whitespace-nowrap text-sm font-medium">
                                 {leg.runner_name && leg.leg_number && leg.leg_version ? (
                                   <Link
-                                    to="/runs/$runnerName/$year/$legNumber/$version"
+                                    to="/runs/$runnerName/$year/$legNumber"
                                     params={{
                                       runnerName: leg.runner_name,
                                       year: String(race.year),
                                       legNumber: String(leg.leg_number),
-                                      version: String(leg.leg_version),
                                     }}
                                     className="text-primary-700 hover:text-primary-800"
                                     onClick={(event) => event.stopPropagation()}

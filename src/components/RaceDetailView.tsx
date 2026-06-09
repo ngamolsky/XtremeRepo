@@ -673,12 +673,11 @@ const RaceLegEntryRow: React.FC<{ entry: RaceLegEntry; raceYear: number }> = ({
       {entry.runnerName && entry.legVersion ? (
         <EntityPill
           category="performance"
-          to="/runs/$runnerName/$year/$legNumber/$version"
+          to="/runs/$runnerName/$year/$legNumber"
           params={{
             runnerName: entry.runnerName,
             year: String(raceYear),
             legNumber: String(entry.legNumber),
-            version: String(entry.legVersion),
           }}
           ariaLabel={`View ${entry.runnerName} ${raceYear} Leg ${entry.legNumber} performance`}
         >

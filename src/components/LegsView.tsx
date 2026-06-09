@@ -96,10 +96,9 @@ const LegsView: React.FC = () => {
                   className="hover:bg-gray-50 cursor-pointer"
                   onClick={() =>
                     navigate({
-                      to: "/legs/$legNumber/$version",
+                      to: "/legs/$legNumber",
                       params: {
                         legNumber: (leg.leg_number || 0).toString(),
-                        version: (leg.leg_version || 0).toString(),
                       },
                     })
                   }

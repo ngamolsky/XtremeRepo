@@ -255,6 +255,7 @@ export type Database = {
           overall_place: number | null
           overall_teams: number | null
           race_start_time: string
+          race_version: number
           year: number
         }
         Insert: {
@@ -265,6 +266,7 @@ export type Database = {
           overall_place?: number | null
           overall_teams?: number | null
           race_start_time?: string
+          race_version?: number
           year: number
         }
         Update: {
@@ -275,6 +277,7 @@ export type Database = {
           overall_place?: number | null
           overall_teams?: number | null
           race_start_time?: string
+          race_version?: number
           year?: number
         }
         Relationships: []
@@ -1083,6 +1086,7 @@ export type Database = {
           overall_teams: number | null
           participant_count: number | null
           race_start_time: string | null
+          race_version: number | null
           total_time: string | null
           year: number | null
         }

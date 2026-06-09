@@ -710,12 +710,11 @@ const RunnerRaceEntryCard: React.FC<{
       </div>
       {entry.legNumber && entry.legVersion ? (
         <Link
-          to="/runs/$runnerName/$year/$legNumber/$version"
+          to="/runs/$runnerName/$year/$legNumber"
           params={{
             runnerName,
             year: String(year),
             legNumber: String(entry.legNumber),
-            version: String(entry.legVersion),
           }}
           className="text-sm font-medium text-primary-700 hover:text-primary-800"
         >

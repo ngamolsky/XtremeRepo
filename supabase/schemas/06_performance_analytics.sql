@@ -295,6 +295,7 @@ CREATE OR REPLACE VIEW "public"."v_runner_stats" AS
 -- Starts from placements so pending race shells still appear before official results arrive.
 CREATE OR REPLACE VIEW "public"."v_yearly_summary" AS
  SELECT "p"."year",
+    "p"."race_version",
     "tps"."total_time",
     "tps"."average_pace",
     "tps"."improvement",

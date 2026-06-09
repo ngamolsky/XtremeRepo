@@ -81,8 +81,8 @@ const splitTags = (value: string) =>
     .filter(Boolean);
 
 const LegResultDetail: React.FC = () => {
-  const { resultType, runnerName, year, legNumber, version, resultId } = useParams({
-    from: "/leg-results/$resultType/$runnerName/$year/$legNumber/$version/$resultId",
+  const { resultType, runnerName, year, legNumber, resultId } = useParams({
+    from: "/leg-results/$resultType/$runnerName/$year/$legNumber/$resultId",
   });
   const {
     data: { legResultObservations, results },
@@ -91,7 +91,7 @@ const LegResultDetail: React.FC = () => {
   } = useRelayData();
   const selectedYear = Number(year);
   const selectedLegNumber = Number(legNumber);
-  const selectedVersion = Number(version);
+
   const [savedObservation, setSavedObservation] = useState<ObservationResult | null>(null);
   const [saveError, setSaveError] = useState("");
   const [saveMessage, setSaveMessage] = useState("");
@@ -103,10 +103,9 @@ const LegResultDetail: React.FC = () => {
         (result) =>
           result.runner_name === runnerName &&
           result.year === selectedYear &&
-          result.leg_number === selectedLegNumber &&
-          result.leg_version === selectedVersion
+          result.leg_number === selectedLegNumber
       ) ?? null,
-    [results, runnerName, selectedLegNumber, selectedVersion, selectedYear]
+    [results, runnerName, selectedLegNumber, selectedYear]
   );
 
   const loadedObservation = useMemo(
@@ -243,14 +242,14 @@ const LegResultDetail: React.FC = () => {
         items={[
           { label: `${selectedYear} Race`, to: "/races/$year", params: { year } },
           {
-            label: `Leg ${selectedLegNumber} v${selectedVersion}`,
-            to: "/legs/$legNumber/$version",
-            params: { legNumber, version },
+            label: `Leg ${selectedLegNumber}`,
+            to: "/legs/$legNumber",
+            params: { legNumber },
           },
           {
             label: "Leg Performance",
-            to: "/runs/$runnerName/$year/$legNumber/$version",
-            params: { runnerName, year, legNumber, version },
+            to: "/runs/$runnerName/$year/$legNumber",
+            params: { runnerName, year, legNumber },
           },
         ]}
       />
@@ -263,12 +262,12 @@ const LegResultDetail: React.FC = () => {
             </p>
             <h1 className="mt-1 text-3xl font-bold text-gray-900">Leg Result</h1>
             <p className="mt-2 text-gray-600">
-              {displayRunnerName} • {selectedYear} Race • Leg {selectedLegNumber} v{selectedVersion}
+              {displayRunnerName} • {selectedYear} Race • Leg {selectedLegNumber}
             </p>
           </div>
           <Link
-            to="/runs/$runnerName/$year/$legNumber/$version"
-            params={{ runnerName, year, legNumber, version }}
+            to="/runs/$runnerName/$year/$legNumber"
+            params={{ runnerName, year, legNumber }}
             className="inline-flex items-center gap-2 rounded-lg border border-primary-200 px-4 py-2 text-sm font-medium text-primary-700 transition-colors hover:border-primary-300 hover:bg-primary-50"
           >
             <Activity className="h-4 w-4" />

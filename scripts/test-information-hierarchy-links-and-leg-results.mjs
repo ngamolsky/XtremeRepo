@@ -9,7 +9,7 @@ const dashboard = read("src/components/Dashboard.tsx");
 const legDetail = read("src/components/LegDetail.tsx");
 const runnerDetail = read("src/components/RunnerDetail.tsx");
 const runInstanceDetail = read("src/components/RunInstanceDetail.tsx");
-const routeExists = existsSync(new URL("../src/routes/leg-results.$resultType.$runnerName.$year.$legNumber.$version.$resultId.tsx", import.meta.url));
+const routeExists = existsSync(new URL("../src/routes/leg-results.$resultType.$runnerName.$year.$legNumber.$resultId.tsx", import.meta.url));
 const componentExists = existsSync(new URL("../src/components/LegResultDetail.tsx", import.meta.url));
 
 assert.match(
@@ -66,8 +66,8 @@ assert.match(
 );
 assert.match(
   raceDetail,
-  /<EntityPill[\s\S]*category="performance"[\s\S]*to="\/runs\/\$runnerName\/\$year\/\$legNumber\/\$version"[\s\S]*View performance/,
-  "race detail leg performance action should be a performance entity pill"
+  /<EntityPill[\s\S]*category="performance"[\s\S]*to="\/runs\/\$runnerName\/\$year\/\$legNumber"[\s\S]*View performance/,
+  "race detail leg performance action should be a performance entity pill using the simplified public route"
 );
 assert.match(
   raceDetail,
@@ -133,8 +133,8 @@ assert.match(
 );
 assert.match(
   legResultDetail,
-  /to="\/runs\/\$runnerName\/\$year\/\$legNumber\/\$version"/,
-  "leg result detail should link back to its parent Leg Performance page"
+  /to="\/runs\/\$runnerName\/\$year\/\$legNumber"/,
+  "leg result detail should link back to its parent Leg Performance page using the simplified public route"
 );
 
 console.log("information hierarchy links and leg result detail tests passed");

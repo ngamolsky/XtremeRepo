@@ -132,12 +132,12 @@ function toProvisionalEntry(observation: SelfRecordedObservation): RunnerRaceEnt
   };
 }
 
-function formatLegLabel(legNumber: number | null, legVersion: number | null) {
+function formatLegLabel(legNumber: number | null, _legVersion: number | null) {
   if (legNumber === null) {
     return "Unknown leg";
   }
 
-  return legVersion === null ? `Leg ${legNumber}` : `Leg ${legNumber} (v${legVersion})`;
+  return `Leg ${legNumber}`;
 }
 
 function hasSelfRecordedData(observation: SelfRecordedObservation) {

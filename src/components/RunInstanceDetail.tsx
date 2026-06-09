@@ -150,8 +150,8 @@ function formatAverageDelta(
 }
 
 const RunInstanceDetail: React.FC = () => {
-  const { runnerName, year, legNumber, version } = useParams({
-    from: "/runs/$runnerName/$year/$legNumber/$version",
+  const { runnerName, year, legNumber } = useParams({
+    from: "/runs/$runnerName/$year/$legNumber",
   });
   const {
     data: { bogeyEvents, legDefinitions, legResultObservations, legVersionStats, results, yearlySummary },
@@ -173,7 +173,21 @@ const RunInstanceDetail: React.FC = () => {
 
   const selectedYear = Number(year);
   const selectedLegNumber = Number(legNumber);
-  const selectedVersion = Number(version);
+
+  const officialResult = results.find(
+    (result) =>
+      result.runner_name === runnerName &&
+      result.year === selectedYear &&
+      result.leg_number === selectedLegNumber
+  );
+  const selectedVersion =
+    officialResult?.leg_version ??
+    Math.max(
+      1,
+      ...legDefinitions
+        .filter((leg) => leg.number === selectedLegNumber)
+        .map((leg) => leg.version || 1)
+    );
 
   useEffect(() => {
     let isActive = true;
@@ -205,13 +219,6 @@ const RunInstanceDetail: React.FC = () => {
     };
   }, []);
 
-  const officialResult = results.find(
-    (result) =>
-      result.runner_name === runnerName &&
-      result.year === selectedYear &&
-      result.leg_number === selectedLegNumber &&
-      result.leg_version === selectedVersion
-  );
   const performanceBogeyEvents = filterBogeyEventsForPerformance(bogeyEvents, {
     runnerName,
     year: selectedYear,
@@ -222,8 +229,7 @@ const RunInstanceDetail: React.FC = () => {
     (observation) =>
       observation.runner_name === runnerName &&
       observation.year === selectedYear &&
-      observation.leg_number === selectedLegNumber &&
-      observation.leg_version === selectedVersion
+      observation.leg_number === selectedLegNumber
   );
   const observations = useMemo(() => {
     const byId = new Map<string, ObservationRow>();
@@ -550,10 +556,9 @@ const RunInstanceDetail: React.FC = () => {
             },
             {
               label: formatLegLabel(selectedLegNumber, selectedVersion),
-              to: "/legs/$legNumber/$version",
+              to: "/legs/$legNumber",
               params: {
                 legNumber: selectedLegNumber.toString(),
-                version: selectedVersion.toString(),
               },
             },
             {
@@ -578,10 +583,9 @@ const RunInstanceDetail: React.FC = () => {
             </p>
           </div>
           <Link
-            to="/legs/$legNumber/$version"
+            to="/legs/$legNumber"
             params={{
               legNumber: selectedLegNumber.toString(),
-              version: selectedVersion.toString(),
             }}
             className="inline-flex items-center gap-2 rounded-lg border border-primary-200 px-4 py-2 text-sm font-medium text-primary-700 transition-colors hover:border-primary-300 hover:bg-primary-50 hover:text-primary-800"
           >
@@ -631,13 +635,12 @@ const RunInstanceDetail: React.FC = () => {
             <Metric label="Elevation" value={formatFeet(officialResult.elevation_gain)} />
             <Metric label="Source" value={formatSourceType(officialResult.source_type)} />
             <Link
-              to="/leg-results/$resultType/$runnerName/$year/$legNumber/$version/$resultId"
+              to="/leg-results/$resultType/$runnerName/$year/$legNumber/$resultId"
               params={{
                 resultType: "official",
                 runnerName,
                 year: String(selectedYear),
                 legNumber: String(selectedLegNumber),
-                version: String(selectedVersion),
                 resultId: "official",
               }}
               className="inline-flex items-center justify-center rounded-lg border border-primary-200 px-3 py-2 text-sm font-medium text-primary-700 transition-colors hover:border-primary-300 hover:bg-primary-50"
@@ -783,13 +786,12 @@ const RunInstanceDetail: React.FC = () => {
                       <td className="px-4 py-3 text-sm text-gray-900">
                         <div className="flex flex-wrap gap-2">
                           <Link
-                            to="/leg-results/$resultType/$runnerName/$year/$legNumber/$version/$resultId"
+                            to="/leg-results/$resultType/$runnerName/$year/$legNumber/$resultId"
                             params={{
                               resultType: "self-reported",
                               runnerName,
                               year: String(selectedYear),
                               legNumber: String(selectedLegNumber),
-                              version: String(selectedVersion),
                               resultId: observation.id || "unknown",
                             }}
                             className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-primary-700 transition-colors hover:bg-primary-50"

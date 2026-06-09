@@ -26,9 +26,9 @@ import { Route as LegsIndexRouteImport } from './routes/legs.index'
 import { Route as RunnersRunnerNameRouteImport } from './routes/runners.$runnerName'
 import { Route as RacesYearRouteImport } from './routes/races.$year'
 import { Route as PhotosPhotoIdRouteImport } from './routes/photos.$photoId'
-import { Route as LegsLegNumberVersionRouteImport } from './routes/legs.$legNumber.$version'
-import { Route as RunsRunnerNameYearLegNumberVersionRouteImport } from './routes/runs.$runnerName.$year.$legNumber.$version'
-import { Route as LegResultsResultTypeRunnerNameYearLegNumberVersionResultIdRouteImport } from './routes/leg-results.$resultType.$runnerName.$year.$legNumber.$version.$resultId'
+import { Route as LegsLegNumberRouteImport } from './routes/legs.$legNumber'
+import { Route as RunsRunnerNameYearLegNumberRouteImport } from './routes/runs.$runnerName.$year.$legNumber'
+import { Route as LegResultsResultTypeRunnerNameYearLegNumberResultIdRouteImport } from './routes/leg-results.$resultType.$runnerName.$year.$legNumber.$resultId'
 
 const UploadRoute = UploadRouteImport.update({
   id: '/upload',
@@ -115,21 +115,21 @@ const PhotosPhotoIdRoute = PhotosPhotoIdRouteImport.update({
   path: '/$photoId',
   getParentRoute: () => PhotosRoute,
 } as any)
-const LegsLegNumberVersionRoute = LegsLegNumberVersionRouteImport.update({
-  id: '/$legNumber/$version',
-  path: '/$legNumber/$version',
+const LegsLegNumberRoute = LegsLegNumberRouteImport.update({
+  id: '/$legNumber',
+  path: '/$legNumber',
   getParentRoute: () => LegsRoute,
 } as any)
-const RunsRunnerNameYearLegNumberVersionRoute =
-  RunsRunnerNameYearLegNumberVersionRouteImport.update({
-    id: '/runs/$runnerName/$year/$legNumber/$version',
-    path: '/runs/$runnerName/$year/$legNumber/$version',
+const RunsRunnerNameYearLegNumberRoute =
+  RunsRunnerNameYearLegNumberRouteImport.update({
+    id: '/runs/$runnerName/$year/$legNumber',
+    path: '/runs/$runnerName/$year/$legNumber',
     getParentRoute: () => rootRouteImport,
   } as any)
-const LegResultsResultTypeRunnerNameYearLegNumberVersionResultIdRoute =
-  LegResultsResultTypeRunnerNameYearLegNumberVersionResultIdRouteImport.update({
-    id: '/leg-results/$resultType/$runnerName/$year/$legNumber/$version/$resultId',
-    path: '/leg-results/$resultType/$runnerName/$year/$legNumber/$version/$resultId',
+const LegResultsResultTypeRunnerNameYearLegNumberResultIdRoute =
+  LegResultsResultTypeRunnerNameYearLegNumberResultIdRouteImport.update({
+    id: '/leg-results/$resultType/$runnerName/$year/$legNumber/$resultId',
+    path: '/leg-results/$resultType/$runnerName/$year/$legNumber/$resultId',
     getParentRoute: () => rootRouteImport,
   } as any)
 
@@ -145,15 +145,15 @@ export interface FileRoutesByFullPath {
   '/runners': typeof RunnersRouteWithChildren
   '/team': typeof TeamRoute
   '/upload': typeof UploadRoute
+  '/legs/$legNumber': typeof LegsLegNumberRoute
   '/photos/$photoId': typeof PhotosPhotoIdRoute
   '/races/$year': typeof RacesYearRoute
   '/runners/$runnerName': typeof RunnersRunnerNameRoute
   '/legs/': typeof LegsIndexRoute
   '/photos/': typeof PhotosIndexRoute
   '/races/': typeof RacesIndexRoute
-  '/legs/$legNumber/$version': typeof LegsLegNumberVersionRoute
-  '/runs/$runnerName/$year/$legNumber/$version': typeof RunsRunnerNameYearLegNumberVersionRoute
-  '/leg-results/$resultType/$runnerName/$year/$legNumber/$version/$resultId': typeof LegResultsResultTypeRunnerNameYearLegNumberVersionResultIdRoute
+  '/runs/$runnerName/$year/$legNumber': typeof RunsRunnerNameYearLegNumberRoute
+  '/leg-results/$resultType/$runnerName/$year/$legNumber/$resultId': typeof LegResultsResultTypeRunnerNameYearLegNumberResultIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -164,15 +164,15 @@ export interface FileRoutesByTo {
   '/runners': typeof RunnersRouteWithChildren
   '/team': typeof TeamRoute
   '/upload': typeof UploadRoute
+  '/legs/$legNumber': typeof LegsLegNumberRoute
   '/photos/$photoId': typeof PhotosPhotoIdRoute
   '/races/$year': typeof RacesYearRoute
   '/runners/$runnerName': typeof RunnersRunnerNameRoute
   '/legs': typeof LegsIndexRoute
   '/photos': typeof PhotosIndexRoute
   '/races': typeof RacesIndexRoute
-  '/legs/$legNumber/$version': typeof LegsLegNumberVersionRoute
-  '/runs/$runnerName/$year/$legNumber/$version': typeof RunsRunnerNameYearLegNumberVersionRoute
-  '/leg-results/$resultType/$runnerName/$year/$legNumber/$version/$resultId': typeof LegResultsResultTypeRunnerNameYearLegNumberVersionResultIdRoute
+  '/runs/$runnerName/$year/$legNumber': typeof RunsRunnerNameYearLegNumberRoute
+  '/leg-results/$resultType/$runnerName/$year/$legNumber/$resultId': typeof LegResultsResultTypeRunnerNameYearLegNumberResultIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -187,15 +187,15 @@ export interface FileRoutesById {
   '/runners': typeof RunnersRouteWithChildren
   '/team': typeof TeamRoute
   '/upload': typeof UploadRoute
+  '/legs/$legNumber': typeof LegsLegNumberRoute
   '/photos/$photoId': typeof PhotosPhotoIdRoute
   '/races/$year': typeof RacesYearRoute
   '/runners/$runnerName': typeof RunnersRunnerNameRoute
   '/legs/': typeof LegsIndexRoute
   '/photos/': typeof PhotosIndexRoute
   '/races/': typeof RacesIndexRoute
-  '/legs/$legNumber/$version': typeof LegsLegNumberVersionRoute
-  '/runs/$runnerName/$year/$legNumber/$version': typeof RunsRunnerNameYearLegNumberVersionRoute
-  '/leg-results/$resultType/$runnerName/$year/$legNumber/$version/$resultId': typeof LegResultsResultTypeRunnerNameYearLegNumberVersionResultIdRoute
+  '/runs/$runnerName/$year/$legNumber': typeof RunsRunnerNameYearLegNumberRoute
+  '/leg-results/$resultType/$runnerName/$year/$legNumber/$resultId': typeof LegResultsResultTypeRunnerNameYearLegNumberResultIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -211,15 +211,15 @@ export interface FileRouteTypes {
     | '/runners'
     | '/team'
     | '/upload'
+    | '/legs/$legNumber'
     | '/photos/$photoId'
     | '/races/$year'
     | '/runners/$runnerName'
     | '/legs/'
     | '/photos/'
     | '/races/'
-    | '/legs/$legNumber/$version'
-    | '/runs/$runnerName/$year/$legNumber/$version'
-    | '/leg-results/$resultType/$runnerName/$year/$legNumber/$version/$resultId'
+    | '/runs/$runnerName/$year/$legNumber'
+    | '/leg-results/$resultType/$runnerName/$year/$legNumber/$resultId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -230,15 +230,15 @@ export interface FileRouteTypes {
     | '/runners'
     | '/team'
     | '/upload'
+    | '/legs/$legNumber'
     | '/photos/$photoId'
     | '/races/$year'
     | '/runners/$runnerName'
     | '/legs'
     | '/photos'
     | '/races'
-    | '/legs/$legNumber/$version'
-    | '/runs/$runnerName/$year/$legNumber/$version'
-    | '/leg-results/$resultType/$runnerName/$year/$legNumber/$version/$resultId'
+    | '/runs/$runnerName/$year/$legNumber'
+    | '/leg-results/$resultType/$runnerName/$year/$legNumber/$resultId'
   id:
     | '__root__'
     | '/'
@@ -252,15 +252,15 @@ export interface FileRouteTypes {
     | '/runners'
     | '/team'
     | '/upload'
+    | '/legs/$legNumber'
     | '/photos/$photoId'
     | '/races/$year'
     | '/runners/$runnerName'
     | '/legs/'
     | '/photos/'
     | '/races/'
-    | '/legs/$legNumber/$version'
-    | '/runs/$runnerName/$year/$legNumber/$version'
-    | '/leg-results/$resultType/$runnerName/$year/$legNumber/$version/$resultId'
+    | '/runs/$runnerName/$year/$legNumber'
+    | '/leg-results/$resultType/$runnerName/$year/$legNumber/$resultId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -275,8 +275,8 @@ export interface RootRouteChildren {
   RunnersRoute: typeof RunnersRouteWithChildren
   TeamRoute: typeof TeamRoute
   UploadRoute: typeof UploadRoute
-  RunsRunnerNameYearLegNumberVersionRoute: typeof RunsRunnerNameYearLegNumberVersionRoute
-  LegResultsResultTypeRunnerNameYearLegNumberVersionResultIdRoute: typeof LegResultsResultTypeRunnerNameYearLegNumberVersionResultIdRoute
+  RunsRunnerNameYearLegNumberRoute: typeof RunsRunnerNameYearLegNumberRoute
+  LegResultsResultTypeRunnerNameYearLegNumberResultIdRoute: typeof LegResultsResultTypeRunnerNameYearLegNumberResultIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -400,38 +400,38 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PhotosPhotoIdRouteImport
       parentRoute: typeof PhotosRoute
     }
-    '/legs/$legNumber/$version': {
-      id: '/legs/$legNumber/$version'
-      path: '/$legNumber/$version'
-      fullPath: '/legs/$legNumber/$version'
-      preLoaderRoute: typeof LegsLegNumberVersionRouteImport
+    '/legs/$legNumber': {
+      id: '/legs/$legNumber'
+      path: '/$legNumber'
+      fullPath: '/legs/$legNumber'
+      preLoaderRoute: typeof LegsLegNumberRouteImport
       parentRoute: typeof LegsRoute
     }
-    '/runs/$runnerName/$year/$legNumber/$version': {
-      id: '/runs/$runnerName/$year/$legNumber/$version'
-      path: '/runs/$runnerName/$year/$legNumber/$version'
-      fullPath: '/runs/$runnerName/$year/$legNumber/$version'
-      preLoaderRoute: typeof RunsRunnerNameYearLegNumberVersionRouteImport
+    '/runs/$runnerName/$year/$legNumber': {
+      id: '/runs/$runnerName/$year/$legNumber'
+      path: '/runs/$runnerName/$year/$legNumber'
+      fullPath: '/runs/$runnerName/$year/$legNumber'
+      preLoaderRoute: typeof RunsRunnerNameYearLegNumberRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/leg-results/$resultType/$runnerName/$year/$legNumber/$version/$resultId': {
-      id: '/leg-results/$resultType/$runnerName/$year/$legNumber/$version/$resultId'
-      path: '/leg-results/$resultType/$runnerName/$year/$legNumber/$version/$resultId'
-      fullPath: '/leg-results/$resultType/$runnerName/$year/$legNumber/$version/$resultId'
-      preLoaderRoute: typeof LegResultsResultTypeRunnerNameYearLegNumberVersionResultIdRouteImport
+    '/leg-results/$resultType/$runnerName/$year/$legNumber/$resultId': {
+      id: '/leg-results/$resultType/$runnerName/$year/$legNumber/$resultId'
+      path: '/leg-results/$resultType/$runnerName/$year/$legNumber/$resultId'
+      fullPath: '/leg-results/$resultType/$runnerName/$year/$legNumber/$resultId'
+      preLoaderRoute: typeof LegResultsResultTypeRunnerNameYearLegNumberResultIdRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
 }
 
 interface LegsRouteChildren {
+  LegsLegNumberRoute: typeof LegsLegNumberRoute
   LegsIndexRoute: typeof LegsIndexRoute
-  LegsLegNumberVersionRoute: typeof LegsLegNumberVersionRoute
 }
 
 const LegsRouteChildren: LegsRouteChildren = {
+  LegsLegNumberRoute: LegsLegNumberRoute,
   LegsIndexRoute: LegsIndexRoute,
-  LegsLegNumberVersionRoute: LegsLegNumberVersionRoute,
 }
 
 const LegsRouteWithChildren = LegsRoute._addFileChildren(LegsRouteChildren)
@@ -484,10 +484,9 @@ const rootRouteChildren: RootRouteChildren = {
   RunnersRoute: RunnersRouteWithChildren,
   TeamRoute: TeamRoute,
   UploadRoute: UploadRoute,
-  RunsRunnerNameYearLegNumberVersionRoute:
-    RunsRunnerNameYearLegNumberVersionRoute,
-  LegResultsResultTypeRunnerNameYearLegNumberVersionResultIdRoute:
-    LegResultsResultTypeRunnerNameYearLegNumberVersionResultIdRoute,
+  RunsRunnerNameYearLegNumberRoute: RunsRunnerNameYearLegNumberRoute,
+  LegResultsResultTypeRunnerNameYearLegNumberResultIdRoute:
+    LegResultsResultTypeRunnerNameYearLegNumberResultIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -177,7 +177,7 @@ const TeamView: React.FC = () => {
                                 version={version}
                                 className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full hover:bg-green-200"
                               >
-                                Leg {leg} (v{version})
+                                Leg {leg}
                               </LegPill>
                             )
                           )}
@@ -368,7 +368,7 @@ const TeamView: React.FC = () => {
                                     version={version}
                                     className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full hover:bg-green-200"
                                   >
-                                    Leg {leg} (v{version})
+                                    Leg {leg}
                                   </LegPill>
                                 )
                               )}

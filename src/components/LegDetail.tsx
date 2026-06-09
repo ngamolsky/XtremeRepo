@@ -74,8 +74,8 @@ function formatDurationFromMinutes(minutes: number | null | undefined) {
 }
 
 const LegDetail: React.FC = () => {
-  const { legNumber, version } = useParams({
-    from: "/legs/$legNumber/$version",
+  const { legNumber } = useParams({
+    from: "/legs/$legNumber",
   });
   const [isLegDataOpen, setIsLegDataOpen] = React.useState(false);
   const {
@@ -104,7 +104,12 @@ const LegDetail: React.FC = () => {
   }
 
   const selectedLegNumber = Number(legNumber);
-  const selectedVersion = Number(version);
+  const selectedVersion = Math.max(
+    1,
+    ...legDefinitions
+      .filter((leg) => leg.number === selectedLegNumber)
+      .map((leg) => leg.version || 1)
+  );
 
   // Filter results for this specific leg and version
   const legStat = legVersionStats.find(
@@ -130,7 +135,7 @@ const LegDetail: React.FC = () => {
           No data found
         </h3>
         <p className="text-gray-600">
-          No results found for Leg {legNumber} Version {version}
+          No results found for Leg {legNumber}
         </p>
       </div>
     );
@@ -174,7 +179,7 @@ const LegDetail: React.FC = () => {
   return (
     <div className="space-y-8 animate-fade-in">
       <Breadcrumbs
-        current={`Leg ${selectedLegNumber} v${selectedVersion}`}
+        current={`Leg ${selectedLegNumber}`}
         items={[{ label: "Legs", to: "/legs" }]}
       />
       <div className="text-center">
@@ -182,7 +187,7 @@ const LegDetail: React.FC = () => {
           Leg {legNumber} Details
         </h1>
         <p className="text-lg text-gray-600">
-          Version {version} • {formatMiles(displayDistance)} •{" "}
+          {formatMiles(displayDistance)} •{" "}
           {formattedElevation === "N/A" ? formattedElevation : `+${formattedElevation} elevation`}
         </p>
       </div>
@@ -404,12 +409,12 @@ const LegDetail: React.FC = () => {
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       {result.runner_name ? (
                         <Link
-                          to="/runs/$runnerName/$year/$legNumber/$version"
+                          to="/runs/$runnerName/$year/$legNumber"
                           params={{
                             runnerName: result.runner_name,
                             year: String(result.year),
                             legNumber: String(result.leg_number),
-                            version: String(result.leg_version),
+
                           }}
                           className="text-primary-700 hover:text-primary-800"
                         >

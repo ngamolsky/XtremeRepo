@@ -4,31 +4,27 @@ import { formatLegLabel } from "../lib/legVersion";
 
 interface LegPillProps {
   leg: number;
-  version: number;
+  version?: number | null;
   className?: string;
   children?: React.ReactNode;
-  showVersion?: boolean;
 }
 
 export const LegPill: React.FC<LegPillProps> = ({
   leg,
-  version,
   className,
   children,
-  showVersion = false,
 }) => {
   return (
     <Link
-      to="/legs/$legNumber/$version"
+      to="/legs/$legNumber"
       params={{
         legNumber: leg.toString(),
-        version: version.toString(),
       }}
-      aria-label={`View ${formatLegLabel(leg, version, { alwaysShowVersion: true })} details`}
+      aria-label={`View ${formatLegLabel(leg)} details`}
       className={className}
       onClick={(e) => e.stopPropagation()}
     >
-      {children ?? formatLegLabel(leg, version, { alwaysShowVersion: showVersion })}
+      {children ?? formatLegLabel(leg)}
     </Link>
   );
 };
