@@ -96,6 +96,9 @@ assert.match(historySource, /Best current-course time/, "Races top summary shoul
 assert.doesNotMatch(historySource, /Best Percentile/, "Races top summary should not include Best Percentile");
 assert.doesNotMatch(historySource, /Avg Percentile/, "Races top summary should not include Avg Percentile");
 assert.match(historySource, /getRacesTopSummary/, "Races page should use the shared top summary helper");
+assert.match(historySource, /to="\/races\/\$year"[\s\S]*aria-label=\{`Open \$\{race\.year\} Tahoe Relay race detail`\}/, "Individual race cards should link the whole card to race detail");
+assert.doesNotMatch(historySource, /toggleExpanded|expandedYear|ChevronDown|ChevronUp/, "Individual race cards should not use dropdown expansion state or chevrons");
+assert.doesNotMatch(historySource, /<span>Details<\/span>|<h4[^>]*>\s*Leg Results/, "Races list should not include a separate detail button or dropdown leg-results section");
 
 const schemaSource = readFileSync(new URL("../supabase/schemas/04_team_placements.sql", import.meta.url), "utf8");
 const analyticsSchemaSource = readFileSync(new URL("../supabase/schemas/06_performance_analytics.sql", import.meta.url), "utf8");
