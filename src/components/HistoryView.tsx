@@ -103,15 +103,15 @@ const HistoryView: React.FC = () => {
           <p className="text-gray-600">Years ran</p>
         </div>
         <div className="card p-6 text-center">
-          <Clock className="w-8 h-8 text-green-600 mx-auto mb-3" />
-          <h3 className="text-2xl font-bold text-gray-900">
+          <Clock className="w-8 h-8 text-green-600 mx-auto mb-3 dark:text-green-300" />
+          <h3 className={`text-2xl font-bold ${getLatestRaceTimeColor(topSummary.latestRace?.source)}`}>
             {topSummary.latestRace
               ? `${topSummary.latestRace.year} · ${topSummary.latestRace.time ?? "pending"}`
               : "N/A"}
           </h3>
-          <p className="text-gray-600">Latest race</p>
+          <p className="text-gray-600 dark:text-slate-300">Latest race</p>
           {topSummary.latestRace && (
-            <p className="mt-1 text-xs font-medium text-gray-500">
+            <p className={`mt-1 inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${getLatestRaceSourceBadgeColor(topSummary.latestRace.source)}`}>
               {topSummary.latestRace.label}
             </p>
           )}
@@ -385,6 +385,34 @@ const HistoryView: React.FC = () => {
     </div>
   );
 };
+
+function getLatestRaceTimeColor(source: "official" | "self_recorded" | "expected" | "pending" | undefined) {
+  switch (source) {
+    case "official":
+      return "text-emerald-700 dark:text-emerald-300";
+    case "self_recorded":
+      return "text-amber-700 dark:text-amber-300";
+    case "expected":
+      return "text-sky-700 dark:text-sky-300";
+    case "pending":
+    default:
+      return "text-gray-900 dark:text-slate-100";
+  }
+}
+
+function getLatestRaceSourceBadgeColor(source: "official" | "self_recorded" | "expected" | "pending") {
+  switch (source) {
+    case "official":
+      return "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-200 dark:ring-emerald-800";
+    case "self_recorded":
+      return "bg-amber-50 text-amber-800 ring-1 ring-amber-200 dark:bg-amber-950/40 dark:text-amber-200 dark:ring-amber-800";
+    case "expected":
+      return "bg-sky-50 text-sky-700 ring-1 ring-sky-200 dark:bg-sky-950/40 dark:text-sky-200 dark:ring-sky-800";
+    case "pending":
+    default:
+      return "bg-slate-100 text-slate-700 ring-1 ring-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:ring-slate-700";
+  }
+}
 
 const RaceStatusBadge: React.FC<{ status: RaceResultStatus }> = ({ status }) => (
   <span

@@ -43,6 +43,7 @@ export type LiveProjectionLeg = {
   minutes: number | null;
   displayTime: string;
   status: "reported" | "estimated" | "missing_estimate";
+  timeSource: "official" | "self_recorded" | "estimated" | "missing";
   sourceLabel: string;
 };
 
@@ -161,6 +162,7 @@ export function getNaiveLiveProjection(
         minutes: reportedMinutes,
         displayTime: formatDuration(reportedMinutes),
         status: "reported",
+        timeSource: reportedLeg.kind === "official" ? "official" : "self_recorded",
         sourceLabel: formatProjectionSource(reportedLeg),
       });
       continue;
@@ -180,6 +182,7 @@ export function getNaiveLiveProjection(
         minutes: estimatedMinutes,
         displayTime: formatDuration(estimatedMinutes),
         status: "estimated",
+        timeSource: "estimated",
         sourceLabel: `Historical avg for leg ${legNumber} v${targetLegVersion}`,
       });
       continue;
@@ -191,6 +194,7 @@ export function getNaiveLiveProjection(
       minutes: null,
       displayTime: "N/A",
       status: "missing_estimate",
+      timeSource: "missing",
       sourceLabel: "No historical average yet",
     });
   }

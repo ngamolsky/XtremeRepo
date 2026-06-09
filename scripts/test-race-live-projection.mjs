@@ -129,15 +129,15 @@ assert.equal(projection.projectedTotalMinutes, 409, "projection should add repor
 assert.equal(projection.displayCurrentRecordedTime, "1:47:00");
 assert.equal(projection.displayProjectedTotalTime, "6:49:00");
 assert.deepEqual(
-  JSON.parse(JSON.stringify(projection.legs.map((leg) => ({ legNumber: leg.legNumber, status: leg.status, minutes: leg.minutes, sourceLabel: leg.sourceLabel })))),
+  JSON.parse(JSON.stringify(projection.legs.map((leg) => ({ legNumber: leg.legNumber, status: leg.status, timeSource: leg.timeSource, minutes: leg.minutes, sourceLabel: leg.sourceLabel })))),
   [
-    { legNumber: 1, status: "reported", minutes: 49, sourceLabel: "Official" },
-    { legNumber: 2, status: "reported", minutes: 58, sourceLabel: "Garmin · watch" },
-    { legNumber: 3, status: "estimated", minutes: 48, sourceLabel: "Historical avg for leg 3 v2" },
-    { legNumber: 4, status: "estimated", minutes: 58, sourceLabel: "Historical avg for leg 4 v2" },
-    { legNumber: 5, status: "estimated", minutes: 72, sourceLabel: "Historical avg for leg 5 v2" },
-    { legNumber: 6, status: "estimated", minutes: 82, sourceLabel: "Historical avg for leg 6 v2" },
-    { legNumber: 7, status: "estimated", minutes: 42, sourceLabel: "Historical avg for leg 7 v2" },
+    { legNumber: 1, status: "reported", timeSource: "official", minutes: 49, sourceLabel: "Official" },
+    { legNumber: 2, status: "reported", timeSource: "self_recorded", minutes: 58, sourceLabel: "Garmin · watch" },
+    { legNumber: 3, status: "estimated", timeSource: "estimated", minutes: 48, sourceLabel: "Historical avg for leg 3 v2" },
+    { legNumber: 4, status: "estimated", timeSource: "estimated", minutes: 58, sourceLabel: "Historical avg for leg 4 v2" },
+    { legNumber: 5, status: "estimated", timeSource: "estimated", minutes: 72, sourceLabel: "Historical avg for leg 5 v2" },
+    { legNumber: 6, status: "estimated", timeSource: "estimated", minutes: 82, sourceLabel: "Historical avg for leg 6 v2" },
+    { legNumber: 7, status: "estimated", timeSource: "estimated", minutes: 42, sourceLabel: "Historical avg for leg 7 v2" },
   ]
 );
 
@@ -160,5 +160,8 @@ assert.match(
 );
 assert.match(raceDetailSource, /Projected total/, "live projection card should show projected total");
 assert.match(raceDetailSource, /Current recorded time/, "live projection card should show current recorded time");
+assert.match(raceDetailSource, /text-emerald-700 dark:text-emerald-300/, "official projection times should use light/dark-safe green text");
+assert.match(raceDetailSource, /text-amber-700 dark:text-amber-300/, "self-reported projection times should use light/dark-safe amber text");
+assert.match(raceDetailSource, /text-sky-700 dark:text-sky-300/, "estimated projection times should use light/dark-safe sky text");
 
 console.log("race live projection tests passed");

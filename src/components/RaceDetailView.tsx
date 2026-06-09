@@ -368,15 +368,7 @@ const RaceDetailView: React.FC = () => {
                           )}
                         </td>
                         <td className="px-4 py-3 text-gray-700 dark:text-slate-300">
-                          <span
-                            className={`rounded-full px-2.5 py-1 text-xs font-medium ${
-                              leg.status === "reported"
-                                ? "bg-emerald-50 text-emerald-700"
-                                : leg.status === "estimated"
-                                  ? "bg-blue-50 text-blue-700"
-                                  : "bg-gray-100 text-gray-600"
-                            }`}
-                          >
+                          <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${getProjectionTimeSourceBadgeColor(leg.timeSource)}`}>
                             {leg.status === "reported"
                               ? "Reported"
                               : leg.status === "estimated"
@@ -384,7 +376,7 @@ const RaceDetailView: React.FC = () => {
                                 : "No estimate"}
                           </span>
                         </td>
-                        <td className="px-4 py-3 font-medium text-gray-900 dark:text-slate-100">{leg.displayTime}</td>
+                        <td className={`px-4 py-3 font-semibold ${getProjectionTimeSourceTextColor(leg.timeSource)}`}>{leg.displayTime}</td>
                         <td className="px-4 py-3 text-gray-700 dark:text-slate-300">{leg.sourceLabel}</td>
                       </tr>
                     ))}
@@ -549,6 +541,36 @@ const StatRow: React.FC<{ label: string; value: string }> = ({ label, value }) =
     <dd className="font-medium text-gray-900">{value}</dd>
   </div>
 );
+
+type ProjectionTimeSource = "official" | "self_recorded" | "estimated" | "missing";
+
+function getProjectionTimeSourceTextColor(source: ProjectionTimeSource) {
+  switch (source) {
+    case "official":
+      return "text-emerald-700 dark:text-emerald-300";
+    case "self_recorded":
+      return "text-amber-700 dark:text-amber-300";
+    case "estimated":
+      return "text-sky-700 dark:text-sky-300";
+    case "missing":
+    default:
+      return "text-slate-500 dark:text-slate-400";
+  }
+}
+
+function getProjectionTimeSourceBadgeColor(source: ProjectionTimeSource) {
+  switch (source) {
+    case "official":
+      return "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-200 dark:ring-emerald-800";
+    case "self_recorded":
+      return "bg-amber-50 text-amber-800 ring-1 ring-amber-200 dark:bg-amber-950/40 dark:text-amber-200 dark:ring-amber-800";
+    case "estimated":
+      return "bg-sky-50 text-sky-700 ring-1 ring-sky-200 dark:bg-sky-950/40 dark:text-sky-200 dark:ring-sky-800";
+    case "missing":
+    default:
+      return "bg-slate-100 text-slate-700 ring-1 ring-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:ring-slate-700";
+  }
+}
 
 const ProjectionMetric: React.FC<{ detail: string; label: string; value: string }> = ({
   detail,

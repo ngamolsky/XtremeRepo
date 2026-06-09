@@ -89,6 +89,9 @@ assert.match(historySource, /Latest race/, "Races top summary should include lat
 assert.match(raceSummarySource, /Official time/, "Latest race should label official totals");
 assert.match(raceSummarySource, /Self-reported total/, "Latest race should label complete self-reported totals");
 assert.match(raceSummarySource, /Expected time/, "Latest race should label projected expected totals");
+assert.match(historySource, /text-emerald-700 dark:text-emerald-300/, "Latest race official time should use light/dark-safe green text");
+assert.match(historySource, /text-amber-700 dark:text-amber-300/, "Latest race self-reported time should use light/dark-safe amber text");
+assert.match(historySource, /text-sky-700 dark:text-sky-300/, "Latest race expected time should use light/dark-safe sky text");
 assert.match(historySource, /Best current-course time/, "Races top summary should include current-course best time");
 assert.doesNotMatch(historySource, /Best Percentile/, "Races top summary should not include Best Percentile");
 assert.doesNotMatch(historySource, /Avg Percentile/, "Races top summary should not include Avg Percentile");
