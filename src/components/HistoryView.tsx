@@ -101,11 +101,17 @@ const HistoryView: React.FC = () => {
         <div className="card p-6 text-center">
           <Clock className="w-8 h-8 text-green-600 mx-auto mb-3" />
           <h3 className="text-2xl font-bold text-gray-900">
-            {topSummary.latestRaceWithTime
-              ? `${topSummary.latestRaceWithTime.year} · ${topSummary.latestRaceWithTime.time}`
+            {topSummary.latestRace
+              ? topSummary.latestRace.hasOfficialTime
+                ? `${topSummary.latestRace.year} · ${topSummary.latestRace.time}`
+                : `${topSummary.latestRace.year} · official pending`
               : "N/A"}
           </h3>
-          <p className="text-gray-600">Latest race</p>
+          <p className="text-gray-600">
+            {topSummary.latestRace?.hasOfficialTime === false
+              ? "Latest race (official pending)"
+              : "Latest race"}
+          </p>
         </div>
         <div className="card p-6 text-center">
           <Trophy className="w-8 h-8 text-yellow-600 mx-auto mb-3" />

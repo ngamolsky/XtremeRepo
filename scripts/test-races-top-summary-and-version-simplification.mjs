@@ -33,16 +33,18 @@ assert.deepEqual(
   JSON.parse(JSON.stringify(summary)),
   {
     yearsRan: 5,
+    latestRace: { year: 2026, time: null, hasOfficialTime: false },
     latestRaceWithTime: { year: 2025, time: "10:05:00" },
     currentRaceVersion: 2,
     bestCurrentCourseTime: { year: 2024, time: "09:04:00" },
   },
-  "top summary should count race years, use latest timed race, and filter best time to current race version"
+  "top summary should count race years, show the latest race shell even when official results are pending, keep latest timed race available, and filter best time to current race version"
 );
 
 const historySource = readFileSync(new URL("../src/components/HistoryView.tsx", import.meta.url), "utf8");
 assert.match(historySource, /Years ran/, "Races top summary should label years ran exactly");
-assert.match(historySource, /Latest race/, "Races top summary should include latest race with time");
+assert.match(historySource, /Latest race/, "Races top summary should include latest race");
+assert.match(historySource, /official pending/, "Latest race should label race shells without official results as pending");
 assert.match(historySource, /Best current-course time/, "Races top summary should include current-course best time");
 assert.doesNotMatch(historySource, /Best Percentile/, "Races top summary should not include Best Percentile");
 assert.doesNotMatch(historySource, /Avg Percentile/, "Races top summary should not include Avg Percentile");

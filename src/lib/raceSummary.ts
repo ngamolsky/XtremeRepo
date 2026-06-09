@@ -9,8 +9,15 @@ type TimedRaceSummary = {
   time: string;
 };
 
+type LatestRaceSummary = {
+  hasOfficialTime: boolean;
+  time: string | null;
+  year: number;
+};
+
 export type RacesTopSummary = {
   yearsRan: number;
+  latestRace: LatestRaceSummary | null;
   latestRaceWithTime: TimedRaceSummary | null;
   currentRaceVersion: number | null;
   bestCurrentCourseTime: TimedRaceSummary | null;
@@ -26,6 +33,17 @@ export function getRacesTopSummary(races: RaceSummaryInput[]): RacesTopSummary {
 
     return [{ year: race.year, time: race.total_time, raceVersion: race.race_version ?? 1 }];
   });
+  const latestRace = raceYears.reduce<LatestRaceSummary | null>(
+    (latest, race) =>
+      latest === null || (race.year as number) > latest.year
+        ? {
+            hasOfficialTime: Boolean(race.total_time),
+            time: race.total_time,
+            year: race.year as number,
+          }
+        : latest,
+    null
+  );
   const latestRaceWithTime = timedRaces.reduce<TimedRaceSummary | null>(
     (latest, race) =>
       latest === null || race.year > latest.year
@@ -46,6 +64,7 @@ export function getRacesTopSummary(races: RaceSummaryInput[]): RacesTopSummary {
 
   return {
     yearsRan: raceYears.length,
+    latestRace,
     latestRaceWithTime,
     currentRaceVersion,
     bestCurrentCourseTime,
