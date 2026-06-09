@@ -195,7 +195,7 @@ export function getNaiveLiveProjection(
     });
   }
 
-  if (reportedLegCount === 0) {
+  if (reportedLegCount === 0 && estimatedLegCount === 0) {
     return null;
   }
 

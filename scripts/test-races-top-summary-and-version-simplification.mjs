@@ -26,25 +26,69 @@ const summary = getRacesTopSummary([
   { year: 2023, total_time: "09:10:00", race_version: 2 },
   { year: 2024, total_time: "09:04:00", race_version: 2 },
   { year: 2025, total_time: "10:05:00", race_version: 2 },
-  { year: 2026, total_time: null, race_version: 2 },
+  {
+    year: 2026,
+    total_time: null,
+    race_version: 2,
+    latestRaceProjection: {
+      displayProjectedTotalTime: "09:30:00",
+      estimatedLegCount: 3,
+      projectedTotalMinutes: 570,
+      reportedLegCount: 4,
+    },
+  },
 ]);
 
 assert.deepEqual(
   JSON.parse(JSON.stringify(summary)),
   {
     yearsRan: 5,
-    latestRace: { year: 2026, time: null, hasOfficialTime: false },
+    latestRace: {
+      year: 2026,
+      time: "09:30:00",
+      hasOfficialTime: false,
+      label: "Expected time",
+      source: "expected",
+    },
     latestRaceWithTime: { year: 2025, time: "10:05:00" },
     currentRaceVersion: 2,
     bestCurrentCourseTime: { year: 2024, time: "09:04:00" },
   },
-  "top summary should count race years, show the latest race shell even when official results are pending, keep latest timed race available, and filter best time to current race version"
+  "top summary should count race years, show an expected latest-race time when official and self-reported totals are missing, keep latest timed race available, and filter best time to current race version"
+);
+
+assert.equal(
+  getRacesTopSummary([
+    {
+      year: 2026,
+      total_time: null,
+      race_version: 2,
+      latestRaceProjection: {
+        displayProjectedTotalTime: "08:40:00",
+        estimatedLegCount: 0,
+        projectedTotalMinutes: 520,
+        reportedLegCount: 7,
+      },
+    },
+  ]).latestRace.source,
+  "self_recorded",
+  "latest race should use a complete self-reported total before expected time"
+);
+
+assert.equal(
+  getRacesTopSummary([
+    { year: 2026, total_time: "08:30:00", race_version: 2 },
+  ]).latestRace.source,
+  "official",
+  "latest race should use official total time before provisional sources"
 );
 
 const historySource = readFileSync(new URL("../src/components/HistoryView.tsx", import.meta.url), "utf8");
 assert.match(historySource, /Years ran/, "Races top summary should label years ran exactly");
 assert.match(historySource, /Latest race/, "Races top summary should include latest race");
-assert.match(historySource, /official pending/, "Latest race should label race shells without official results as pending");
+assert.match(raceSummarySource, /Official time/, "Latest race should label official totals");
+assert.match(raceSummarySource, /Self-reported total/, "Latest race should label complete self-reported totals");
+assert.match(raceSummarySource, /Expected time/, "Latest race should label projected expected totals");
 assert.match(historySource, /Best current-course time/, "Races top summary should include current-course best time");
 assert.doesNotMatch(historySource, /Best Percentile/, "Races top summary should not include Best Percentile");
 assert.doesNotMatch(historySource, /Avg Percentile/, "Races top summary should not include Avg Percentile");

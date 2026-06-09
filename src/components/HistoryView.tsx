@@ -11,6 +11,7 @@ import React, { useState } from "react";
 import { useRelayData } from "../hooks/useRelayData";
 import {
   getDisplayLegResults,
+  getNaiveLiveProjection,
   getRaceDisplaySummary,
 } from "../lib/raceDisplay";
 import type { DisplayLegResult, RaceResultStatus } from "../lib/raceDisplay";
@@ -20,7 +21,7 @@ import { LegPill } from "./LegPill";
 
 const HistoryView: React.FC = () => {
   const {
-    data: { yearlySummary, results, participations, legResultObservations },
+    data: { yearlySummary, results, participations, legDefinitions, legResultObservations },
     loading,
     error,
   } = useRelayData();
@@ -56,6 +57,9 @@ const HistoryView: React.FC = () => {
       ...race,
       legResults: displayLegResults,
       resultSummary: getRaceDisplaySummary(race, displayLegResults),
+      latestRaceProjection: race.year
+        ? getNaiveLiveProjection(race.year, displayLegResults, results, legDefinitions)
+        : null,
       participantCount: yearParticipations.length || race.participant_count || 0,
       unknownLegParticipations: yearParticipations
         .filter((participation) => !participation.has_known_leg)
@@ -102,16 +106,15 @@ const HistoryView: React.FC = () => {
           <Clock className="w-8 h-8 text-green-600 mx-auto mb-3" />
           <h3 className="text-2xl font-bold text-gray-900">
             {topSummary.latestRace
-              ? topSummary.latestRace.hasOfficialTime
-                ? `${topSummary.latestRace.year} · ${topSummary.latestRace.time}`
-                : `${topSummary.latestRace.year} · official pending`
+              ? `${topSummary.latestRace.year} · ${topSummary.latestRace.time ?? "pending"}`
               : "N/A"}
           </h3>
-          <p className="text-gray-600">
-            {topSummary.latestRace?.hasOfficialTime === false
-              ? "Latest race (official pending)"
-              : "Latest race"}
-          </p>
+          <p className="text-gray-600">Latest race</p>
+          {topSummary.latestRace && (
+            <p className="mt-1 text-xs font-medium text-gray-500">
+              {topSummary.latestRace.label}
+            </p>
+          )}
         </div>
         <div className="card p-6 text-center">
           <Trophy className="w-8 h-8 text-yellow-600 mx-auto mb-3" />

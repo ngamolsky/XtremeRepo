@@ -2,6 +2,12 @@ type RaceSummaryInput = {
   year: number | null;
   total_time: string | null;
   race_version?: number | null;
+  latestRaceProjection?: {
+    displayProjectedTotalTime: string;
+    estimatedLegCount: number;
+    projectedTotalMinutes: number | null;
+    reportedLegCount: number;
+  } | null;
 };
 
 type TimedRaceSummary = {
@@ -11,6 +17,8 @@ type TimedRaceSummary = {
 
 type LatestRaceSummary = {
   hasOfficialTime: boolean;
+  label: string;
+  source: "official" | "self_recorded" | "expected" | "pending";
   time: string | null;
   year: number;
 };
@@ -23,8 +31,10 @@ export type RacesTopSummary = {
   bestCurrentCourseTime: TimedRaceSummary | null;
 };
 
+const EXPECTED_RELAY_LEGS = 7;
+
 export function getRacesTopSummary(races: RaceSummaryInput[]): RacesTopSummary {
-  const raceYears = races.filter((race) => typeof race.year === "number");
+  const raceYears = races.filter((race): race is RaceSummaryInput & { year: number } => typeof race.year === "number");
   const currentRaceVersion = getCurrentRaceVersion(raceYears);
   const timedRaces = raceYears.flatMap((race) => {
     if (!race.total_time || typeof race.year !== "number") {
@@ -35,12 +45,8 @@ export function getRacesTopSummary(races: RaceSummaryInput[]): RacesTopSummary {
   });
   const latestRace = raceYears.reduce<LatestRaceSummary | null>(
     (latest, race) =>
-      latest === null || (race.year as number) > latest.year
-        ? {
-            hasOfficialTime: Boolean(race.total_time),
-            time: race.total_time,
-            year: race.year as number,
-          }
+      latest === null || race.year > latest.year
+        ? getLatestRaceSummary(race)
         : latest,
     null
   );
@@ -68,6 +74,50 @@ export function getRacesTopSummary(races: RaceSummaryInput[]): RacesTopSummary {
     latestRaceWithTime,
     currentRaceVersion,
     bestCurrentCourseTime,
+  };
+}
+
+function getLatestRaceSummary(race: RaceSummaryInput & { year: number }): LatestRaceSummary {
+  if (race.total_time) {
+    return {
+      hasOfficialTime: true,
+      label: "Official time",
+      source: "official",
+      time: race.total_time,
+      year: race.year,
+    };
+  }
+
+  if (
+    race.latestRaceProjection?.projectedTotalMinutes != null &&
+    race.latestRaceProjection?.reportedLegCount === EXPECTED_RELAY_LEGS &&
+    race.latestRaceProjection.estimatedLegCount === 0
+  ) {
+    return {
+      hasOfficialTime: false,
+      label: "Self-reported total",
+      source: "self_recorded",
+      time: race.latestRaceProjection.displayProjectedTotalTime,
+      year: race.year,
+    };
+  }
+
+  if (race.latestRaceProjection?.projectedTotalMinutes != null) {
+    return {
+      hasOfficialTime: false,
+      label: "Expected time",
+      source: "expected",
+      time: race.latestRaceProjection.displayProjectedTotalTime,
+      year: race.year,
+    };
+  }
+
+  return {
+    hasOfficialTime: false,
+    label: "Official pending",
+    source: "pending",
+    time: null,
+    year: race.year,
   };
 }
 

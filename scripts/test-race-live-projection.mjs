@@ -141,6 +141,16 @@ assert.deepEqual(
   ]
 );
 
+const historicalOnlyProjection = getNaiveLiveProjection(
+  2026,
+  [],
+  historicalOfficialResults,
+  legDefinitions
+);
+assert.equal(historicalOnlyProjection.reportedLegCount, 0, "historical-only projection should support no reported legs");
+assert.equal(historicalOnlyProjection.estimatedLegCount, 7, "historical-only projection should estimate every relay leg");
+assert.equal(historicalOnlyProjection.displayProjectedTotalTime, "6:56:00", "historical-only projection should sum current-leg historical averages");
+
 assert.match(raceDetailSource, /Live Projection/, "race detail should render a Live Projection card");
 assert.match(raceDetailSource, /getNaiveLiveProjection/, "race detail should use the naive live projection helper");
 assert.match(
