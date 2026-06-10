@@ -28,6 +28,7 @@
     "test:grade-adjusted-pace": "node scripts/test-grade-adjusted-pace.mjs",
     "test:grade-adjusted-pace-ui": "node scripts/test-grade-adjusted-pace-ui.mjs",
     "test:race-detail-assumed-legend": "node scripts/test-race-detail-assumed-legend.mjs",
+    "test:race-detail-overview-layout": "node scripts/test-race-detail-overview-layout.mjs",
     "test:run-instance-leg-link": "node scripts/test-run-instance-leg-link.mjs",
     "test:runner-race-breakdown": "node scripts/test-runner-race-breakdown.mjs",
     "test:runner-race-profile-ui": "node scripts/test-runner-race-profile-ui.mjs",

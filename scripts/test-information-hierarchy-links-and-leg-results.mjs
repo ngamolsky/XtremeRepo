@@ -20,18 +20,18 @@ assert.match(
 
 assert.match(
   history,
+  /to="\/races\/\$year"[\s\S]*params=\{\{ year: String\(race\.year\) \}\}/,
+  "history race cards should link directly to race detail pages"
+);
+assert.doesNotMatch(
+  history,
   /<LegPill[\s\S]*leg=\{leg\.leg_number\}[\s\S]*version=\{leg\.leg_version\}/,
-  "history expanded leg rows should link versioned legs with LegPill"
+  "history should stay a compact race index instead of rendering expanded leg rows"
 );
-assert.match(
+assert.doesNotMatch(
   history,
-  /to="\/runners\/\$runnerName"[\s\S]*params=\{\{ runnerName: leg\.runner_name \}\}/,
-  "history expanded leg rows should link runner names to runner detail pages"
-);
-assert.match(
-  history,
-  /to="\/runners\/\$runnerName"[\s\S]*params=\{\{ runnerName: participation\.runner_name \}\}/,
-  "history unknown-leg roster pills should link to runner detail pages"
+  /params=\{\{ runnerName: leg\.runner_name \}\}/,
+  "history should delegate per-leg runner drilldown to race detail and leg performance pages"
 );
 
 assert.match(
@@ -44,15 +44,10 @@ assert.match(
   /<EntityPill[\s\S]*category="runner"[\s\S]*to="\/runners\/\$runnerName"[\s\S]*params=\{\{ runnerName: entry\.runnerName \}\}/,
   "race detail leg entry runner names should be runner entity pills"
 );
-assert.match(
+assert.doesNotMatch(
   raceDetail,
-  /category="performance-entry"[\s\S]*to="\/leg-results\/\$resultType\/\$runnerName\/\$year\/\$legNumber\/\$resultId"[\s\S]*View leg result/,
-  "race detail official entries should link to their Leg Result detail page"
-);
-assert.match(
-  raceDetail,
-  /category="performance-entry"[\s\S]*to="\/leg-results\/\$resultType\/\$runnerName\/\$year\/\$legNumber\/\$resultId"[\s\S]*View\/edit entry/,
-  "race detail self-reported entries should link to editable Leg Result detail pages"
+  /category="performance-entry"[\s\S]*to="\/leg-results\/\$resultType\/\$runnerName\/\$year\/\$legNumber\/\$resultId"/,
+  "race detail timeline should stay minimal and delegate result-entry actions to the leg performance page"
 );
 assert.match(
   raceDetail,
@@ -66,8 +61,8 @@ assert.match(
 );
 assert.match(
   raceDetail,
-  /import SourceBadge from "\.\/SourceBadge";/,
-  "race detail should use shared SourceBadge styling for official and self-reported sources"
+  /import SourceBadge, \{ type SourceKind \} from "\.\/SourceBadge";/,
+  "race detail should use shared SourceBadge styling for official, self-reported, expected, and pending sources"
 );
 assert.match(
   raceDetail,

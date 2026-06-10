@@ -15,10 +15,10 @@ assert.match(
   "race detail leg group headers should render as linked leg pills"
 );
 
-assert.match(
+assert.doesNotMatch(
   source,
-  /liveProjection\.legs\.map[\s\S]*<LegPill[\s\S]*leg=\{leg\.legNumber\}[\s\S]*version=\{leg\.legVersion\}/,
-  "race detail live projection leg labels should render as linked leg pills"
+  /<h2[^>]*>Live Projection<\/h2>/,
+  "race detail should keep projection summary in the hero instead of rendering a separate leg projection table"
 );
 
 assert.doesNotMatch(

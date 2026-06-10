@@ -13,7 +13,7 @@ import {
   getNaiveLiveProjection,
   getRaceDisplaySummary,
 } from "../lib/raceDisplay";
-import type { RaceResultStatus } from "../lib/raceDisplay";
+import type { LiveProjection, RaceResultStatus } from "../lib/raceDisplay";
 import {
   formatGradeAdjustedPace,
   getGradeAdjustedPace,
@@ -25,7 +25,7 @@ import Breadcrumbs from "./Breadcrumbs";
 import CommentsSection from "./CommentsSection";
 import EntityPill from "./EntityPill";
 import { LegPill } from "./LegPill";
-import SourceBadge from "./SourceBadge";
+import SourceBadge, { type SourceKind } from "./SourceBadge";
 
 type AlbumSummary = Tables<"v_race_photo_album_summary">;
 type RacePhoto = Tables<"race_photos">;
@@ -140,9 +140,12 @@ const RaceDetailView: React.FC = () => {
     )
   );
   const hasOfficialResults = officialEntryCount > 0;
-  const showLiveProjection = Boolean(
-    liveProjection && selfRecordedEntryCount > 0 && officialEntryCount < EXPECTED_RELAY_LEGS
-  );
+  const heroTotal = getHeroTotal({
+    hasOfficialResults,
+    liveProjection,
+    resultSummary,
+    selfRecordedEntryCount,
+  });
   const legSectionTitle = hasOfficialResults ? "Leg Results" : "Race Day Tracker";
   const legSectionSummary = hasOfficialResults
     ? "Official results are listed first. Self recorded entries remain as supporting race-day evidence."
@@ -305,86 +308,41 @@ const RaceDetailView: React.FC = () => {
               <ImagePlaceholder />
             )}
             <div className="p-6">
-              <div className="mb-3 flex flex-wrap items-center gap-2 text-sm font-medium text-primary-700">
+              <div className="mb-3 flex flex-wrap items-center gap-2 text-sm font-medium text-primary-700 dark:text-primary-300">
                 <Calendar className="h-4 w-4" />
                 <span>{raceYear}</span>
                 {race.bib && <span>Bib #{race.bib}</span>}
                 {resultSummary && <RaceStatusBadge status={resultSummary.status} />}
               </div>
-              <h1 className="text-4xl font-bold text-gray-900">
-                {raceYear} {raceName}
-              </h1>
+              <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+                <div>
+                  <h1 className="text-4xl font-bold text-gray-900 dark:text-slate-100">
+                    {raceYear} {raceName}
+                  </h1>
+                  <p className="mt-2 text-sm text-gray-600 dark:text-slate-300">
+                    {legsWithEntriesCount} of {EXPECTED_RELAY_LEGS} legs have race-day data.
+                  </p>
+                </div>
+                <div className="grid gap-3 sm:grid-cols-3 lg:min-w-[28rem]">
+                  <RaceSummaryMetric label="Total time" value={heroTotal.value}>
+                    <SourceBadge
+                      kind={heroTotal.sourceKind}
+                      label={heroTotal.sourceLabel}
+                      title={heroTotal.sourceDescription}
+                    />
+                  </RaceSummaryMetric>
+                  <RaceSummaryMetric
+                    label="Division"
+                    value={hasOfficialResults ? officialDivisionValue : "Pending"}
+                  />
+                  <RaceSummaryMetric
+                    label="Overall"
+                    value={hasOfficialResults ? officialOverallValue : "Pending"}
+                  />
+                </div>
+              </div>
             </div>
           </section>
-
-          {showLiveProjection && liveProjection && (
-            <section className="card p-6">
-              <div className="mb-5 flex items-center gap-2">
-                <Clock className="h-5 w-5 text-primary-600" />
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-slate-100">Live Projection</h2>
-              </div>
-              <p className="mb-5 text-sm text-gray-600 dark:text-slate-300">
-                Uses self recorded times for reported legs and historical leg averages for legs not yet reported.
-              </p>
-              <div className="mb-5 grid gap-4 md:grid-cols-3">
-                <ProjectionMetric
-                  label="Current recorded time"
-                  value={liveProjection.displayCurrentRecordedTime}
-                  detail={`${liveProjection.reportedLegCount} legs reported`}
-                />
-                <ProjectionMetric
-                  label="Projected total"
-                  value={liveProjection.displayProjectedTotalTime}
-                  detail={`${liveProjection.estimatedLegCount} legs estimated`}
-                />
-                <ProjectionMetric
-                  label="Method"
-                  value="Naive average"
-                  detail="Actuals plus historical leg averages"
-                />
-              </div>
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200 text-sm dark:divide-slate-800">
-                  <thead className="bg-gray-50 dark:bg-slate-800">
-                    <tr>
-                      <ProjectionHeader label="Leg" />
-                      <ProjectionHeader label="Status" />
-                      <ProjectionHeader label="Time used" />
-                      <ProjectionHeader label="Source" />
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100 bg-white dark:divide-slate-800 dark:bg-slate-900">
-                    {liveProjection.legs.map((leg) => (
-                      <tr key={leg.legNumber}>
-                        <td className="px-4 py-3 font-medium text-gray-900 dark:text-slate-100">
-                          {leg.legVersion ? (
-                            <LegPill
-                              leg={leg.legNumber}
-                              version={leg.legVersion}
-                              className="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 transition-colors hover:bg-emerald-100 hover:text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200"
-                            />
-                          ) : (
-                            <>Leg {leg.legNumber}</>
-                          )}
-                        </td>
-                        <td className="px-4 py-3 text-gray-700 dark:text-slate-300">
-                          <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${getProjectionTimeSourceBadgeColor(leg.timeSource)}`}>
-                            {leg.status === "reported"
-                              ? "Reported"
-                              : leg.status === "estimated"
-                                ? "Estimated"
-                                : "No estimate"}
-                          </span>
-                        </td>
-                        <td className={`px-4 py-3 font-semibold ${getProjectionTimeSourceTextColor(leg.timeSource)}`}>{leg.displayTime}</td>
-                        <td className="px-4 py-3 text-gray-700 dark:text-slate-300">{leg.sourceLabel}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </section>
-          )}
 
           <section className="card p-6">
             <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
@@ -542,53 +500,70 @@ const StatRow: React.FC<{ label: string; value: string }> = ({ label, value }) =
   </div>
 );
 
-type ProjectionTimeSource = "official" | "self_recorded" | "estimated" | "missing";
-
-function getProjectionTimeSourceTextColor(source: ProjectionTimeSource) {
-  switch (source) {
-    case "official":
-      return "text-emerald-700 dark:text-emerald-300";
-    case "self_recorded":
-      return "text-amber-700 dark:text-amber-300";
-    case "estimated":
-      return "text-sky-700 dark:text-sky-300";
-    case "missing":
-    default:
-      return "text-slate-500 dark:text-slate-400";
-  }
-}
-
-function getProjectionTimeSourceBadgeColor(source: ProjectionTimeSource) {
-  switch (source) {
-    case "official":
-      return "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-200 dark:ring-emerald-800";
-    case "self_recorded":
-      return "bg-amber-50 text-amber-800 ring-1 ring-amber-200 dark:bg-amber-950/40 dark:text-amber-200 dark:ring-amber-800";
-    case "estimated":
-      return "bg-sky-50 text-sky-700 ring-1 ring-sky-200 dark:bg-sky-950/40 dark:text-sky-200 dark:ring-sky-800";
-    case "missing":
-    default:
-      return "bg-slate-100 text-slate-700 ring-1 ring-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:ring-slate-700";
-  }
-}
-
-const ProjectionMetric: React.FC<{ detail: string; label: string; value: string }> = ({
-  detail,
-  label,
-  value,
-}) => (
-  <div className="rounded-lg bg-gray-50 p-4 dark:bg-slate-800">
-    <p className="text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-slate-400">{label}</p>
-    <p className="mt-1 text-2xl font-bold text-gray-900 dark:text-slate-100">{value}</p>
-    <p className="mt-1 text-xs text-gray-600 dark:text-slate-300">{detail}</p>
+const RaceSummaryMetric: React.FC<{
+  children?: React.ReactNode;
+  label: string;
+  value: string;
+}> = ({ children, label, value }) => (
+  <div className="rounded-lg bg-gray-50 p-3 dark:bg-slate-800">
+    <dt className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-slate-400">
+      {label}
+    </dt>
+    <dd className="mt-1 text-lg font-bold text-gray-900 dark:text-slate-100">{value}</dd>
+    {children ? <div className="mt-2">{children}</div> : null}
   </div>
 );
 
-const ProjectionHeader: React.FC<{ label: string }> = ({ label }) => (
-  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-slate-400">
-    {label}
-  </th>
-);
+type RaceDisplaySummary = ReturnType<typeof getRaceDisplaySummary>;
+
+type HeroTotal = {
+  sourceDescription: string;
+  sourceKind: SourceKind;
+  sourceLabel: string;
+  value: string;
+};
+
+function getHeroTotal({
+  hasOfficialResults,
+  liveProjection,
+  resultSummary,
+  selfRecordedEntryCount,
+}: {
+  hasOfficialResults: boolean;
+  liveProjection: LiveProjection | null;
+  resultSummary: RaceDisplaySummary | null;
+  selfRecordedEntryCount: number;
+}): HeroTotal {
+  if (hasOfficialResults && resultSummary?.displayTotalTime) {
+    return {
+      sourceDescription: "Official race total from published results.",
+      sourceKind: "official",
+      sourceLabel: "Official",
+      value: resultSummary.displayTotalTime,
+    };
+  }
+
+  if (liveProjection?.projectedTotalMinutes !== null && liveProjection?.displayProjectedTotalTime) {
+    const isCompleteSelfRecordedTotal =
+      selfRecordedEntryCount >= EXPECTED_RELAY_LEGS && liveProjection.estimatedLegCount === 0;
+
+    return {
+      sourceDescription: isCompleteSelfRecordedTotal
+        ? "Complete self-reported race-day total until official results arrive."
+        : "Projected total from reported legs plus historical leg averages.",
+      sourceKind: isCompleteSelfRecordedTotal ? "self-reported" : "computed",
+      sourceLabel: isCompleteSelfRecordedTotal ? "Self-reported" : "Expected",
+      value: liveProjection.displayProjectedTotalTime,
+    };
+  }
+
+  return {
+    sourceDescription: "No official, self-reported, or projected total is available yet.",
+    sourceKind: "missing",
+    sourceLabel: "Pending",
+    value: "Pending",
+  };
+}
 
 const ImagePlaceholder: React.FC = () => (
   <div className="flex h-80 items-center justify-center bg-gray-100 dark:bg-slate-800">
@@ -671,84 +646,45 @@ const RaceLegEntryRow: React.FC<{ entry: RaceLegEntry; raceYear: number }> = ({
   entry,
   raceYear,
 }) => (
-  <div className="rounded-lg border border-gray-200 bg-white p-4">
-    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-      <div className="min-w-0">
-        <div className="flex flex-wrap items-center gap-2">
-          <EntrySourceBadge entry={entry} />
-          {entry.updatedAt && (
-            <span className="text-xs text-gray-500">{formatEntryDate(entry.updatedAt)}</span>
-          )}
-        </div>
-        <div className="mt-2">
-          {entry.runnerName ? (
-            <EntityPill
-              category="runner"
-              to="/runners/$runnerName"
-              params={{ runnerName: entry.runnerName }}
-              ariaLabel={`View ${entry.runnerName} runner profile`}
-            >
-              {entry.runnerName}
-            </EntityPill>
-          ) : (
-            <span className="text-base font-semibold text-gray-900">Unknown runner</span>
-          )}
-        </div>
-      </div>
-      <div className="flex flex-wrap gap-2">
-        {entry.runnerName && entry.legVersion ? (
+  <div className="rounded-lg border border-gray-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex min-w-0 flex-wrap items-center gap-2">
+        <EntrySourceBadge entry={entry} />
+        {entry.runnerName ? (
           <EntityPill
-            category="performance"
-            to="/runs/$runnerName/$year/$legNumber"
-            params={{
-              runnerName: entry.runnerName,
-              year: String(raceYear),
-              legNumber: String(entry.legNumber),
-            }}
-            ariaLabel={`View ${entry.runnerName} ${raceYear} Leg ${entry.legNumber} performance`}
+            category="runner"
+            to="/runners/$runnerName"
+            params={{ runnerName: entry.runnerName }}
+            ariaLabel={`View ${entry.runnerName} runner profile`}
           >
-            View performance
+            {entry.runnerName}
           </EntityPill>
-        ) : null}
-        {entry.runnerName && entry.resultDetailId ? (
-          <EntityPill
-            category="performance-entry"
-            to="/leg-results/$resultType/$runnerName/$year/$legNumber/$resultId"
-            params={{
-              resultType: entry.resultDetailType,
-              runnerName: entry.runnerName,
-              year: String(raceYear),
-              legNumber: String(entry.legNumber),
-              resultId: entry.resultDetailId,
-            }}
-            ariaLabel={`${entry.kind === "official" ? "View official" : "View or edit self reported"} ${entry.runnerName} ${raceYear} Leg ${entry.legNumber} result`}
-          >
-            {entry.kind === "official" ? "View leg result" : "View/edit entry"}
-          </EntityPill>
-        ) : null}
+        ) : (
+          <span className="text-base font-semibold text-gray-900 dark:text-slate-100">Unknown runner</span>
+        )}
       </div>
+      {entry.runnerName && entry.legVersion ? (
+        <EntityPill
+          category="performance"
+          to="/runs/$runnerName/$year/$legNumber"
+          params={{
+            runnerName: entry.runnerName,
+            year: String(raceYear),
+            legNumber: String(entry.legNumber),
+          }}
+          ariaLabel={`View ${entry.runnerName} ${raceYear} Leg ${entry.legNumber} performance`}
+        >
+          View performance
+        </EntityPill>
+      ) : null}
     </div>
 
-    <dl className="mt-4 grid grid-cols-2 gap-3 text-sm sm:grid-cols-5">
+    <dl className="mt-4 grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
       <EntryMetric label={entry.timeLabel} value={entry.time ?? "N/A"} />
       <EntryMetric label="Pace" value={formatPace(entry.pace || 0)} assumed={entry.assumedMetrics.pace} />
       <EntryMetric label="GAP" value={formatGradeAdjustedPace(entry.gradeAdjustedPace)} />
       <EntryMetric label="Distance" value={formatMiles(entry.distance)} assumed={entry.assumedMetrics.distance} />
-      <EntryMetric label="Gain" value={formatFeet(entry.elevationGain)} assumed={entry.assumedMetrics.elevationGain} />
     </dl>
-
-    {entry.sourceTags.length > 0 && (
-      <div className="mt-3 flex flex-wrap gap-1.5">
-        {entry.sourceTags.map((sourceTag) => (
-          <span
-            key={sourceTag}
-            className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600"
-          >
-            {sourceTag}
-          </span>
-        ))}
-      </div>
-    )}
   </div>
 );
 
@@ -998,18 +934,6 @@ function formatObservationTimeLabel(timeType: string | null | undefined) {
     return "Elapsed";
   }
   return "Lap";
-}
-
-function formatEntryDate(value: string) {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    return "";
-  }
-
-  return new Intl.DateTimeFormat(undefined, {
-    dateStyle: "short",
-    timeStyle: "short",
-  }).format(date);
 }
 
 function getStorageUrlCandidates(
