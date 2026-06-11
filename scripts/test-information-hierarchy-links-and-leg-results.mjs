@@ -49,10 +49,10 @@ assert.doesNotMatch(
   /category="performance-entry"[\s\S]*to="\/leg-results\/\$resultType\/\$runnerName\/\$year\/\$legNumber\/\$resultId"/,
   "race detail timeline should stay minimal and delegate result-entry actions to the leg performance page"
 );
-assert.match(
+assert.doesNotMatch(
   raceDetail,
-  /View performance/,
-  "race detail performance links should use the Leg Performance wording instead of vague Open labels"
+  />\s*View performance\s*</,
+  "race detail should not render a separate View performance button now that each row card links to the performance page"
 );
 assert.match(
   raceDetail,
@@ -71,8 +71,13 @@ assert.match(
 );
 assert.match(
   raceDetail,
-  /<EntityPill[\s\S]*category="performance"[\s\S]*to="\/runs\/\$runnerName\/\$year\/\$legNumber"[\s\S]*View performance/,
-  "race detail leg performance action should be a performance entity pill using the simplified public route"
+  /<Link[\s\S]*to="\/runs\/\$runnerName\/\$year\/\$legNumber"[\s\S]*params=\{performanceLink\}/,
+  "race detail leg performance destination should be the clickable row card using the simplified public route"
+);
+assert.match(
+  raceDetail,
+  /className="group relative rounded-xl[^"]*shadow-sm[^"]*hover:shadow-lg/,
+  "race detail performance rows should render as elevated clickable cards"
 );
 assert.match(
   raceDetail,

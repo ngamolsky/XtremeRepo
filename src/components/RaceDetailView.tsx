@@ -645,48 +645,54 @@ const RaceLegGroupRow: React.FC<{ group: RaceLegGroup; raceYear: number }> = ({
 const RaceLegEntryRow: React.FC<{ entry: RaceLegEntry; raceYear: number }> = ({
   entry,
   raceYear,
-}) => (
-  <div className="rounded-lg border border-gray-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
-    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-      <div className="flex min-w-0 flex-wrap items-center gap-2">
-        <EntrySourceBadge entry={entry} />
-        {entry.runnerName ? (
-          <EntityPill
-            category="runner"
-            to="/runners/$runnerName"
-            params={{ runnerName: entry.runnerName }}
-            ariaLabel={`View ${entry.runnerName} runner profile`}
-          >
-            {entry.runnerName}
-          </EntityPill>
-        ) : (
-          <span className="text-base font-semibold text-gray-900 dark:text-slate-100">Unknown runner</span>
-        )}
-      </div>
-      {entry.runnerName && entry.legVersion ? (
-        <EntityPill
-          category="performance"
-          to="/runs/$runnerName/$year/$legNumber"
-          params={{
-            runnerName: entry.runnerName,
-            year: String(raceYear),
-            legNumber: String(entry.legNumber),
-          }}
-          ariaLabel={`View ${entry.runnerName} ${raceYear} Leg ${entry.legNumber} performance`}
-        >
-          View performance
-        </EntityPill>
-      ) : null}
-    </div>
+}) => {
+  const performanceLink = entry.runnerName
+    ? {
+        runnerName: entry.runnerName,
+        year: String(raceYear),
+        legNumber: String(entry.legNumber),
+      }
+    : null;
 
-    <dl className="mt-4 grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
-      <EntryMetric label={entry.timeLabel} value={entry.time ?? "N/A"} />
-      <EntryMetric label="Pace" value={formatPace(entry.pace || 0)} assumed={entry.assumedMetrics.pace} />
-      <EntryMetric label="GAP" value={formatGradeAdjustedPace(entry.gradeAdjustedPace)} />
-      <EntryMetric label="Distance" value={formatMiles(entry.distance)} assumed={entry.assumedMetrics.distance} />
-    </dl>
-  </div>
-);
+  return (
+    <div className="group relative rounded-xl border border-gray-200 bg-white p-4 shadow-sm shadow-slate-200/70 transition-all hover:-translate-y-0.5 hover:border-amber-200 hover:shadow-lg hover:shadow-amber-100/70 focus-within:border-amber-300 focus-within:shadow-lg dark:border-slate-800 dark:bg-slate-900 dark:shadow-black/30 dark:hover:border-amber-500/40 dark:hover:shadow-black/40">
+      {performanceLink ? (
+        <Link
+          to="/runs/$runnerName/$year/$legNumber"
+          params={performanceLink}
+          aria-label={`View ${entry.runnerName} ${raceYear} Leg ${entry.legNumber} performance`}
+          className="absolute inset-0 z-10 rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-slate-900"
+        />
+      ) : null}
+
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex min-w-0 flex-wrap items-center gap-2">
+          <EntrySourceBadge entry={entry} />
+          {entry.runnerName ? (
+            <EntityPill
+              category="runner"
+              to="/runners/$runnerName"
+              params={{ runnerName: entry.runnerName }}
+              ariaLabel={`View ${entry.runnerName} runner profile`}
+              className="relative z-20"
+            >
+              {entry.runnerName}
+            </EntityPill>
+          ) : (
+            <span className="text-base font-semibold text-gray-900 dark:text-slate-100">Unknown runner</span>
+          )}
+        </div>
+      </div>
+
+      <dl className="mt-4 grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
+        <EntryMetric label={entry.timeLabel} value={entry.time ?? "N/A"} />
+        <EntryMetric label="Pace" value={formatPace(entry.pace || 0)} assumed={entry.assumedMetrics.pace} />
+        <EntryMetric label="GAP" value={formatGradeAdjustedPace(entry.gradeAdjustedPace)} />
+        <EntryMetric label="Distance" value={formatMiles(entry.distance)} assumed={entry.assumedMetrics.distance} />
+      </dl>
+    </div>
+  );
+};
 
 const EntryMetric: React.FC<{ assumed?: boolean; label: string; value: string }> = ({
   assumed = false,
