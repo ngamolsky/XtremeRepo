@@ -45,7 +45,8 @@
     "test:bogey-events": "node scripts/test-bogey-events.mjs",
     "test:bogey-ui-and-migration": "node scripts/test-bogey-ui-and-migration.mjs",
     "test:ui-ia-foundation": "node scripts/test-ui-ia-foundation.mjs",
-    "test:races-top-summary": "node scripts/test-races-top-summary-and-version-simplification.mjs"
+    "test:races-top-summary": "node scripts/test-races-top-summary-and-version-simplification.mjs",
+    "test:self-reported-source-normalization": "node scripts/test-self-reported-source-normalization.mjs"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.81",

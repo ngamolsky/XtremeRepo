@@ -51,20 +51,12 @@ const defaultObservationForm: ObservationFormState = {
   movingTime: "",
   sourceLabel: "",
   sourceTags: [],
-  sourceType: "manual_runner",
+  sourceType: "apple_watch",
 };
 
-const sourceTypeOptions = [
-  "manual_runner",
-  "apple_watch",
-  "garmin",
-  "phone",
-  "strava",
-  "manual_admin",
-  "other",
-];
+const sourceTypeOptions = ["apple_watch", "garmin", "other"];
 
-const defaultSourceTagOptions = ["Apple Fitness", "Strava", "Garmin", "Manual"];
+const defaultSourceTagOptions = ["Apple Fitness", "Strava", "Garmin App", "Screenshot"];
 const ASSUMED_OBSERVATION_LEGEND =
   "* means a self recorded value was missing and inherited from the leg default.";
 
@@ -433,6 +425,12 @@ const RunInstanceDetail: React.FC = () => {
       }
     }
 
+    const otherDeviceLabel = observationForm.sourceLabel.trim();
+    if (observationForm.sourceType === "other" && !otherDeviceLabel) {
+      setSaveError("Describe the recording device when Recording Device is Other.");
+      return;
+    }
+
     const sourceTags = uniqueTags(observationForm.sourceTags);
     const hasObservedValue =
       Boolean(
@@ -463,7 +461,7 @@ const RunInstanceDetail: React.FC = () => {
           runner_id: observedRunnerId,
           submitted_by_runner_id: currentRunnerId,
           source_type: observationForm.sourceType,
-          source_label: observationForm.sourceLabel.trim() || null,
+          source_label: observationForm.sourceType === "other" ? otherDeviceLabel : null,
           source_tags: sourceTags,
           ...(observationForm.lapTime.trim() ? { lap_time: observationForm.lapTime.trim() } : {}),
           ...(observationForm.movingTime.trim()
@@ -883,7 +881,7 @@ const RunInstanceDetail: React.FC = () => {
                 className="field-input"
               />
             </Field>
-            <Field label="Source Type">
+            <Field label="Recording Device">
               <select
                 value={observationForm.sourceType}
                 onChange={handleObservationFieldChange("sourceType")}
@@ -898,15 +896,17 @@ const RunInstanceDetail: React.FC = () => {
             </Field>
           </div>
 
-          <Field label="Source Label">
-            <input
-              type="text"
-              value={observationForm.sourceLabel}
-              onChange={handleObservationFieldChange("sourceLabel")}
-              placeholder="Watch file, screenshot, activity title"
-              className="field-input"
-            />
-          </Field>
+          {observationForm.sourceType === "other" ? (
+            <Field label="Other Device">
+              <input
+                type="text"
+                value={observationForm.sourceLabel}
+                onChange={handleObservationFieldChange("sourceLabel")}
+                placeholder="Recording device or source described by the runner"
+                className="field-input"
+              />
+            </Field>
+          ) : null}
 
           <div>
             <div className="mb-2 flex items-center gap-2 text-sm font-medium text-gray-700">

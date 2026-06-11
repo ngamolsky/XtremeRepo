@@ -18,7 +18,7 @@ import {
   formatGradeAdjustedPace,
   getGradeAdjustedPace,
 } from "../lib/gradeAdjustedPace";
-import { formatFeet, formatMiles, formatPace, formatSourceType, parseTimeToMinutes } from "../lib/utils";
+import { formatFeet, formatMiles, formatPace, parseTimeToMinutes } from "../lib/utils";
 import { supabase } from "../lib/supabase";
 import { Tables } from "../types/database.types";
 import Breadcrumbs from "./Breadcrumbs";
@@ -743,14 +743,7 @@ const EntryMetric: React.FC<{ assumed?: boolean; label: string; value: string }>
 );
 
 const EntrySourceBadge: React.FC<{ entry: RaceLegEntry }> = ({ entry }) => {
-  const label =
-    entry.kind === "official"
-      ? "Official"
-      : `Self Recorded${
-          entry.sourceType ? ` · ${formatSourceType(entry.sourceType)}` : ""
-        }${
-          entry.sourceLabel ? ` (${entry.sourceLabel})` : ""
-        }`;
+  const label = entry.kind === "official" ? "Official" : "Self Reported";
 
   return (
     <SourceBadge

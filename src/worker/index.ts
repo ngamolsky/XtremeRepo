@@ -226,10 +226,6 @@ type LegObservationUpdate = Database["public"]["Tables"]["leg_result_observation
 type LegObservationSourceType =
   | "apple_watch"
   | "garmin"
-  | "phone"
-  | "strava"
-  | "manual_runner"
-  | "manual_admin"
   | "other";
 
 type SaveLegObservationInput = {
@@ -1815,9 +1811,9 @@ Use the current signed-in user context to resolve first-person references like "
 
 Official data and comments are read-only. You can read official results, placements, participation, runner records, comments, and self recorded observations, but you cannot write, replace, edit, or delete official data or comments. If the user asks you to edit official data, refuse briefly and offer to save the supplied values only as a self recorded observation when they include runner/device/app source data. If the user asks you to add/edit/delete comments, explain that the UI supports comments but you cannot write comments. Do not claim that self recorded data is official, verified, or a replacement for official results.
 
-Your only write capability is adding, updating, or deleting self recorded leg observations with saveLegObservation and deleteLegObservation. For any ad hoc leg data write, use saveLegObservation and label it self recorded. For a self recorded observation, collect race year, leg number, the existing runner name the observation is about, and at least one measured field such as lap time, moving time, elapsed time, distance, or elevation gain. Default leg version to v2 unless the user or source explicitly says another version. Source type defaults to manual_runner; use apple_watch, garmin, phone, strava, manual_runner, manual_admin, or other when the user gives the source. Source labels, source tags, screenshots, app names, device names, files, activity titles, and metadata are useful provenance, but they are not enough by themselves to create a new observation. Ask short follow-up questions until every required field is known. Do not invent missing fields. Do not pass null for unknown distance or elevation gain; omit those fields unless the user or source provides a numeric value. If the runner is missing or ambiguous, ask the user to choose an existing runner; do not create new runners and do not infer the runner from other race-day state. Delete self recorded observations only after the user clearly asks to delete self recorded data and you have a specific observationId or an unambiguous match.
+Your only write capability is adding, updating, or deleting self recorded leg observations with saveLegObservation and deleteLegObservation. For any ad hoc leg data write, use saveLegObservation and label it self recorded. For a self recorded observation, collect race year, leg number, the existing runner name the observation is about, and at least one measured field such as lap time, moving time, elapsed time, distance, or elevation gain. Default leg version to v2 unless the user or source explicitly says another version. Source type is the recording device only: use apple_watch for Apple Watch, garmin for Garmin, and other for any other or unknown recording device. When sourceType is other, include sourceLabel with the user-supplied recording-device description if available. Screenshot/app provenance belongs in metadata, not sourceType. Use metadata.screenshot.suggestedAppName for your best app guess when relevant, preferring "Strava", "Apple Fitness", or "Garmin App" when the screenshot supports one of those. Source labels, source tags, screenshots, app names, device names, files, activity titles, and metadata are useful provenance, but they are not enough by themselves to create a new observation. Ask short follow-up questions until every required field is known. Do not invent missing fields. Do not pass null for unknown distance or elevation gain; omit those fields unless the user or source provides a numeric value. If the runner is missing or ambiguous, ask the user to choose an existing runner; do not create new runners and do not infer the runner from other race-day state. Delete self recorded observations only after the user clearly asks to delete self recorded data and you have a specific observationId or an unambiguous match.
 
-When the user attaches a screenshot or image from Strava, Garmin, Apple Watch, phone fitness apps, or similar sources, treat visible values as self recorded source evidence. Extract only values visible in the image or supplied by the user. Prefer source_type strava for Strava screenshots, and capture as much visible screenshot context as possible in metadata: app name, screenshot filename, visible activity title, date/time, route/location text, elapsed/moving/lap time labels, distance, elevation, pace/splits, heart rate, cadence, calories, device/source labels, units, cropped/obscured fields, and any uncertainty. If year, leg number, runner, or the intended source are not visible or supplied, ask for them before saving; default leg version to v2 unless another version is visible or supplied. Once a write succeeds, summarize the saved row and label it self recorded.
+When the user attaches a screenshot or image from Strava, Garmin, Apple Watch, phone fitness apps, or similar sources, treat visible values as self recorded source evidence. Extract only values visible in the image or supplied by the user. Keep source_type as the recording device only; do not use Strava, Apple Fitness, Garmin App, phone, or manual entry as source_type values. Capture screenshot/app context in structured metadata, for example metadata.screenshot = { suggestedAppName: "Strava" | "Apple Fitness" | "Garmin App" | "Other", filename, visibleActivityTitle, capturedAt, visibleLabels, units, uncertainty }. Include route/location text, elapsed/moving/lap time labels, distance, elevation, pace/splits, heart rate, cadence, calories, device/source labels, cropped/obscured fields, and any uncertainty when visible. If year, leg number, runner, or the intended source are not visible or supplied, ask for them before saving; default leg version to v2 unless another version is visible or supplied. Once a write succeeds, summarize the saved row and label it self recorded.
 
 If the user asks a question that depends on the current screen, use the page context below to scope the answer first. Keep answers concise and practical, cite the years/runners/legs you used, and say when the data does not contain enough information.
 
@@ -2138,12 +2134,13 @@ function createRelayTools(
           },
           sourceType: {
             type: "string",
-            enum: ["apple_watch", "garmin", "phone", "strava", "manual_runner", "manual_admin", "other"],
-            description: "Where the observation came from. Defaults to manual_runner.",
+            enum: ["apple_watch", "garmin", "other"],
+            description:
+              "Recording device for the observation: Apple Watch, Garmin, or Other. Use other when the recording device is unknown or not Apple/Garmin; put screenshot/app provenance in metadata.",
           },
           sourceLabel: {
             type: "string",
-            description: "Optional source detail, such as device model, app name, or file name.",
+            description: "Required when sourceType is other: the user-supplied recording device text, if available. Do not put screenshot app names here unless they describe the recording device.",
           },
           sourceTags: {
             type: "array",
@@ -2217,8 +2214,8 @@ function createRelayTools(
           },
           sourceType: {
             type: "string",
-            enum: ["apple_watch", "garmin", "phone", "strava", "manual_runner", "manual_admin", "other"],
-            description: "Optional source type filter.",
+            enum: ["apple_watch", "garmin", "other"],
+            description: "Optional source type filter. This is the recording device only.",
           },
           sourceLabel: {
             type: "string",
@@ -2282,6 +2279,15 @@ async function saveLegObservation(
       ok: false,
       action: "ask_for_missing_fields",
       missingFields,
+    };
+  }
+
+  if (sourceType === "other" && input.sourceLabel !== undefined && !sourceLabel) {
+    return {
+      ok: false,
+      action: "ask_for_other_recording_device",
+      message:
+        "When the recording device is Other, ask for the user-supplied recording-device text before saving sourceLabel.",
     };
   }
 
@@ -2784,17 +2790,13 @@ function normalizeInteger(value: number): number | null {
 const legObservationSourceTypes = new Set<LegObservationSourceType>([
   "apple_watch",
   "garmin",
-  "phone",
-  "strava",
-  "manual_runner",
-  "manual_admin",
   "other",
 ]);
 
 function normalizeObservationSourceType(
   value: LegObservationSourceType | undefined
 ): LegObservationSourceType {
-  return value && legObservationSourceTypes.has(value) ? value : "manual_runner";
+  return value && legObservationSourceTypes.has(value) ? value : "other";
 }
 
 function normalizeLapTime(value: string): string | null {

@@ -39,15 +39,7 @@ type SelfReportedFormState = {
   sourceType: string;
 };
 
-const sourceTypeOptions = [
-  "manual_runner",
-  "apple_watch",
-  "garmin",
-  "phone",
-  "strava",
-  "manual_admin",
-  "other",
-];
+const sourceTypeOptions = ["apple_watch", "garmin", "other"];
 
 const formatValue = (value: string | number | null | undefined) =>
   value === null || value === undefined || value === "" ? "N/A" : String(value);
@@ -61,7 +53,7 @@ const toFormState = (observation: ObservationResult): SelfReportedFormState => (
   movingTime: observation.moving_time ?? "",
   sourceLabel: observation.source_label ?? "",
   sourceTags: (observation.source_tags ?? []).join(", "),
-  sourceType: observation.source_type ?? "manual_runner",
+  sourceType: normalizeSelfReportedSourceType(observation.source_type),
 });
 
 const parseOptionalNumber = (value: string) => {
@@ -79,6 +71,9 @@ const splitTags = (value: string) =>
     .split(",")
     .map((tag) => tag.trim())
     .filter(Boolean);
+
+const normalizeSelfReportedSourceType = (sourceType: string | null | undefined) =>
+  sourceType === "apple_watch" || sourceType === "garmin" ? sourceType : "other";
 
 const LegResultDetail: React.FC = () => {
   const { resultType, runnerName, year, legNumber, resultId } = useParams({
@@ -192,6 +187,13 @@ const LegResultDetail: React.FC = () => {
       return;
     }
 
+    const otherDeviceLabel = form.sourceLabel.trim();
+    if (form.sourceType === "other" && !otherDeviceLabel) {
+      setSaveError("Describe the recording device when Recording Device is Other.");
+      setSaving(false);
+      return;
+    }
+
     const updatePayload: ObservationUpdate = {
       distance: parsedDistance,
       elapsed_time: form.elapsedTime.trim() || null,
@@ -199,7 +201,7 @@ const LegResultDetail: React.FC = () => {
       lap_time: form.lapTime.trim() || null,
       moving_time: form.movingTime.trim() || null,
       raw_metadata: metadata,
-      source_label: form.sourceLabel.trim() || null,
+      source_label: form.sourceType === "other" ? otherDeviceLabel : null,
       source_tags: splitTags(form.sourceTags),
       source_type: form.sourceType,
       updated_at: new Date().toISOString(),
@@ -346,12 +348,14 @@ const LegResultDetail: React.FC = () => {
               <Field label="Elapsed Time"><input className="field-input" value={form.elapsedTime} onChange={handleFormChange("elapsedTime")} placeholder="01:23:45" /></Field>
               <Field label="Distance"><input className="field-input" type="number" step="0.001" min="0" value={form.distance} onChange={handleFormChange("distance")} /></Field>
               <Field label="Elevation Gain"><input className="field-input" type="number" step="1" min="0" value={form.elevationGain} onChange={handleFormChange("elevationGain")} /></Field>
-              <Field label="Source Type">
+              <Field label="Recording Device">
                 <select className="field-input" value={form.sourceType} onChange={handleFormChange("sourceType")}>
                   {sourceTypeOptions.map((sourceType) => <option key={sourceType} value={sourceType}>{formatSourceType(sourceType)}</option>)}
                 </select>
               </Field>
-              <Field label="Source Label"><input className="field-input" value={form.sourceLabel} onChange={handleFormChange("sourceLabel")} /></Field>
+              {form.sourceType === "other" ? (
+                <Field label="Other Device"><input className="field-input" value={form.sourceLabel} onChange={handleFormChange("sourceLabel")} /></Field>
+              ) : null}
               <Field label="Source Tags"><input className="field-input" value={form.sourceTags} onChange={handleFormChange("sourceTags")} placeholder="Apple Fitness, Strava" /></Field>
             </div>
             <Field label="Metadata JSON">

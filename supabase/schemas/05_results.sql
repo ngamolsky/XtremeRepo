@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS "public"."leg_result_observations" (
     "leg_number" smallint NOT NULL,
     "leg_version" smallint NOT NULL,
     "runner_id" "uuid",
-    "source_type" "text" DEFAULT 'manual_runner'::"text" NOT NULL,
+    "source_type" "text" DEFAULT 'other'::"text" NOT NULL,
     "source_label" "text",
     "source_tags" "text"[] DEFAULT '{}'::"text"[] NOT NULL,
     "submitted_by_runner_id" "uuid",
@@ -56,7 +56,7 @@ ALTER TABLE ONLY "public"."results"
     ADD CONSTRAINT "results_source_type_check" CHECK (("source_type" = ANY (ARRAY['official'::"text", 'apple_watch'::"text", 'garmin'::"text", 'phone'::"text", 'strava'::"text", 'manual_runner'::"text", 'manual_admin'::"text", 'other'::"text"])));
 
 ALTER TABLE ONLY "public"."leg_result_observations"
-    ADD CONSTRAINT "leg_result_observations_source_type_check" CHECK (("source_type" = ANY (ARRAY['apple_watch'::"text", 'garmin'::"text", 'phone'::"text", 'strava'::"text", 'manual_runner'::"text", 'manual_admin'::"text", 'other'::"text"])));
+    ADD CONSTRAINT "leg_result_observations_source_type_check" CHECK (("source_type" = ANY (ARRAY['apple_watch'::"text", 'garmin'::"text", 'other'::"text"])));
 
 ALTER TABLE ONLY "public"."leg_result_observations"
     ADD CONSTRAINT "leg_result_observations_distance_check" CHECK ((("distance" IS NULL) OR ("distance" > (0)::double precision)));
