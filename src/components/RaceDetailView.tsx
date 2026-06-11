@@ -324,7 +324,7 @@ const RaceDetailView: React.FC = () => {
                     {legsWithEntriesCount} of {EXPECTED_RELAY_LEGS} legs have race-day data.
                   </p>
                 </div>
-                <div className="grid gap-3 sm:grid-cols-2 2xl:grid-cols-5">
+                <div className="grid grid-cols-2 gap-3 2xl:grid-cols-5">
                   <RaceSummaryMetric label="Total time" value={heroTotal.value}>
                     <SourceBadge
                       kind={heroTotal.sourceKind}

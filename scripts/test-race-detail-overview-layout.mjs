@@ -13,6 +13,12 @@ assert.match(
 
 assert.match(
   heroSection,
+  /<div className="grid grid-cols-2 gap-3 2xl:grid-cols-5">/,
+  "race detail hero metrics should be at least two columns on mobile"
+);
+
+assert.match(
+  heroSection,
   /FallbackImage[\s\S]*coverUrlCandidates[\s\S]*ImagePlaceholder/,
   "race detail hero should keep the race cover image/thumbnail in the summary card"
 );
