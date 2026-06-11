@@ -25,6 +25,12 @@ assert.match(
 
 assert.match(
   heroSection,
+  /RaceSummaryMetric[\s\S]*label="Race start"[\s\S]*RaceSummaryMetric[\s\S]*label="Race end"/,
+  "race detail hero should include race start and end times"
+);
+
+assert.match(
+  heroSection,
   /RaceSummaryMetric[\s\S]*label="Division"[\s\S]*RaceSummaryMetric[\s\S]*label="Overall"/,
   "race detail hero should include placement information in the top summary"
 );

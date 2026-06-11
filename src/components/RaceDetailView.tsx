@@ -146,6 +146,7 @@ const RaceDetailView: React.FC = () => {
     resultSummary,
     selfRecordedEntryCount,
   });
+  const raceTiming = getRaceTimingSummary(race?.race_start_time, heroTotal.value);
   const legSectionTitle = hasOfficialResults ? "Leg Results" : "Race Day Tracker";
   const legSectionSummary = hasOfficialResults
     ? "Official results are listed first. Self recorded entries remain as supporting race-day evidence."
@@ -323,7 +324,7 @@ const RaceDetailView: React.FC = () => {
                     {legsWithEntriesCount} of {EXPECTED_RELAY_LEGS} legs have race-day data.
                   </p>
                 </div>
-                <div className="grid gap-3 sm:grid-cols-3 lg:min-w-[28rem]">
+                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5 lg:min-w-[38rem]">
                   <RaceSummaryMetric label="Total time" value={heroTotal.value}>
                     <SourceBadge
                       kind={heroTotal.sourceKind}
@@ -331,6 +332,8 @@ const RaceDetailView: React.FC = () => {
                       title={heroTotal.sourceDescription}
                     />
                   </RaceSummaryMetric>
+                  <RaceSummaryMetric label="Race start" value={raceTiming.start} />
+                  <RaceSummaryMetric label="Race end" value={raceTiming.end} />
                   <RaceSummaryMetric
                     label="Division"
                     value={hasOfficialResults ? officialDivisionValue : "Pending"}
@@ -563,6 +566,55 @@ function getHeroTotal({
     sourceLabel: "Pending",
     value: "Pending",
   };
+}
+
+type RaceTimingSummary = {
+  end: string;
+  start: string;
+};
+
+function getRaceTimingSummary(
+  raceStartTime: string | null | undefined,
+  totalTime: string
+): RaceTimingSummary {
+  const startMinutes = parseClockTimeToMinutes(raceStartTime);
+  const totalMinutes = parseDurationToMinutes(totalTime);
+
+  return {
+    start: startMinutes === null ? "N/A" : formatClockMinutes(startMinutes),
+    end:
+      startMinutes === null || totalMinutes === null
+        ? "Pending"
+        : formatClockMinutes(startMinutes + totalMinutes),
+  };
+}
+
+function parseClockTimeToMinutes(value: string | null | undefined): number | null {
+  if (!value) return null;
+  const match = /^(\d{1,2}):(\d{2})(?::\d{2})?$/.exec(value.trim());
+  if (!match) return null;
+  const hours = Number(match[1]);
+  const minutes = Number(match[2]);
+  if (hours > 23 || minutes > 59) return null;
+  return hours * 60 + minutes;
+}
+
+function parseDurationToMinutes(value: string | null | undefined): number | null {
+  if (!value || !/^\d{1,3}:\d{2}(?::\d{2})?$/.test(value.trim())) {
+    return null;
+  }
+  return parseTimeToMinutes(value);
+}
+
+function formatClockMinutes(totalMinutes: number): string {
+  const minutesInDay = 24 * 60;
+  const wrappedMinutes = ((Math.round(totalMinutes) % minutesInDay) + minutesInDay) % minutesInDay;
+  const hours24 = Math.floor(wrappedMinutes / 60);
+  const minutes = wrappedMinutes % 60;
+  const period = hours24 >= 12 ? "PM" : "AM";
+  const hours12 = hours24 % 12 || 12;
+  const daySuffix = totalMinutes >= minutesInDay ? " (+1 day)" : "";
+  return `${hours12}:${minutes.toString().padStart(2, "0")} ${period}${daySuffix}`;
 }
 
 const ImagePlaceholder: React.FC = () => (
