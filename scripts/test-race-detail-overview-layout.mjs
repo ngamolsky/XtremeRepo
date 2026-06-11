@@ -48,6 +48,8 @@ assert.match(performanceCard, /label="Pace"/, "race timeline rows should show pa
 assert.match(performanceCard, /label="GAP"/, "race timeline rows should show grade-adjusted pace");
 assert.match(performanceCard, /label="Official distance"/, "race timeline cards should show official leg distance in the leg section");
 assert.match(performanceCard, /label="Official elevation"/, "race timeline cards should show official leg elevation in the leg section");
+assert.match(performanceCard, /const showReportedDistance = entry\?\.kind !== "official" && !entry\?\.assumedMetrics\.distance;/, "reported distance should only show when distance was actually self-reported");
+assert.match(performanceCard, /const showReportedElevation = entry\?\.kind !== "official" && !entry\?\.assumedMetrics\.elevationGain;/, "reported elevation should only show when elevation was actually self-reported");
 assert.match(performanceCard, /label="Reported distance"/, "self-reported performance data should show reported distance separately from official leg distance");
 assert.match(performanceCard, /label="Reported elevation"/, "self-reported performance data should show reported elevation separately from official leg elevation");
 

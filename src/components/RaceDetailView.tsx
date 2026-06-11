@@ -649,11 +649,13 @@ const RaceLegPerformanceCard: React.FC<{
   const linkedEntry = entry?.runnerName ? entry : null;
   const performanceLink = linkedEntry
     ? {
-        runnerName: linkedEntry.runnerName,
+        runnerName: linkedEntry.runnerName as string,
         year: String(raceYear),
         legNumber: String(linkedEntry.legNumber),
       }
     : null;
+  const showReportedDistance = entry?.kind !== "official" && !entry?.assumedMetrics.distance;
+  const showReportedElevation = entry?.kind !== "official" && !entry?.assumedMetrics.elevationGain;
 
   return (
     <div className="group relative rounded-xl border border-gray-200 bg-white shadow-sm shadow-slate-200/70 transition-all hover:-translate-y-0.5 hover:border-amber-200 hover:shadow-lg hover:shadow-amber-100/70 focus-within:border-amber-300 focus-within:shadow-lg dark:border-slate-800 dark:bg-slate-900 dark:shadow-black/30 dark:hover:border-amber-500/40 dark:hover:shadow-black/40">
@@ -713,11 +715,11 @@ const RaceLegPerformanceCard: React.FC<{
               <EntryMetric label={entry.timeLabel} value={entry.time ?? "N/A"} />
               <EntryMetric label="Pace" value={formatPace(entry.pace || 0)} assumed={entry.assumedMetrics.pace} />
               <EntryMetric label="GAP" value={formatGradeAdjustedPace(entry.gradeAdjustedPace)} />
-              {entry.kind !== "official" ? (
-                <>
-                  <EntryMetric label="Reported distance" value={formatMiles(entry.distance)} assumed={entry.assumedMetrics.distance} />
-                  <EntryMetric label="Reported elevation" value={formatFeet(entry.elevationGain)} assumed={entry.assumedMetrics.elevationGain} />
-                </>
+              {showReportedDistance ? (
+                <EntryMetric label="Reported distance" value={formatMiles(entry.distance)} />
+              ) : null}
+              {showReportedElevation ? (
+                <EntryMetric label="Reported elevation" value={formatFeet(entry.elevationGain)} />
               ) : null}
             </dl>
           </>
