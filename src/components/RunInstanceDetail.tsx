@@ -559,11 +559,6 @@ const RunInstanceDetail: React.FC = () => {
                 legNumber: selectedLegNumber.toString(),
               },
             },
-            {
-              label: runnerName,
-              to: "/runners/$runnerName",
-              params: { runnerName },
-            },
           ]}
         />
         <div className="mt-4 flex flex-wrap items-start justify-between gap-4">

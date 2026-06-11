@@ -60,7 +60,10 @@ for (const [name, relativePath, parentLabel, parentRoute] of nestedComponents) {
   const source = readFileSync(new URL(relativePath, import.meta.url), "utf8");
   assert.match(source, /import Breadcrumbs from "\.\/Breadcrumbs";/, `${name} should import breadcrumbs`);
   if (name === "RunInstanceDetail") {
+    const breadcrumbs = source.slice(source.indexOf("<Breadcrumbs"), source.indexOf("<div className=\"mt-4 flex"));
     assert.match(source, /label: `Race \$\{selectedYear\}`[\s\S]*to: "\/races\/\$year"/, `${name} should link breadcrumb back to the race page`);
+    assert.match(breadcrumbs, /formatLegLabel\(selectedLegNumber, selectedVersion\)[\s\S]*to: "\/legs\/\$legNumber"/, `${name} should include the leg breadcrumb after the race`);
+    assert.doesNotMatch(breadcrumbs, /to: "\/runners\/\$runnerName"/, `${name} breadcrumbs should not route through Runner; leg performance is race + leg scoped`);
     continue;
   }
   assert.match(source, new RegExp(`<Breadcrumbs[\\s\\S]*label: "${parentLabel}"[\\s\\S]*${parentRoute}`), `${name} should link breadcrumb back to ${parentLabel}`);
