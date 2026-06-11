@@ -2,13 +2,19 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
 const source = readFileSync(new URL("../src/components/RaceDetailView.tsx", import.meta.url), "utf8");
-const heroSection = source.slice(source.indexOf("<section className=\"card overflow-hidden\">"), source.indexOf("<section className=\"space-y-4\">"));
+const heroSection = source.slice(source.indexOf("<section className=\"card overflow-hidden lg:grid"), source.indexOf("<section className=\"space-y-4\">"));
 const performanceCard = source.slice(source.indexOf("const RaceLegPerformanceCard"), source.indexOf("const EntryMetric"));
 
 assert.match(
   heroSection,
+  /<section className="card overflow-hidden lg:grid/,
+  "race detail hero should use a responsive grid card instead of a long stacked card"
+);
+
+assert.match(
+  heroSection,
   /FallbackImage[\s\S]*coverUrlCandidates[\s\S]*ImagePlaceholder/,
-  "race detail hero should keep the race cover image/thumbnail at the top"
+  "race detail hero should keep the race cover image/thumbnail in the summary card"
 );
 
 assert.match(

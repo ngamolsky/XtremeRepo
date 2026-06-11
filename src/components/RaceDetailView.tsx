@@ -297,12 +297,12 @@ const RaceDetailView: React.FC = () => {
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_360px]">
         <div className="space-y-6">
-          <section className="card overflow-hidden">
+          <section className="card overflow-hidden lg:grid lg:grid-cols-[minmax(220px,0.7fr)_minmax(0,1fr)]">
             {coverUrlCandidates.length > 0 ? (
               <FallbackImage
                 urls={coverUrlCandidates}
                 alt={coverAlt}
-                className="h-80 w-full object-cover"
+                className="h-64 w-full object-cover lg:h-full"
                 fallback={<ImagePlaceholder />}
               />
             ) : (
@@ -315,7 +315,7 @@ const RaceDetailView: React.FC = () => {
                 {race.bib && <span>Bib #{race.bib}</span>}
                 {resultSummary && <RaceStatusBadge status={resultSummary.status} />}
               </div>
-              <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+              <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(22rem,1.15fr)] xl:items-end">
                 <div>
                   <h1 className="text-4xl font-bold text-gray-900 dark:text-slate-100">
                     {raceYear} {raceName}
@@ -324,7 +324,7 @@ const RaceDetailView: React.FC = () => {
                     {legsWithEntriesCount} of {EXPECTED_RELAY_LEGS} legs have race-day data.
                   </p>
                 </div>
-                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5 lg:min-w-[38rem]">
+                <div className="grid gap-3 sm:grid-cols-2 2xl:grid-cols-5">
                   <RaceSummaryMetric label="Total time" value={heroTotal.value}>
                     <SourceBadge
                       kind={heroTotal.sourceKind}
