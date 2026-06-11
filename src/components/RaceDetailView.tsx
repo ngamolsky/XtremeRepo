@@ -693,7 +693,6 @@ const RaceLegPerformanceCard: React.FC<{
         {entry ? (
           <>
             <div className="flex min-w-0 flex-wrap items-center gap-2">
-              <EntrySourceBadge entry={entry} />
               {entry.runnerName ? (
                 <EntityPill
                   category="runner"
@@ -707,14 +706,18 @@ const RaceLegPerformanceCard: React.FC<{
               ) : (
                 <span className="text-base font-semibold text-gray-900 dark:text-slate-100">Unknown runner</span>
               )}
+              <EntrySourceBadge entry={entry} />
             </div>
 
-            <dl className={`mt-4 grid grid-cols-2 gap-3 text-sm ${entry.kind === "official" ? "sm:grid-cols-3" : "sm:grid-cols-4"}`}>
+            <dl className={`mt-4 grid grid-cols-2 gap-3 text-sm ${entry.kind === "official" ? "sm:grid-cols-3" : "sm:grid-cols-5"}`}>
               <EntryMetric label={entry.timeLabel} value={entry.time ?? "N/A"} />
               <EntryMetric label="Pace" value={formatPace(entry.pace || 0)} assumed={entry.assumedMetrics.pace} />
               <EntryMetric label="GAP" value={formatGradeAdjustedPace(entry.gradeAdjustedPace)} />
               {entry.kind !== "official" ? (
-                <EntryMetric label="Reported distance" value={formatMiles(entry.distance)} assumed={entry.assumedMetrics.distance} />
+                <>
+                  <EntryMetric label="Reported distance" value={formatMiles(entry.distance)} assumed={entry.assumedMetrics.distance} />
+                  <EntryMetric label="Reported elevation" value={formatFeet(entry.elevationGain)} assumed={entry.assumedMetrics.elevationGain} />
+                </>
               ) : null}
             </dl>
           </>

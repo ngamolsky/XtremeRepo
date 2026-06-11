@@ -37,6 +37,11 @@ assert.doesNotMatch(
 
 assert.match(performanceCard, /EntrySourceBadge/, "race timeline rows should show a source badge");
 assert.match(performanceCard, /category="runner"/, "race timeline rows should keep runner pills");
+assert.match(
+  performanceCard,
+  /category="runner"[\s\S]*EntrySourceBadge/,
+  "race timeline rows should show the runner pill before the source badge"
+);
 assert.match(performanceCard, /to="\/runs\/\$runnerName\/\$year\/\$legNumber"/, "race timeline cards should link out to the leg performance page");
 assert.match(performanceCard, /label=\{entry\.timeLabel\}/, "race timeline rows should show time");
 assert.match(performanceCard, /label="Pace"/, "race timeline rows should show pace");
@@ -44,8 +49,9 @@ assert.match(performanceCard, /label="GAP"/, "race timeline rows should show gra
 assert.match(performanceCard, /label="Official distance"/, "race timeline cards should show official leg distance in the leg section");
 assert.match(performanceCard, /label="Official elevation"/, "race timeline cards should show official leg elevation in the leg section");
 assert.match(performanceCard, /label="Reported distance"/, "self-reported performance data should show reported distance separately from official leg distance");
+assert.match(performanceCard, /label="Reported elevation"/, "self-reported performance data should show reported elevation separately from official leg elevation");
 
-assert.doesNotMatch(performanceCard, /label="Gain"/, "race timeline rows should delegate elevation gain details to the performance page");
+assert.doesNotMatch(performanceCard, /label="Gain"/, "race timeline rows should avoid vague elevation gain labels");
 assert.doesNotMatch(performanceCard, /category="performance-entry"/, "race timeline rows should delegate result-entry actions to detail pages");
 assert.doesNotMatch(performanceCard, /entry\.sourceTags\.map/, "race timeline rows should not render detailed source tags");
 
