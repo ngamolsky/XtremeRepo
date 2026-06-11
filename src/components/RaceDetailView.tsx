@@ -344,8 +344,8 @@ const RaceDetailView: React.FC = () => {
             </div>
           </section>
 
-          <section className="card p-6">
-            <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+          <section className="space-y-4">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
               <div>
                 <div className="mb-2 flex items-center gap-2">
                   <Clock className="h-5 w-5 text-primary-600" />
@@ -366,12 +366,12 @@ const RaceDetailView: React.FC = () => {
             </div>
 
             {hasAssumedMetrics && (
-              <p className="mb-4 text-xs text-gray-500">
+              <p className="text-xs text-gray-500">
                 {ASSUMED_METRIC_LEGEND}
               </p>
             )}
 
-            <div className="divide-y divide-gray-100">
+            <div className="space-y-4">
               {raceLegGroups.map((group) => (
                 <RaceLegGroupRow key={group.legNumber} group={group} raceYear={raceYear} />
               ))}
@@ -612,84 +612,118 @@ const RaceStatusBadge: React.FC<{ status: RaceResultStatus }> = ({ status }) => 
 const RaceLegGroupRow: React.FC<{ group: RaceLegGroup; raceYear: number }> = ({
   group,
   raceYear,
-}) => (
-  <div className="grid gap-4 py-5 first:pt-0 last:pb-0 sm:grid-cols-[7rem_minmax(0,1fr)]">
-    <div>
-      {group.legVersion ? (
-        <LegPill
-          leg={group.legNumber}
-          version={group.legVersion}
-          className="inline-flex items-center rounded-full bg-emerald-50 px-3 py-1 text-sm font-semibold text-emerald-700 transition-colors hover:bg-emerald-100 hover:text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200"
-        />
-      ) : (
-        <p className="text-sm font-semibold text-gray-900">Leg {group.legNumber}</p>
-      )}
-      <p className="mt-1 text-xs text-gray-500">
-        {formatMiles(group.distance)} · {formatFeet(group.elevationGain)}
-      </p>
-    </div>
-    {group.entries.length > 0 ? (
-      <div className="space-y-3">
-        {group.entries.map((entry) => (
-          <RaceLegEntryRow key={entry.key} entry={entry} raceYear={raceYear} />
-        ))}
-      </div>
-    ) : (
-      <p className="rounded-lg border border-dashed border-gray-200 px-4 py-3 text-sm text-gray-500">
-        No self recorded data yet.
-      </p>
-    )}
-  </div>
-);
+}) => {
+  if (group.entries.length === 0) {
+    return (
+      <RaceLegPerformanceCard
+        group={group}
+        raceYear={raceYear}
+        entry={null}
+      />
+    );
+  }
 
-const RaceLegEntryRow: React.FC<{ entry: RaceLegEntry; raceYear: number }> = ({
+  return (
+    <div className="space-y-4">
+      {group.entries.map((entry) => (
+        <RaceLegPerformanceCard
+          key={entry.key}
+          group={group}
+          entry={entry}
+          raceYear={raceYear}
+        />
+      ))}
+    </div>
+  );
+};
+
+const RaceLegPerformanceCard: React.FC<{
+  entry: RaceLegEntry | null;
+  group: RaceLegGroup;
+  raceYear: number;
+}> = ({
   entry,
+  group,
   raceYear,
 }) => {
-  const performanceLink = entry.runnerName
+  const linkedEntry = entry?.runnerName ? entry : null;
+  const performanceLink = linkedEntry
     ? {
-        runnerName: entry.runnerName,
+        runnerName: linkedEntry.runnerName,
         year: String(raceYear),
-        legNumber: String(entry.legNumber),
+        legNumber: String(linkedEntry.legNumber),
       }
     : null;
 
   return (
-    <div className="group relative rounded-xl border border-gray-200 bg-white p-4 shadow-sm shadow-slate-200/70 transition-all hover:-translate-y-0.5 hover:border-amber-200 hover:shadow-lg hover:shadow-amber-100/70 focus-within:border-amber-300 focus-within:shadow-lg dark:border-slate-800 dark:bg-slate-900 dark:shadow-black/30 dark:hover:border-amber-500/40 dark:hover:shadow-black/40">
-      {performanceLink ? (
+    <div className="group relative rounded-xl border border-gray-200 bg-white shadow-sm shadow-slate-200/70 transition-all hover:-translate-y-0.5 hover:border-amber-200 hover:shadow-lg hover:shadow-amber-100/70 focus-within:border-amber-300 focus-within:shadow-lg dark:border-slate-800 dark:bg-slate-900 dark:shadow-black/30 dark:hover:border-amber-500/40 dark:hover:shadow-black/40">
+      {linkedEntry && performanceLink ? (
         <Link
           to="/runs/$runnerName/$year/$legNumber"
           params={performanceLink}
-          aria-label={`View ${entry.runnerName} ${raceYear} Leg ${entry.legNumber} performance`}
+          aria-label={`View ${linkedEntry.runnerName} ${raceYear} Leg ${linkedEntry.legNumber} performance`}
           className="absolute inset-0 z-10 rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-slate-900"
         />
       ) : null}
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex min-w-0 flex-wrap items-center gap-2">
-          <EntrySourceBadge entry={entry} />
-          {entry.runnerName ? (
-            <EntityPill
-              category="runner"
-              to="/runners/$runnerName"
-              params={{ runnerName: entry.runnerName }}
-              ariaLabel={`View ${entry.runnerName} runner profile`}
-              className="relative z-20"
-            >
-              {entry.runnerName}
-            </EntityPill>
-          ) : (
-            <span className="text-base font-semibold text-gray-900 dark:text-slate-100">Unknown runner</span>
-          )}
+      <div className="border-b border-gray-100 p-4 dark:border-slate-800">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="relative z-20 flex min-w-0 flex-wrap items-center gap-2">
+            {group.legVersion ? (
+              <LegPill
+                leg={group.legNumber}
+                version={group.legVersion}
+                className="inline-flex items-center rounded-full bg-emerald-50 px-3 py-1 text-sm font-semibold text-emerald-700 transition-colors hover:bg-emerald-100 hover:text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200"
+              />
+            ) : (
+              <p className="text-sm font-semibold text-gray-900 dark:text-slate-100">Leg {group.legNumber}</p>
+            )}
+            <span className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
+              Official leg details
+            </span>
+          </div>
+          <dl className="grid grid-cols-2 gap-4 text-sm sm:min-w-72">
+            <EntryMetric label="Official distance" value={formatMiles(group.distance)} />
+            <EntryMetric label="Official elevation" value={formatFeet(group.elevationGain)} />
+          </dl>
         </div>
       </div>
 
-      <dl className="mt-4 grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
-        <EntryMetric label={entry.timeLabel} value={entry.time ?? "N/A"} />
-        <EntryMetric label="Pace" value={formatPace(entry.pace || 0)} assumed={entry.assumedMetrics.pace} />
-        <EntryMetric label="GAP" value={formatGradeAdjustedPace(entry.gradeAdjustedPace)} />
-        <EntryMetric label="Distance" value={formatMiles(entry.distance)} assumed={entry.assumedMetrics.distance} />
-      </dl>
+      <div className="p-4">
+        {entry ? (
+          <>
+            <div className="flex min-w-0 flex-wrap items-center gap-2">
+              <EntrySourceBadge entry={entry} />
+              {entry.runnerName ? (
+                <EntityPill
+                  category="runner"
+                  to="/runners/$runnerName"
+                  params={{ runnerName: entry.runnerName }}
+                  ariaLabel={`View ${entry.runnerName} runner profile`}
+                  className="relative z-20"
+                >
+                  {entry.runnerName}
+                </EntityPill>
+              ) : (
+                <span className="text-base font-semibold text-gray-900 dark:text-slate-100">Unknown runner</span>
+              )}
+            </div>
+
+            <dl className={`mt-4 grid grid-cols-2 gap-3 text-sm ${entry.kind === "official" ? "sm:grid-cols-3" : "sm:grid-cols-4"}`}>
+              <EntryMetric label={entry.timeLabel} value={entry.time ?? "N/A"} />
+              <EntryMetric label="Pace" value={formatPace(entry.pace || 0)} assumed={entry.assumedMetrics.pace} />
+              <EntryMetric label="GAP" value={formatGradeAdjustedPace(entry.gradeAdjustedPace)} />
+              {entry.kind !== "official" ? (
+                <EntryMetric label="Reported distance" value={formatMiles(entry.distance)} assumed={entry.assumedMetrics.distance} />
+              ) : null}
+            </dl>
+          </>
+        ) : (
+          <p className="text-sm text-gray-500 dark:text-slate-400">
+            No self recorded data yet.
+          </p>
+        )}
+      </div>
     </div>
   );
 };

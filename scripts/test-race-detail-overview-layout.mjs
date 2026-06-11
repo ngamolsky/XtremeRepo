@@ -2,8 +2,8 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
 const source = readFileSync(new URL("../src/components/RaceDetailView.tsx", import.meta.url), "utf8");
-const heroSection = source.slice(source.indexOf("<section className=\"card overflow-hidden\">"), source.indexOf("<section className=\"card p-6\">"));
-const entryRow = source.slice(source.indexOf("const RaceLegEntryRow"), source.indexOf("const EntryMetric"));
+const heroSection = source.slice(source.indexOf("<section className=\"card overflow-hidden\">"), source.indexOf("<section className=\"space-y-4\">"));
+const performanceCard = source.slice(source.indexOf("const RaceLegPerformanceCard"), source.indexOf("const EntryMetric"));
 
 assert.match(
   heroSection,
@@ -35,16 +35,18 @@ assert.doesNotMatch(
   "race detail should not render a separate dense live projection section; projection belongs in the hero total"
 );
 
-assert.match(entryRow, /EntrySourceBadge/, "race timeline rows should show a source badge");
-assert.match(entryRow, /category="runner"/, "race timeline rows should keep runner pills");
-assert.match(entryRow, /category="performance"/, "race timeline rows should link out to the leg performance page");
-assert.match(entryRow, /label=\{entry\.timeLabel\}/, "race timeline rows should show time");
-assert.match(entryRow, /label="Pace"/, "race timeline rows should show pace");
-assert.match(entryRow, /label="GAP"/, "race timeline rows should show grade-adjusted pace");
-assert.match(entryRow, /label="Distance"/, "race timeline rows should show distance");
+assert.match(performanceCard, /EntrySourceBadge/, "race timeline rows should show a source badge");
+assert.match(performanceCard, /category="runner"/, "race timeline rows should keep runner pills");
+assert.match(performanceCard, /to="\/runs\/\$runnerName\/\$year\/\$legNumber"/, "race timeline cards should link out to the leg performance page");
+assert.match(performanceCard, /label=\{entry\.timeLabel\}/, "race timeline rows should show time");
+assert.match(performanceCard, /label="Pace"/, "race timeline rows should show pace");
+assert.match(performanceCard, /label="GAP"/, "race timeline rows should show grade-adjusted pace");
+assert.match(performanceCard, /label="Official distance"/, "race timeline cards should show official leg distance in the leg section");
+assert.match(performanceCard, /label="Official elevation"/, "race timeline cards should show official leg elevation in the leg section");
+assert.match(performanceCard, /label="Reported distance"/, "self-reported performance data should show reported distance separately from official leg distance");
 
-assert.doesNotMatch(entryRow, /label="Gain"/, "race timeline rows should delegate elevation gain details to the performance page");
-assert.doesNotMatch(entryRow, /category="performance-entry"/, "race timeline rows should delegate result-entry actions to detail pages");
-assert.doesNotMatch(entryRow, /entry\.sourceTags\.map/, "race timeline rows should not render detailed source tags");
+assert.doesNotMatch(performanceCard, /label="Gain"/, "race timeline rows should delegate elevation gain details to the performance page");
+assert.doesNotMatch(performanceCard, /category="performance-entry"/, "race timeline rows should delegate result-entry actions to detail pages");
+assert.doesNotMatch(performanceCard, /entry\.sourceTags\.map/, "race timeline rows should not render detailed source tags");
 
 console.log("race detail overview layout tests passed");
