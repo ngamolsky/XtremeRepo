@@ -61,6 +61,16 @@ assert.match(
   "race timeline rows should show the runner pill before the source badge"
 );
 assert.match(performanceCard, /to="\/runs\/\$runnerName\/\$year\/\$legNumber"/, "race timeline cards should link out to the leg performance page");
+assert.match(
+  performanceCard,
+  /hover:bg-gray-50[\s\S]*focus-within:bg-gray-50[\s\S]*active:bg-gray-50/,
+  "race timeline cards should use the same light-mode tap highlight as the Races index cards"
+);
+assert.match(
+  performanceCard,
+  /dark:hover:bg-slate-800\/80[\s\S]*dark:focus-within:bg-slate-800\/80[\s\S]*dark:active:bg-slate-800\/80/,
+  "race timeline cards should include a dark-mode tap highlight"
+);
 assert.match(performanceCard, /label=\{entry\.timeLabel\}/, "race timeline rows should show time");
 assert.match(performanceCard, /label="Pace"/, "race timeline rows should show pace");
 assert.match(performanceCard, /label="GAP"/, "race timeline rows should show grade-adjusted pace");

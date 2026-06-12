@@ -710,7 +710,7 @@ const RaceLegPerformanceCard: React.FC<{
   const showReportedElevation = entry?.kind !== "official" && !entry?.assumedMetrics.elevationGain;
 
   return (
-    <div className="group relative rounded-xl border border-gray-200 bg-white shadow-sm shadow-slate-200/70 transition-all hover:-translate-y-0.5 hover:border-amber-200 hover:shadow-lg hover:shadow-amber-100/70 focus-within:border-amber-300 focus-within:shadow-lg dark:border-slate-800 dark:bg-slate-900 dark:shadow-black/30 dark:hover:border-amber-500/40 dark:hover:shadow-black/40">
+    <div className="group relative rounded-xl border border-gray-200 bg-white shadow-sm shadow-slate-200/70 transition-all hover:-translate-y-0.5 hover:border-amber-200 hover:bg-gray-50 hover:shadow-lg hover:shadow-amber-100/70 focus-within:border-amber-300 focus-within:bg-gray-50 focus-within:shadow-lg active:bg-gray-50 dark:border-slate-800 dark:bg-slate-900 dark:shadow-black/30 dark:hover:border-amber-500/40 dark:hover:bg-slate-800/80 dark:hover:shadow-black/40 dark:focus-within:bg-slate-800/80 dark:active:bg-slate-800/80">
       {linkedEntry && performanceLink ? (
         <Link
           to="/runs/$runnerName/$year/$legNumber"

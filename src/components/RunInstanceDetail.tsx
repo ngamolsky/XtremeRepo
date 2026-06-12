@@ -24,7 +24,6 @@ import {
 } from "../lib/gradeAdjustedPace";
 import { formatFeet, formatMiles, formatPace, formatSourceType } from "../lib/utils";
 import { supabase } from "../lib/supabase";
-import { formatLegLabel } from "../lib/legVersion";
 import { Tables } from "../types/database.types";
 import Breadcrumbs from "./Breadcrumbs";
 import CommentsSection from "./CommentsSection";
@@ -720,16 +719,13 @@ const RunInstanceDetail: React.FC = () => {
           current={`${selectedYear} Leg ${selectedLegNumber} Performance`}
           items={[
             {
+              label: "Races",
+              to: "/races",
+            },
+            {
               label: `Race ${selectedYear}`,
               to: "/races/$year",
               params: { year: selectedYear.toString() },
-            },
-            {
-              label: formatLegLabel(selectedLegNumber, selectedVersion),
-              to: "/legs/$legNumber",
-              params: {
-                legNumber: selectedLegNumber.toString(),
-              },
             },
           ]}
         />

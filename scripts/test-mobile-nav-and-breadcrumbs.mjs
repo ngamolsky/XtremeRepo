@@ -53,7 +53,7 @@ const nestedComponents = [
   ["LegDetail", "../src/components/LegDetail.tsx", "Legs", "to: \"/legs\""],
   ["RaceDetailView", "../src/components/RaceDetailView.tsx", "Races", "to: \"/races\""],
   ["PhotoDetailView", "../src/components/PhotoDetailView.tsx", "Photos", "to: \"/photos\""],
-  ["RunInstanceDetail", "../src/components/RunInstanceDetail.tsx", "Race \\${selectedYear}", "to: \"/races/$year\""],
+  ["RunInstanceDetail", "../src/components/RunInstanceDetail.tsx", "Races", "to: \"/races\""],
 ];
 
 for (const [name, relativePath, parentLabel, parentRoute] of nestedComponents) {
@@ -61,8 +61,9 @@ for (const [name, relativePath, parentLabel, parentRoute] of nestedComponents) {
   assert.match(source, /import Breadcrumbs from "\.\/Breadcrumbs";/, `${name} should import breadcrumbs`);
   if (name === "RunInstanceDetail") {
     const breadcrumbs = source.slice(source.indexOf("<Breadcrumbs"), source.indexOf("<div className=\"mt-4 flex"));
-    assert.match(source, /label: `Race \$\{selectedYear\}`[\s\S]*to: "\/races\/\$year"/, `${name} should link breadcrumb back to the race page`);
-    assert.match(breadcrumbs, /formatLegLabel\(selectedLegNumber, selectedVersion\)[\s\S]*to: "\/legs\/\$legNumber"/, `${name} should include the leg breadcrumb after the race`);
+    assert.match(breadcrumbs, /label: "Races"[\s\S]*to: "\/races"/, `${name} should first link breadcrumb back to Races`);
+    assert.match(breadcrumbs, /label: `Race \$\{selectedYear\}`[\s\S]*to: "\/races\/\$year"/, `${name} should link breadcrumb back to the race detail page`);
+    assert.doesNotMatch(breadcrumbs, /to: "\/legs\/\$legNumber"/, `${name} breadcrumbs should not route through the leg page; leg performance is race-scoped`);
     assert.doesNotMatch(breadcrumbs, /to: "\/runners\/\$runnerName"/, `${name} breadcrumbs should not route through Runner; leg performance is race + leg scoped`);
     continue;
   }
