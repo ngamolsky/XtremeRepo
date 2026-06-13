@@ -398,6 +398,7 @@ const RunInstanceDetail: React.FC = () => {
       : legHistoricalAverageMinutes
         ? getProjectedPrimaryPerformance(legHistoricalAverageMinutes, legDefinition)
         : null;
+  const showPrimaryBogeys = primaryPerformance?.source === "official";
   const primaryObservationId =
     primaryPerformance?.source === "self-reported" ? observations[0]?.id ?? null : null;
   const secondaryObservations = observations.filter(
@@ -800,11 +801,18 @@ const RunInstanceDetail: React.FC = () => {
               <Metric label="Vs Historical Avg" value={primaryPerformance.averageDelta} icon={<Clock className="h-4 w-4" />} />
               <Metric label="Distance" value={formatMiles(primaryPerformance.distance)} icon={<MapIcon className="h-4 w-4" />} />
               <Metric label="Elevation" value={formatFeet(primaryPerformance.elevationGain)} />
-              <Metric label="Bogeys" value={formatBogeyEventSummary(performanceBogeyEvents)} icon={<Target className="h-4 w-4" />} />
+              {showPrimaryBogeys && (
+                <Metric label="Bogeys" value={formatBogeyEventSummary(performanceBogeyEvents)} icon={<Target className="h-4 w-4" />} />
+              )}
             </dl>
             <p className="mt-4 rounded-lg bg-gray-50 p-4 text-sm text-gray-600">
               {primaryPerformance.note}
             </p>
+            {showPrimaryBogeys && (
+              <p className="mt-3 rounded-lg bg-gray-50 p-4 text-sm text-gray-600">
+                Bogeys use official source split data. Start-wave differences may affect inferred physical passes when wave start offsets are unknown.
+              </p>
+            )}
           </>
         ) : (
           <p className="text-sm text-gray-600">No performance data is available yet.</p>

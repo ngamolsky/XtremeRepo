@@ -105,8 +105,10 @@ assert.match(runnerSource, /buildRunnerBogeySummary/, "runner page should summar
 assert.match(runnerSource, /same-start inferred/i, "runner page should label same-start inferred bogeys honestly");
 
 const runSource = readFileSync("src/components/RunInstanceDetail.tsx", "utf8");
-assert.match(runSource, /Bogeys/, "leg performance page should display bogeys for that leg");
+assert.match(runSource, /Bogeys/, "leg performance page should display bogeys for official leg data");
 assert.match(runSource, /filterBogeyEventsForPerformance/, "leg performance page should use the shared helper to filter bogey events");
+assert.match(runSource, /const showPrimaryBogeys = primaryPerformance\?\.source === "official"/, "leg performance page should hide bogeys unless the primary data is official");
+assert.match(runSource, /\{showPrimaryBogeys && \([\s\S]*<Metric label="Bogeys"/, "leg performance page should conditionally render bogeys only for official primary data");
 assert.match(runSource, /Start-wave differences may affect inferred physical passes/, "leg performance page should explain start-wave uncertainty");
 
 const workerSource = readFileSync("src/worker/index.ts", "utf8");
