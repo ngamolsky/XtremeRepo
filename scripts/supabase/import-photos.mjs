@@ -63,7 +63,7 @@ for (let index = 0; index < imageFiles.length; index += 1) {
   const race = fileMetadata.race || args.race || eventName;
   const category = normalizeTag(fileMetadata.category || args.category || "team");
   const buffer = readFileSync(filePath);
-  const dimensions = readImageDimensions(buffer, path.extname(filePath).toLowerCase());
+  const dimensions = readImageDimensions(buffer);
   const contentType = fileMetadata.content_type || contentTypeFor(filePath);
   const storageBucket = fileMetadata.storage_bucket || args.bucket;
   const storagePath =
@@ -407,20 +407,32 @@ function contentTypeFor(filePath) {
   }
 }
 
-function readImageDimensions(buffer, ext) {
-  if (ext === ".png") {
+function readImageDimensions(buffer) {
+  if (isPng(buffer)) {
     return readPngDimensions(buffer);
   }
 
-  if (ext === ".jpg" || ext === ".jpeg") {
+  if (isJpeg(buffer)) {
     return readJpegDimensions(buffer);
   }
 
-  if (ext === ".webp") {
+  if (isWebp(buffer)) {
     return readWebpDimensions(buffer);
   }
 
   return { width: null, height: null };
+}
+
+function isPng(buffer) {
+  return buffer.length >= 24 && buffer.readUInt32BE(0) === 0x89504e47;
+}
+
+function isJpeg(buffer) {
+  return buffer.length >= 4 && buffer[0] === 0xff && buffer[1] === 0xd8;
+}
+
+function isWebp(buffer) {
+  return buffer.length >= 12 && buffer.toString("ascii", 8, 12) === "WEBP";
 }
 
 function readPngDimensions(buffer) {

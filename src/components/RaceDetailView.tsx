@@ -28,7 +28,6 @@ import { LegPill } from "./LegPill";
 import SourceBadge, { type SourceKind } from "./SourceBadge";
 
 type AlbumSummary = Tables<"v_race_photo_album_summary">;
-type RacePhoto = Tables<"race_photos">;
 type LegDefinition = Tables<"leg_definitions">;
 type OfficialResult = Tables<"v_results_with_pace">;
 type SelfRecordedObservation = Tables<"v_leg_result_observations_with_pace">;
@@ -88,7 +87,6 @@ const RaceDetailView: React.FC = () => {
     error,
   } = useRelayData();
   const [albumSummary, setAlbumSummary] = useState<AlbumSummary | null>(null);
-  const [fallbackCoverPhoto, setFallbackCoverPhoto] = useState<RacePhoto | null>(null);
   const [albumLoading, setAlbumLoading] = useState(true);
   const [albumError, setAlbumError] = useState<string | null>(null);
 
@@ -177,15 +175,7 @@ const RaceDetailView: React.FC = () => {
         storagePath: albumSummary.cover_storage_path,
         alt: `${raceYear} ${raceName}`,
       }
-    : fallbackCoverPhoto
-      ? {
-          storageBucket: fallbackCoverPhoto.storage_bucket,
-          storagePath: fallbackCoverPhoto.storage_path,
-          alt:
-            fallbackCoverPhoto.alt_text ||
-            `${fallbackCoverPhoto.year} ${fallbackCoverPhoto.race} cover photo`,
-        }
-      : null;
+    : null;
   const coverUrlCandidates = getStorageUrlCandidates(
     coverPhoto?.storageBucket,
     coverPhoto?.storagePath
@@ -209,7 +199,6 @@ const RaceDetailView: React.FC = () => {
 
       setAlbumLoading(true);
       setAlbumError(null);
-      setFallbackCoverPhoto(null);
 
       const { data, error: summaryError } = await supabase
         .from("v_race_photo_album_summary")
@@ -229,22 +218,6 @@ const RaceDetailView: React.FC = () => {
         setAlbumSummary(data);
       } else {
         setAlbumSummary(null);
-
-        const {
-          data: fallbackPhoto,
-          error: fallbackError,
-        } = await loadRaceCoverFallback(raceName);
-
-        if (cancelled) {
-          return;
-        }
-
-        if (fallbackError) {
-          setAlbumError(fallbackError.message);
-          setFallbackCoverPhoto(null);
-        } else {
-          setFallbackCoverPhoto(fallbackPhoto);
-        }
       }
 
       setAlbumLoading(false);
@@ -1053,33 +1026,6 @@ function getStorageUrlCandidates(
 
 function encodeStoragePath(path: string) {
   return path.split("/").map(encodeURIComponent).join("/");
-}
-
-async function loadRaceCoverFallback(raceName: string) {
-  const featuredResult = await supabase
-    .from("race_photos")
-    .select("*")
-    .eq("race", raceName)
-    .eq("featured", true)
-    .order("year", { ascending: false })
-    .order("sort_order", { ascending: true })
-    .order("created_at", { ascending: true })
-    .limit(1)
-    .maybeSingle();
-
-  if (featuredResult.data || featuredResult.error) {
-    return featuredResult;
-  }
-
-  return supabase
-    .from("race_photos")
-    .select("*")
-    .eq("race", raceName)
-    .order("year", { ascending: false })
-    .order("sort_order", { ascending: true })
-    .order("created_at", { ascending: true })
-    .limit(1)
-    .maybeSingle();
 }
 
 function formatCount(count: number, singularLabel: string) {
