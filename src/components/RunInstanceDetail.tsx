@@ -9,7 +9,6 @@ import {
   Tag,
   Target,
   Trash2,
-  User,
   X,
 } from "lucide-react";
 import React, { useEffect, useMemo, useState } from "react";
@@ -27,6 +26,9 @@ import { supabase } from "../lib/supabase";
 import { Tables } from "../types/database.types";
 import Breadcrumbs from "./Breadcrumbs";
 import CommentsSection from "./CommentsSection";
+import EntityPill from "./EntityPill";
+import { LegPill } from "./LegPill";
+import SourceBadge, { type SourceKind } from "./SourceBadge";
 
 type ObservationRow = Tables<"v_leg_result_observations_with_pace">;
 type OfficialResultRow = Tables<"v_results_with_pace">;
@@ -239,6 +241,10 @@ function getProjectedPrimaryPerformance(
     averageDelta: "N/A",
     note: "No official or self reported data is available yet, so this uses the historical average for the leg version.",
   };
+}
+
+function primaryPerformanceSourceKind(source: PrimaryPerformanceSource): SourceKind {
+  return source === "projected" ? "inferred" : source;
 }
 
 const RunInstanceDetail: React.FC = () => {
@@ -730,29 +736,36 @@ const RunInstanceDetail: React.FC = () => {
           ]}
         />
         <div className="mt-4 flex flex-wrap items-start justify-between gap-4">
-          <div>
+          <div className="min-w-0">
             <p className="mt-1 text-xs font-semibold uppercase tracking-wider text-primary-700">
               Leg Performance
             </p>
             <h1 className="text-3xl font-bold text-gray-900">
               {selectedYear} Leg {selectedLegNumber} Performance
             </h1>
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <LegPill
+                leg={selectedLegNumber}
+                version={selectedVersion}
+                className="inline-flex items-center rounded-full bg-emerald-50 px-3 py-1 text-sm font-semibold text-emerald-700 transition-colors hover:bg-emerald-100 hover:text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200"
+              >
+                View leg page
+              </LegPill>
+              <EntityPill
+                category="runner"
+                to="/runners/$runnerName"
+                params={{ runnerName }}
+                ariaLabel={`View ${runnerName} runner profile`}
+              >
+                {runnerName}
+              </EntityPill>
+            </div>
             <p className="mt-2 text-gray-600">
               {formatMiles(officialResult?.distance ?? legDefinition?.distance)} •{" "}
               {formatFeet(officialResult?.elevation_gain ?? legDefinition?.elevation_gain)}
               {yearlyRace?.race_start_time && ` • Race start ${yearlyRace.race_start_time}`}
             </p>
           </div>
-          <Link
-            to="/legs/$legNumber"
-            params={{
-              legNumber: selectedLegNumber.toString(),
-            }}
-            className="inline-flex items-center gap-2 rounded-lg border border-primary-200 px-4 py-2 text-sm font-medium text-primary-700 transition-colors hover:border-primary-300 hover:bg-primary-50 hover:text-primary-800"
-          >
-            <MapIcon className="h-4 w-4" />
-            View leg page
-          </Link>
         </div>
       </div>
 
@@ -770,30 +783,25 @@ const RunInstanceDetail: React.FC = () => {
             </div>
           </div>
           {primaryPerformance && (
-            <span className={`rounded-full px-3 py-1 text-xs font-semibold ${
-              primaryPerformance.source === "official"
-                ? "bg-emerald-100 text-emerald-800"
-                : primaryPerformance.source === "self-reported"
-                  ? "bg-amber-100 text-amber-800"
-                  : "bg-sky-100 text-sky-800"
-            }`}>
-              {primaryPerformance.sourceLabel}
-            </span>
+            <SourceBadge
+              kind={primaryPerformanceSourceKind(primaryPerformance.source)}
+              label={primaryPerformance.sourceLabel}
+              title="Primary performance data source"
+            />
           )}
         </div>
 
         {primaryPerformance ? (
           <>
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <dl className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
               <Metric label={primaryPerformance.timeType} value={primaryPerformance.timeLabel} icon={<Clock className="h-4 w-4" />} />
               <Metric label="Pace" value={formatPace(primaryPerformance.pace || 0)} icon={<Activity className="h-4 w-4" />} />
               <Metric label="Grade Adjusted Pace" value={primaryPerformance.gradeAdjustedPace} icon={<Activity className="h-4 w-4" />} />
               <Metric label="Vs Historical Avg" value={primaryPerformance.averageDelta} icon={<Clock className="h-4 w-4" />} />
               <Metric label="Distance" value={formatMiles(primaryPerformance.distance)} icon={<MapIcon className="h-4 w-4" />} />
               <Metric label="Elevation" value={formatFeet(primaryPerformance.elevationGain)} />
-              <Metric label="Runner" value={runnerName} icon={<User className="h-4 w-4" />} />
               <Metric label="Bogeys" value={formatBogeyEventSummary(performanceBogeyEvents)} icon={<Target className="h-4 w-4" />} />
-            </div>
+            </dl>
             <p className="mt-4 rounded-lg bg-gray-50 p-4 text-sm text-gray-600">
               {primaryPerformance.note}
             </p>
@@ -1097,12 +1105,12 @@ type MetricProps = {
 };
 
 const Metric: React.FC<MetricProps> = ({ icon, label, value }) => (
-  <div className="rounded-lg bg-gray-50 p-4">
-    <div className="mb-1 flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-gray-500">
+  <div>
+    <dt className="mb-1 flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-gray-500">
       {icon}
       <span>{label}</span>
-    </div>
-    <p className="text-sm font-semibold text-gray-900">{value}</p>
+    </dt>
+    <dd className="text-sm font-semibold text-gray-900">{value}</dd>
   </div>
 );
 

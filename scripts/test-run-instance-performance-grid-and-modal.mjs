@@ -18,8 +18,26 @@ assert.match(
 
 assert.match(
   source,
-  /<h2[^>]*>[\s\S]*Primary Performance Data[\s\S]*<\/h2>[\s\S]*grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4/,
-  "main performance section should render as a responsive metric grid"
+  /<LegPill[\s\S]*leg=\{selectedLegNumber\}[\s\S]*version=\{selectedVersion\}[\s\S]*View leg page[\s\S]*<\/LegPill>/,
+  "leg performance page header should expose the canonical linked leg pill"
+);
+
+assert.match(
+  source,
+  /<EntityPill[\s\S]*category="runner"[\s\S]*to="\/runners\/\$runnerName"[\s\S]*params=\{\{ runnerName \}\}[\s\S]*\{runnerName\}[\s\S]*<\/EntityPill>/,
+  "leg performance page header should expose the canonical linked runner pill"
+);
+
+assert.match(
+  source,
+  /<SourceBadge[\s\S]*kind=\{primaryPerformanceSourceKind\(primaryPerformance\.source\)\}[\s\S]*label=\{primaryPerformance\.sourceLabel\}/,
+  "primary performance source should use the shared SourceBadge precedence colors"
+);
+
+assert.match(
+  source,
+  /<h2[^>]*>[\s\S]*Primary Performance Data[\s\S]*<\/h2>[\s\S]*<dl className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-4"/,
+  "main performance section should render with the shared compact performance metric grid"
 );
 
 assert.match(
