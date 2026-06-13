@@ -42,6 +42,30 @@ assert.match(
 
 assert.match(
   source,
+  /legStartTime: formatLegClockTime\(officialResult\.leg_start_time\)/,
+  "official primary performance should carry the official leg start time"
+);
+
+assert.match(
+  source,
+  /legEndTime: formatLegClockTime\(officialResult\.leg_finish_time\)/,
+  "official primary performance should carry the official leg end time"
+);
+
+assert.match(
+  source,
+  /<Metric label="Leg Start" value=\{primaryPerformance\.legStartTime\}/,
+  "primary performance grid should show leg start time"
+);
+
+assert.match(
+  source,
+  /<Metric label="Leg End" value=\{primaryPerformance\.legEndTime\}/,
+  "primary performance grid should show leg end time"
+);
+
+assert.match(
+  source,
   /paceAssumed: observation\.observed_distance === null && observation\.pace !== null/,
   "self-reported primary pace should track when it was computed from the default distance"
 );

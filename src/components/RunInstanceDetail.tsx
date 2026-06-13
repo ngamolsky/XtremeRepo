@@ -46,6 +46,8 @@ type PrimaryPerformance = {
   hasAssumedMetrics: boolean;
   distance: number | null;
   elevationGain: number | null;
+  legStartTime: string;
+  legEndTime: string;
   averageDelta: string;
   note: string;
 };
@@ -195,6 +197,8 @@ function getOfficialPrimaryPerformance(
     hasAssumedMetrics: false,
     distance: officialResult.distance,
     elevationGain: officialResult.elevation_gain,
+    legStartTime: formatLegClockTime(officialResult.leg_start_time),
+    legEndTime: formatLegClockTime(officialResult.leg_finish_time),
     averageDelta: formatAverageDelta(officialResult.time_in_minutes, legHistoricalAverageMinutes),
     note: "Official race result is the best available source for this performance.",
   };
@@ -220,6 +224,8 @@ function getObservationPrimaryPerformance(
     hasAssumedMetrics: Object.values(assumedMetrics).some((isAssumed) => isAssumed),
     distance: observation.display_distance,
     elevationGain: observation.display_elevation_gain,
+    legStartTime: "N/A",
+    legEndTime: "N/A",
     averageDelta: formatAverageDelta(observation.time_in_minutes, legHistoricalAverageMinutes),
     note: "No official result is available yet, so the best self reported observation is shown here.",
   };
@@ -251,6 +257,8 @@ function getProjectedPrimaryPerformance(
     hasAssumedMetrics: false,
     distance,
     elevationGain,
+    legStartTime: "N/A",
+    legEndTime: "N/A",
     averageDelta: "N/A",
     note: "No official or self reported data is available yet, so this uses the historical average for the leg version.",
   };
@@ -814,6 +822,8 @@ const RunInstanceDetail: React.FC = () => {
               <Metric label="Vs Historical Avg" value={primaryPerformance.averageDelta} icon={<Clock className="h-4 w-4" />} />
               <Metric label="Distance" value={formatMiles(primaryPerformance.distance)} icon={<MapIcon className="h-4 w-4" />} />
               <Metric label="Elevation" value={formatFeet(primaryPerformance.elevationGain)} />
+              <Metric label="Leg Start" value={primaryPerformance.legStartTime} icon={<Clock className="h-4 w-4" />} />
+              <Metric label="Leg End" value={primaryPerformance.legEndTime} icon={<Clock className="h-4 w-4" />} />
               {showPrimaryBogeys && (
                 <Metric label="Bogeys" value={formatBogeyEventSummary(performanceBogeyEvents)} icon={<Target className="h-4 w-4" />} />
               )}
@@ -1164,6 +1174,30 @@ function parseOptionalInteger(value: string) {
 
   const parsed = Number(value);
   return Number.isFinite(parsed) ? Math.round(parsed) : Number.NaN;
+}
+
+function formatLegClockTime(value: string | null | undefined) {
+  if (!value) {
+    return "N/A";
+  }
+
+  const trimmed = value.trim();
+  const clockMatch = /^(\d{1,2}):(\d{2})(?::\d{2})?$/.exec(trimmed);
+
+  if (!clockMatch) {
+    return trimmed;
+  }
+
+  const hours = Number(clockMatch[1]);
+  const minutes = Number(clockMatch[2]);
+
+  if (!Number.isFinite(hours) || !Number.isFinite(minutes) || hours > 23 || minutes > 59) {
+    return trimmed;
+  }
+
+  const period = hours >= 12 ? "PM" : "AM";
+  const displayHours = hours % 12 || 12;
+  return `${displayHours}:${String(minutes).padStart(2, "0")} ${period}`;
 }
 
 function formatObservationSource(observation: ObservationRow) {
