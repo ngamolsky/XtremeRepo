@@ -41,6 +41,9 @@ type PrimaryPerformance = {
   timeType: string;
   pace: number | null;
   gradeAdjustedPace: string;
+  paceAssumed: boolean;
+  gradeAdjustedPaceAssumed: boolean;
+  hasAssumedMetrics: boolean;
   distance: number | null;
   elevationGain: number | null;
   averageDelta: string;
@@ -187,6 +190,9 @@ function getOfficialPrimaryPerformance(
         elevationGainFeet: officialResult.elevation_gain,
       })
     ),
+    paceAssumed: false,
+    gradeAdjustedPaceAssumed: false,
+    hasAssumedMetrics: false,
     distance: officialResult.distance,
     elevationGain: officialResult.elevation_gain,
     averageDelta: formatAverageDelta(officialResult.time_in_minutes, legHistoricalAverageMinutes),
@@ -200,6 +206,7 @@ function getObservationPrimaryPerformance(
 ): PrimaryPerformance {
   const timeValue =
     observation.primary_time || observation.lap_time || observation.elapsed_time || observation.moving_time;
+  const assumedMetrics = getObservationAssumedMetrics(observation);
 
   return {
     source: "self-reported",
@@ -208,6 +215,9 @@ function getObservationPrimaryPerformance(
     timeType: formatPrimaryTimeType(observation.primary_time_type),
     pace: observation.pace,
     gradeAdjustedPace: formatGradeAdjustedPace(getObservationGradeAdjustedPace(observation)),
+    paceAssumed: observation.observed_distance === null && observation.pace !== null,
+    gradeAdjustedPaceAssumed: assumedMetrics.gradeAdjustedPace,
+    hasAssumedMetrics: Object.values(assumedMetrics).some((isAssumed) => isAssumed),
     distance: observation.display_distance,
     elevationGain: observation.display_elevation_gain,
     averageDelta: formatAverageDelta(observation.time_in_minutes, legHistoricalAverageMinutes),
@@ -236,6 +246,9 @@ function getProjectedPrimaryPerformance(
         elevationGainFeet: elevationGain,
       })
     ),
+    paceAssumed: false,
+    gradeAdjustedPaceAssumed: false,
+    hasAssumedMetrics: false,
     distance,
     elevationGain,
     averageDelta: "N/A",
@@ -745,13 +758,6 @@ const RunInstanceDetail: React.FC = () => {
               {selectedYear} Leg {selectedLegNumber} Performance
             </h1>
             <div className="mt-3 flex flex-wrap items-center gap-2">
-              <LegPill
-                leg={selectedLegNumber}
-                version={selectedVersion}
-                className="inline-flex items-center rounded-full bg-emerald-50 px-3 py-1 text-sm font-semibold text-emerald-700 transition-colors hover:bg-emerald-100 hover:text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200"
-              >
-                View leg page
-              </LegPill>
               <EntityPill
                 category="runner"
                 to="/runners/$runnerName"
@@ -760,6 +766,13 @@ const RunInstanceDetail: React.FC = () => {
               >
                 {runnerName}
               </EntityPill>
+              <LegPill
+                leg={selectedLegNumber}
+                version={selectedVersion}
+                className="inline-flex items-center rounded-full bg-emerald-50 px-3 py-1 text-sm font-semibold text-emerald-700 transition-colors hover:bg-emerald-100 hover:text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200"
+              >
+                Leg {selectedLegNumber}
+              </LegPill>
             </div>
             <p className="mt-2 text-gray-600">
               {formatMiles(officialResult?.distance ?? legDefinition?.distance)} •{" "}
@@ -796,8 +809,8 @@ const RunInstanceDetail: React.FC = () => {
           <>
             <dl className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
               <Metric label={primaryPerformance.timeType} value={primaryPerformance.timeLabel} icon={<Clock className="h-4 w-4" />} />
-              <Metric label="Pace" value={formatPace(primaryPerformance.pace || 0)} icon={<Activity className="h-4 w-4" />} />
-              <Metric label="Grade Adjusted Pace" value={primaryPerformance.gradeAdjustedPace} icon={<Activity className="h-4 w-4" />} />
+              <Metric label="Pace" value={formatAssumedMetric(formatPace(primaryPerformance.pace || 0), primaryPerformance.paceAssumed)} icon={<Activity className="h-4 w-4" />} />
+              <Metric label="Grade Adjusted Pace" value={formatAssumedMetric(primaryPerformance.gradeAdjustedPace, primaryPerformance.gradeAdjustedPaceAssumed)} icon={<Activity className="h-4 w-4" />} />
               <Metric label="Vs Historical Avg" value={primaryPerformance.averageDelta} icon={<Clock className="h-4 w-4" />} />
               <Metric label="Distance" value={formatMiles(primaryPerformance.distance)} icon={<MapIcon className="h-4 w-4" />} />
               <Metric label="Elevation" value={formatFeet(primaryPerformance.elevationGain)} />
@@ -808,6 +821,9 @@ const RunInstanceDetail: React.FC = () => {
             <p className="mt-4 rounded-lg bg-gray-50 p-4 text-sm text-gray-600">
               {primaryPerformance.note}
             </p>
+            {primaryPerformance.hasAssumedMetrics && (
+              <p className="mt-3 text-xs text-gray-500">{ASSUMED_OBSERVATION_LEGEND}</p>
+            )}
             {showPrimaryBogeys && (
               <p className="mt-3 rounded-lg bg-gray-50 p-4 text-sm text-gray-600">
                 Bogeys use official source split data. Start-wave differences may affect inferred physical passes when wave start offsets are unknown.
@@ -912,10 +928,10 @@ const RunInstanceDetail: React.FC = () => {
                       </div>
                       <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
                         <Metric label={formatPrimaryTimeType(observation.primary_time_type)} value={timeValue || "N/A"} />
-                        <Metric label="Pace" value={formatPace(observation.pace || 0)} />
-                        <Metric label="GAP" value={formatGradeAdjustedPace(getObservationGradeAdjustedPace(observation))} />
-                        <Metric label="Distance" value={`${formatMiles(observation.display_distance)}${assumedMetrics.distance ? " *" : ""}`} />
-                        <Metric label="Elevation" value={`${formatFeet(observation.display_elevation_gain)}${assumedMetrics.elevationGain ? " *" : ""}`} />
+                        <Metric label="Pace" value={formatAssumedMetric(formatPace(observation.pace || 0), assumedMetrics.pace)} />
+                        <Metric label="GAP" value={formatAssumedMetric(formatGradeAdjustedPace(getObservationGradeAdjustedPace(observation)), assumedMetrics.gradeAdjustedPace)} />
+                        <Metric label="Distance" value={formatAssumedMetric(formatMiles(observation.display_distance), assumedMetrics.distance)} />
+                        <Metric label="Elevation" value={formatAssumedMetric(formatFeet(observation.display_elevation_gain), assumedMetrics.elevationGain)} />
                         <Metric label="Submitted By" value={observation.submitted_by_runner_name || "N/A"} />
                       </div>
                     </div>
@@ -1156,6 +1172,10 @@ function formatObservationSource(observation: ObservationRow) {
   return observation.source_label ? `${source} (${observation.source_label})` : source;
 }
 
+function formatAssumedMetric(value: string, isAssumed: boolean) {
+  return `${value}${isAssumed ? " *" : ""}`;
+}
+
 function getObservationAssumedMetrics(observation: ObservationRow) {
   return {
     pace: observation.observed_distance === null && observation.pace !== null,
@@ -1163,6 +1183,9 @@ function getObservationAssumedMetrics(observation: ObservationRow) {
     elevationGain:
       observation.observed_elevation_gain === null &&
       observation.display_elevation_gain !== null,
+    gradeAdjustedPace:
+      observation.pace !== null &&
+      (observation.observed_distance === null || observation.observed_elevation_gain === null),
   };
 }
 

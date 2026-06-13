@@ -18,14 +18,14 @@ assert.match(
 
 assert.match(
   source,
-  /<LegPill[\s\S]*leg=\{selectedLegNumber\}[\s\S]*version=\{selectedVersion\}[\s\S]*View leg page[\s\S]*<\/LegPill>/,
-  "leg performance page header should expose the canonical linked leg pill"
+  /<EntityPill[\s\S]*category="runner"[\s\S]*to="\/runners\/\$runnerName"[\s\S]*params=\{\{ runnerName \}\}[\s\S]*\{runnerName\}[\s\S]*<\/EntityPill>[\s\S]*<LegPill[\s\S]*leg=\{selectedLegNumber\}[\s\S]*version=\{selectedVersion\}[\s\S]*Leg \{selectedLegNumber\}[\s\S]*<\/LegPill>/,
+  "leg performance page header should put runner pill first, then a simple Leg N pill"
 );
 
-assert.match(
+assert.doesNotMatch(
   source,
-  /<EntityPill[\s\S]*category="runner"[\s\S]*to="\/runners\/\$runnerName"[\s\S]*params=\{\{ runnerName \}\}[\s\S]*\{runnerName\}[\s\S]*<\/EntityPill>/,
-  "leg performance page header should expose the canonical linked runner pill"
+  /<LegPill[\s\S]*View leg page[\s\S]*<\/LegPill>/,
+  "leg performance page header should not use action copy inside the leg pill"
 );
 
 assert.match(
@@ -38,6 +38,54 @@ assert.match(
   source,
   /<h2[^>]*>[\s\S]*Primary Performance Data[\s\S]*<\/h2>[\s\S]*<dl className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-4"/,
   "main performance section should render with the shared compact performance metric grid"
+);
+
+assert.match(
+  source,
+  /paceAssumed: observation\.observed_distance === null && observation\.pace !== null/,
+  "self-reported primary pace should track when it was computed from the default distance"
+);
+
+assert.match(
+  source,
+  /gradeAdjustedPaceAssumed: assumedMetrics\.gradeAdjustedPace/,
+  "self-reported primary grade adjusted pace should track when distance or elevation came from defaults"
+);
+
+assert.match(
+  source,
+  /gradeAdjustedPace:[\s\S]*observation\.pace !== null[\s\S]*observation\.observed_distance === null[\s\S]*observation\.observed_elevation_gain === null/,
+  "assumed grade adjusted pace should only be marked when it can be computed from default distance or elevation"
+);
+
+assert.match(
+  source,
+  /<Metric label="Pace" value=\{formatAssumedMetric\(formatPace\(primaryPerformance\.pace \|\| 0\), primaryPerformance\.paceAssumed\)\}/,
+  "primary self-reported pace should show an asterisk when computed from default distance"
+);
+
+assert.match(
+  source,
+  /<Metric label="Grade Adjusted Pace" value=\{formatAssumedMetric\(primaryPerformance\.gradeAdjustedPace, primaryPerformance\.gradeAdjustedPaceAssumed\)\}/,
+  "primary self-reported grade adjusted pace should show an asterisk when computed from default distance or elevation"
+);
+
+assert.match(
+  source,
+  /\{primaryPerformance\.hasAssumedMetrics && \([\s\S]*ASSUMED_OBSERVATION_LEGEND/,
+  "primary performance grid should show the assumed self-reported metric legend when asterisks are present"
+);
+
+assert.match(
+  source,
+  /<Metric label="Pace" value=\{formatAssumedMetric\(formatPace\(observation\.pace \|\| 0\), assumedMetrics\.pace\)\}/,
+  "secondary self-reported pace should also show the assumed metric asterisk"
+);
+
+assert.match(
+  source,
+  /<Metric label="GAP" value=\{formatAssumedMetric\(formatGradeAdjustedPace\(getObservationGradeAdjustedPace\(observation\)\), assumedMetrics\.gradeAdjustedPace\)\}/,
+  "secondary self-reported GAP should also show the assumed metric asterisk"
 );
 
 assert.match(
