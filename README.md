@@ -234,6 +234,35 @@ at the local Supabase stack. Avoid also defining `VITE_SUPABASE_URL` or
 `VITE_SUPABASE_ANON_KEY` in the Cloudflare dashboard unless they exactly match
 `wrangler.jsonc`; otherwise the dashboard can look like a second source of truth.
 
+### Supabase Free Tier Heartbeat
+
+Supabase may pause Free Plan projects that have low activity in a 7-day period.
+The deployed Cloudflare Worker has a cron trigger that runs twice weekly:
+
+```text
+17 16 * * MON,THU
+```
+
+On each scheduled run, the Worker performs one read-only REST request against
+`v_yearly_summary` using the public anon key from `wrangler.jsonc`. This creates
+light database activity without requiring a service-role secret. This heartbeat
+is intended to keep the project active; Supabase Pro is the guaranteed way to
+avoid inactivity pauses.
+
+To test the scheduled handler locally, run the Worker and call Cloudflare's
+scheduled test route:
+
+```bash
+npm run dev
+curl "http://127.0.0.1:5173/cdn-cgi/handler/scheduled?format=json"
+```
+
+Deploy cron changes with:
+
+```bash
+npm run deploy
+```
+
 ### AI Agent Keys
 
 The Falcons chat agent needs one or both provider keys before it can answer.

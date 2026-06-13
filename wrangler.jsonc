@@ -7,6 +7,9 @@
     "not_found_handling": "single-page-application",
     "run_worker_first": ["/api/*"]
   },
+  "triggers": {
+    "crons": ["17 16 * * MON,THU"]
+  },
   "vars": {
     "VITE_SUPABASE_URL": "https://vrorouyfpacxpxkcsleq.supabase.co",
     "VITE_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZyb3JvdXlmcGFjeHB4a2NzbGVxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2OTIwODQsImV4cCI6MjA5NjI2ODA4NH0.f3hxwuO7w7fkUiVX2RfOJie3k0OD8XRt5g5DaBuevRM"

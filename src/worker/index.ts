@@ -30,6 +30,13 @@ export default {
 
     return new Response("Not found", { status: 404 });
   },
+
+  async scheduled(
+    controller: WorkerScheduledController,
+    env: Env
+  ): Promise<void> {
+    await pingSupabaseHeartbeat(env, controller.cron);
+  },
 };
 
 type Env = {
@@ -38,6 +45,12 @@ type Env = {
   OPENAI_API_KEY?: string;
   ANTHROPIC_API_KEY?: string;
   AI_PROVIDER?: ChatProvider;
+};
+
+type WorkerScheduledController = {
+  cron: string;
+  scheduledTime: number;
+  type: "scheduled";
 };
 
 type ChatProvider = "openai" | "anthropic";
@@ -1296,6 +1309,37 @@ function createRelayClient(env: Env, authorizationHeader?: string): DataClient {
       headers: authorizationHeader ? { Authorization: authorizationHeader } : {},
     },
   });
+}
+
+async function pingSupabaseHeartbeat(env: Env, cron: string): Promise<void> {
+  if (!env.VITE_SUPABASE_URL || !env.VITE_SUPABASE_ANON_KEY) {
+    throw new Error("Missing Supabase worker environment variables.");
+  }
+
+  const heartbeatUrl = new URL("/rest/v1/v_yearly_summary", env.VITE_SUPABASE_URL);
+  heartbeatUrl.searchParams.set("select", "year");
+  heartbeatUrl.searchParams.set("limit", "1");
+
+  const response = await fetch(heartbeatUrl.toString(), {
+    headers: {
+      Accept: "application/json",
+      apikey: env.VITE_SUPABASE_ANON_KEY,
+      Authorization: `Bearer ${env.VITE_SUPABASE_ANON_KEY}`,
+      "Cache-Control": "no-store",
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Supabase heartbeat failed with status ${response.status}.`);
+  }
+
+  console.log(
+    JSON.stringify({
+      event: "supabase_heartbeat_ok",
+      cron,
+      status: response.status,
+    })
+  );
 }
 
 function streamAgentEvents(
